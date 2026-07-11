@@ -5,6 +5,9 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 
+// URL base da API no Render
+const API_BASE_URL = 'https://back-kamatambu-1.onrender.com'
+
 function ForgotPasswordForm() {
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -18,7 +21,7 @@ function ForgotPasswordForm() {
     setError('')
     
     try {
-      const response = await fetch('http://localhost:8080/auth/recuperar_senha', {
+      const response = await fetch(`${API_BASE_URL}/auth/recuperar_senha`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

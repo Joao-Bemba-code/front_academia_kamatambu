@@ -18,6 +18,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
+// URL base da API no Render
+const API_BASE_URL = 'https://back-kamatambu-1.onrender.com'
+
 function RegisterForm() {
   const router = useRouter()
   const [formData, setFormData] = useState({
@@ -62,7 +65,7 @@ function RegisterForm() {
     setError('')
     
     try {
-      const response = await fetch('http://localhost:8080/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

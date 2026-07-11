@@ -16,6 +16,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
+// URL base da API no Render
+const API_BASE_URL = 'https://back-kamatambu-1.onrender.com'
+
 function LoginForm() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -30,7 +33,7 @@ function LoginForm() {
     setError('')
     
     try {
-      const response = await fetch('http://localhost:8080/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

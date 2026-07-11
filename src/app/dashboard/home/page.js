@@ -50,6 +50,9 @@ import {
   AlertTriangle
 } from 'lucide-react'
 
+// ========== URL BASE DA API ==========
+const API_BASE_URL = 'https://back-kamatambu-1.onrender.com'
+
 // ========== MAPEAMENTO DE ÍCONES ==========
 const ICON_MAP = {
   'Users': UsersIcon,
@@ -1408,7 +1411,7 @@ export default function DashboardHome() {
         'Authorization': `Bearer ${token}`
       }
     }
-    const response = await fetch(`http://localhost:8080/api${endpoint}`, {
+    const response = await fetch(`${API_BASE_URL}/api${endpoint}`, {
       ...defaultOptions,
       ...options,
       headers: { ...defaultOptions.headers, ...options.headers }
@@ -1430,7 +1433,7 @@ export default function DashboardHome() {
 
       // Buscar estatísticas do dashboard
       try {
-        const statsRes = await fetch('http://localhost:8080/api/stats/dashboard', {
+        const statsRes = await fetch(`${API_BASE_URL}/api/stats/dashboard`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
         const statsData = await statsRes.json()
@@ -1461,13 +1464,13 @@ export default function DashboardHome() {
       // Buscar listas para selects
       try {
         const [cursosListRes, turmasListRes, formadoresListRes] = await Promise.all([
-          fetch('http://localhost:8080/api/cursos/lista', {
+          fetch(`${API_BASE_URL}/api/cursos/lista`, {
             headers: { 'Authorization': `Bearer ${token}` }
           }),
-          fetch('http://localhost:8080/api/turmas', {
+          fetch(`${API_BASE_URL}/api/turmas`, {
             headers: { 'Authorization': `Bearer ${token}` }
           }),
-          fetch('http://localhost:8080/api/formadores/lista', {
+          fetch(`${API_BASE_URL}/api/formadores/lista`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
         ])
@@ -2175,7 +2178,7 @@ export default function DashboardHome() {
             setIsAdmin(false)
           }
         } else {
-          const response = await fetch('http://localhost:8080/auth/validar_token', {
+          const response = await fetch(`${API_BASE_URL}/auth/validar_token`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
           if (response.ok) {
