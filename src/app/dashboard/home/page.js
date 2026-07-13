@@ -1986,17 +1986,66 @@ export default function DashboardHome() {
     }
   }
 
+  // ========== HANDLE CREATE COM CORREÇÃO PARA CURSOS ==========
   const handleCreate = async (data, type) => {
     setModalLoading(true)
     try {
+      // Se for curso, garantir que Valor_curso seja string e os ENUMs estejam corretos
+      if (type === 'cursos') {
+        // Garantir que Valor_curso seja string
+        if (data.Valor_curso) {
+          data.Valor_curso = String(data.Valor_curso)
+        } else {
+          data.Valor_curso = "0.00"
+        }
+        
+        // Garantir que Tipo_curso seja um dos valores do ENUM
+        const tiposValidos = [
+          'Formação profissional inicial',
+          'Formação profissional continua',
+          'Formação profissional de dupla Certificação'
+        ]
+        if (!tiposValidos.includes(data.Tipo_curso)) {
+          data.Tipo_curso = 'Formação profissional inicial'
+        }
+        
+        // Garantir que Edicao seja um dos valores do ENUM
+        const edicoesValidas = ['1º', '2º', '3º', '4º', '5º', '6º', '7º', '8º', '9º', '10º']
+        if (!edicoesValidas.includes(data.Edicao)) {
+          data.Edicao = '1º'
+        }
+        
+        // Garantir que Status seja um dos valores do ENUM
+        const statusValidos = ['Ativo', 'Inativo', 'Em desenvolvimento']
+        if (!statusValidos.includes(data.Status)) {
+          data.Status = 'Ativo'
+        }
+        
+        // Garantir que Modulos seja número
+        if (data.Modulos) {
+          data.Modulos = parseInt(data.Modulos)
+        }
+        
+        // Garantir que Carga_Horaria seja número ou null
+        if (data.Carga_Horaria) {
+          data.Carga_Horaria = parseInt(data.Carga_Horaria)
+        } else {
+          data.Carga_Horaria = null
+        }
+      }
+
+      // Adicionar foto se existir
       if (fotoUrl) {
         data.Foto_User = fotoUrl
       }
+
+      console.log('Enviando dados:', data) // Para debug
 
       const response = await apiFetch(`/${type}`, {
         method: 'POST',
         body: JSON.stringify(data)
       })
+      
       if (response.success) {
         showToast(`${type.slice(0, -1)} criado com sucesso!`, 'success')
         setModalOpen(false)
@@ -2004,26 +2053,77 @@ export default function DashboardHome() {
         setFotoPreview(null)
         loadData()
       } else {
+        console.error('Erro do backend:', response)
         showToast(response.message || 'Erro ao criar', 'error')
       }
     } catch (error) {
+      console.error('Erro detalhado:', error)
       showToast('Erro ao criar', 'error')
     } finally {
       setModalLoading(false)
     }
   }
 
+  // ========== HANDLE UPDATE COM CORREÇÃO PARA CURSOS ==========
   const handleUpdate = async (id, data, type) => {
     setModalLoading(true)
     try {
+      // Se for curso, garantir que Valor_curso seja string e os ENUMs estejam corretos
+      if (type === 'cursos') {
+        // Garantir que Valor_curso seja string
+        if (data.Valor_curso) {
+          data.Valor_curso = String(data.Valor_curso)
+        } else {
+          data.Valor_curso = "0.00"
+        }
+        
+        // Garantir que Tipo_curso seja um dos valores do ENUM
+        const tiposValidos = [
+          'Formação profissional inicial',
+          'Formação profissional continua',
+          'Formação profissional de dupla Certificação'
+        ]
+        if (!tiposValidos.includes(data.Tipo_curso)) {
+          data.Tipo_curso = 'Formação profissional inicial'
+        }
+        
+        // Garantir que Edicao seja um dos valores do ENUM
+        const edicoesValidas = ['1º', '2º', '3º', '4º', '5º', '6º', '7º', '8º', '9º', '10º']
+        if (!edicoesValidas.includes(data.Edicao)) {
+          data.Edicao = '1º'
+        }
+        
+        // Garantir que Status seja um dos valores do ENUM
+        const statusValidos = ['Ativo', 'Inativo', 'Em desenvolvimento']
+        if (!statusValidos.includes(data.Status)) {
+          data.Status = 'Ativo'
+        }
+        
+        // Garantir que Modulos seja número
+        if (data.Modulos) {
+          data.Modulos = parseInt(data.Modulos)
+        }
+        
+        // Garantir que Carga_Horaria seja número ou null
+        if (data.Carga_Horaria) {
+          data.Carga_Horaria = parseInt(data.Carga_Horaria)
+        } else {
+          data.Carga_Horaria = null
+        }
+      }
+
+      // Adicionar foto se existir
       if (fotoUrl) {
         data.Foto_User = fotoUrl
       }
+
+      console.log('Enviando dados para atualização:', data) // Para debug
 
       const response = await apiFetch(`/${type}/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data)
       })
+      
       if (response.success) {
         showToast(`${type.slice(0, -1)} atualizado com sucesso!`, 'success')
         setModalOpen(false)
@@ -2031,9 +2131,11 @@ export default function DashboardHome() {
         setFotoPreview(null)
         loadData()
       } else {
+        console.error('Erro do backend:', response)
         showToast(response.message || 'Erro ao atualizar', 'error')
       }
     } catch (error) {
+      console.error('Erro detalhado:', error)
       showToast('Erro ao atualizar', 'error')
     } finally {
       setModalLoading(false)
@@ -2479,58 +2581,102 @@ export default function DashboardHome() {
         {modalType === 'cursos' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="text-xs sm:text-sm font-medium text-gray-700">Nome *</label>
-              <input name="Nome" defaultValue={modalData?.Nome} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required />
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Nome do Curso *</label>
+              <input 
+                name="Nome" 
+                defaultValue={modalData?.Nome} 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" 
+                required 
+              />
             </div>
             <div className="col-span-full">
               <label className="text-xs sm:text-sm font-medium text-gray-700">Descrição</label>
-              <textarea name="Desc" defaultValue={modalData?.Desc} rows="3" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
+              <textarea 
+                name="Desc" 
+                defaultValue={modalData?.Desc} 
+                rows="3" 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" 
+              />
             </div>
             <div>
-              <label className="text-xs sm:text-sm font-medium text-gray-700">Tipo</label>
-              <select name="Tipo_curso" defaultValue={modalData?.Tipo_curso || 'Técnico'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900">
-                <option value="Técnico">Técnico</option>
-                <option value="Graduação">Graduação</option>
-                <option value="Pós-Graduação">Pós-Graduação</option>
-                <option value="Mestrado">Mestrado</option>
-                <option value="Doutorado">Doutorado</option>
-                <option value="Extensão">Extensão</option>
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Tipo de Curso *</label>
+              <select 
+                name="Tipo_curso" 
+                defaultValue={modalData?.Tipo_curso || 'Formação profissional inicial'} 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"
+                required
+              >
+                <option value="Formação profissional inicial">Formação profissional inicial</option>
+                <option value="Formação profissional continua">Formação profissional continua</option>
+                <option value="Formação profissional de dupla Certificação">Formação profissional de dupla Certificação</option>
               </select>
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Módulos</label>
-              <input type="number" name="Modulos" defaultValue={modalData?.Modulos || 1} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
+              <input 
+                type="number" 
+                name="Modulos" 
+                defaultValue={modalData?.Modulos || 1} 
+                min="1"
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" 
+              />
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Edição</label>
-              <select name="Edicao" defaultValue={modalData?.Edicao || '1º'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900">
-                {['1º','2º','3º','4º','5º','6º','7º','8º','9º','10º'].map(e => (
-                  <option key={e} value={e}>{e}</option>
-                ))}
+              <select 
+                name="Edicao" 
+                defaultValue={modalData?.Edicao || '1º'} 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"
+              >
+                <option value="1º">1º</option>
+                <option value="2º">2º</option>
+                <option value="3º">3º</option>
+                <option value="4º">4º</option>
+                <option value="5º">5º</option>
+                <option value="6º">6º</option>
+                <option value="7º">7º</option>
+                <option value="8º">8º</option>
+                <option value="9º">9º</option>
+                <option value="10º">10º</option>
               </select>
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Duração</label>
-              <input name="Duracao" defaultValue={modalData?.Duracao} placeholder="Ex: 6 meses" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
+              <input 
+                name="Duracao" 
+                defaultValue={modalData?.Duracao} 
+                placeholder="Ex: 6 meses" 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" 
+              />
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Carga Horária (horas)</label>
-              <input type="number" name="Carga_Horaria" defaultValue={modalData?.Carga_Horaria} placeholder="Ex: 120" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
+              <input 
+                type="number" 
+                name="Carga_Horaria" 
+                defaultValue={modalData?.Carga_Horaria} 
+                min="0"
+                placeholder="Ex: 120" 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" 
+              />
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Valor do Curso (Kz)</label>
               <input 
-                type="number" 
-                step="0.01" 
+                type="text" 
                 name="Valor_curso" 
-                defaultValue={modalData?.Valor_curso || 0} 
+                defaultValue={modalData?.Valor_curso || "0.00"} 
+                placeholder="0.00" 
                 className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" 
-                placeholder="0.00"
               />
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Status</label>
-              <select name="Status" defaultValue={modalData?.Status || 'Ativo'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900">
+              <select 
+                name="Status" 
+                defaultValue={modalData?.Status || 'Ativo'} 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"
+              >
                 <option value="Ativo">Ativo</option>
                 <option value="Inativo">Inativo</option>
                 <option value="Em desenvolvimento">Em desenvolvimento</option>
