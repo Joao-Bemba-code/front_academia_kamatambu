@@ -132,21 +132,34 @@ function ViewModal({ isOpen, onClose, data, type }) {
           <p className="text-sm sm:text-base text-gray-900 break-words">{data.Nome}</p>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Encarregado</p>
+          <p className="text-sm sm:text-base text-gray-900 break-words">{data.Encarregado || 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">BI/Cédula</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.BI_Cedula || 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Nascimento</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.Nascimento ? new Date(data.Nascimento).toLocaleDateString('pt-PT') : 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Estado Civil</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.Estado_Civil || 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
           <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Gênero</p>
           <p className="text-sm sm:text-base text-gray-900">{data.Genero || 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Morada</p>
+          <p className="text-sm sm:text-base text-gray-900 break-words">{data.Morada || 'Não informado'}</p>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
           <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</p>
           <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
             <Smartphone className="size-3 sm:size-4 text-gray-400 shrink-0" />
             <span className="break-words">{data.Telefone || 'Não informado'}</span>
-          </p>
-        </div>
-        <div className="space-y-0.5 sm:space-y-1">
-          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Email</p>
-          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
-            <Mail className="size-3 sm:size-4 text-gray-400 shrink-0" />
-            <span className="break-words">{data.Email || 'Não informado'}</span>
           </p>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
@@ -174,18 +187,17 @@ function ViewModal({ isOpen, onClose, data, type }) {
           </span>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
-          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Certificação</p>
-          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2">
-            <Award className="size-3 sm:size-4 text-gray-400 shrink-0" />
-            {data.Certificacao || 'Pendente'}
-          </p>
-        </div>
-        <div className="space-y-0.5 sm:space-y-1">
-          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Verificação de Documentos</p>
-          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2">
-            <FileText className="size-3 sm:size-4 text-gray-400 shrink-0" />
-            {data.Verificacao_Documentos || 'Pendente'}
-          </p>
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Certificado</p>
+          <div className="flex items-center gap-2">
+            {data.Foto_Certificado ? (
+              <a href={data.Foto_Certificado} target="_blank" rel="noopener noreferrer" className="text-sm sm:text-base text-primary hover:underline flex items-center gap-1">
+                <FileText className="size-3 sm:size-4" />
+                Ver Certificado
+              </a>
+            ) : (
+              <span className="text-sm sm:text-base text-gray-500">Não informado</span>
+            )}
+          </div>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
           <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Matrícula</p>
@@ -193,6 +205,14 @@ function ViewModal({ isOpen, onClose, data, type }) {
             <Clock className="size-3 sm:size-4 text-gray-400 shrink-0" />
             {data.Data_Matricula ? new Date(data.Data_Matricula).toLocaleDateString('pt-PT') : 'Não informado'}
           </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Criado em</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.createdAt ? new Date(data.createdAt).toLocaleString('pt-PT') : 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Atualizado em</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.updatedAt ? new Date(data.updatedAt).toLocaleString('pt-PT') : 'Não informado'}</p>
         </div>
       </div>
     </div>
@@ -1250,6 +1270,7 @@ export default function DashboardHome() {
     }
   }
 
+  // ========== GERAR PDF ==========
   const generateCursosPDF = () => {
     if (!cursos || cursos.length === 0) {
       showToast('Nenhum curso encontrado para gerar PDF', 'warning')
@@ -1402,14 +1423,14 @@ export default function DashboardHome() {
         matricula.Turma || '-',
         matricula.Modulo || 1,
         matricula.Status || 'Inscrito',
-        matricula.Certificacao || 'Pendente',
-        matricula.Verificacao_Documentos || 'Pendente',
+        matricula.BI_Cedula || '-',
+        matricula.Telefone || '-',
         matricula.Data_Matricula ? new Date(matricula.Data_Matricula).toLocaleDateString('pt-PT') : '-'
       ])
 
       autoTable(doc, {
         startY: 58,
-        head: [['Nº', 'Nome', 'Curso', 'Turma', 'Módulo', 'Status', 'Certificação', 'Verificação Docs', 'Data Matrícula']],
+        head: [['Nº', 'Nome', 'Curso', 'Turma', 'Módulo', 'Status', 'BI/Cédula', 'Telefone', 'Data Matrícula']],
         body: tableData,
         theme: 'striped',
         headStyles: {
@@ -1430,10 +1451,10 @@ export default function DashboardHome() {
           2: { cellWidth: 25 },
           3: { cellWidth: 20 },
           4: { cellWidth: 12 },
-          5: { cellWidth: 15 },
-          6: { cellWidth: 18 },
-          7: { cellWidth: 22 },
-          8: { cellWidth: 20 }
+          5: { cellWidth: 18 },
+          6: { cellWidth: 20 },
+          7: { cellWidth: 20 },
+          8: { cellWidth: 22 }
         }
       })
 
@@ -2219,6 +2240,28 @@ export default function DashboardHome() {
               <input name="Nome" defaultValue={modalData?.Nome} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required />
             </div>
             <div>
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Encarregado</label>
+              <input name="Encarregado" defaultValue={modalData?.Encarregado} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
+            </div>
+            <div>
+              <label className="text-xs sm:text-sm font-medium text-gray-700">BI/Cédula *</label>
+              <input name="BI_Cedula" defaultValue={modalData?.BI_Cedula} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required />
+            </div>
+            <div>
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Data de Nascimento</label>
+              <input type="date" name="Nascimento" defaultValue={modalData?.Nascimento} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
+            </div>
+            <div>
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Estado Civil</label>
+              <select name="Estado_Civil" defaultValue={modalData?.Estado_Civil || 'Solteiro'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900">
+                <option value="Solteiro">Solteiro</option>
+                <option value="Casado">Casado</option>
+                <option value="Divorciado">Divorciado</option>
+                <option value="Viúvo">Viúvo</option>
+                <option value="União Estável">União Estável</option>
+              </select>
+            </div>
+            <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Gênero *</label>
               <select name="Genero" defaultValue={modalData?.Genero} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required>
                 <option value="">Selecione</option>
@@ -2227,12 +2270,12 @@ export default function DashboardHome() {
               </select>
             </div>
             <div>
-              <label className="text-xs sm:text-sm font-medium text-gray-700">Telefone *</label>
-              <input name="Telefone" defaultValue={modalData?.Telefone} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required />
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Morada</label>
+              <input name="Morada" defaultValue={modalData?.Morada} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
             </div>
             <div>
-              <label className="text-xs sm:text-sm font-medium text-gray-700">Email</label>
-              <input type="email" name="Email" defaultValue={modalData?.Email} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Telefone *</label>
+              <input name="Telefone" defaultValue={modalData?.Telefone} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required />
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Curso *</label>
@@ -2271,24 +2314,6 @@ export default function DashboardHome() {
                 <option value="Admitido">Admitido</option>
                 <option value="Desistente">Desistente</option>
                 <option value="Concluido">Concluído</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs sm:text-sm font-medium text-gray-700">Certificação</label>
-              <select name="Certificacao" defaultValue={modalData?.Certificacao || 'Pendente'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900">
-                <option value="Pendente">Pendente</option>
-                <option value="Em andamento">Em andamento</option>
-                <option value="Concluída">Concluída</option>
-                <option value="Cancelada">Cancelada</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs sm:text-sm font-medium text-gray-700">Verificação de Documentos</label>
-              <select name="Verificacao_Documentos" defaultValue={modalData?.Verificacao_Documentos || 'Pendente'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900">
-                <option value="Pendente">Pendente</option>
-                <option value="Em verificação">Em verificação</option>
-                <option value="Verificado">Verificado</option>
-                <option value="Rejeitado">Rejeitado</option>
               </select>
             </div>
             <div>
@@ -2334,6 +2359,37 @@ export default function DashboardHome() {
               {modalData?.Foto_User && !fotoPreview && (
                 <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Imagem atual: <a href={modalData.Foto_User} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Ver imagem</a></p>
               )}
+            </div>
+            <div className="col-span-full">
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Foto do Certificado</label>
+              <div className="mt-1 flex flex-wrap items-center gap-3">
+                <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                  <FileText className="size-3.5 sm:size-4" />
+                  {isUploading ? 'Enviando...' : 'Enviar Certificado'}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleFileUpload} 
+                    className="hidden" 
+                    disabled={isUploading}
+                  />
+                </label>
+                {isUploading && <Loader2 className="size-4 sm:size-5 animate-spin text-primary" />}
+                {modalData?.Foto_Certificado && (
+                  <div className="flex items-center gap-2">
+                    <a href={modalData.Foto_Certificado} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs sm:text-sm">Ver certificado atual</a>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        // Aqui você pode adicionar lógica para remover o certificado
+                      }}
+                      className="text-[10px] sm:text-xs text-red-500 hover:text-red-700"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
