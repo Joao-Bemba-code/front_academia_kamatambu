@@ -143,6 +143,13 @@ function ViewModal({ isOpen, onClose, data, type }) {
           </p>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Email</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
+            <Mail className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            <span className="break-words">{data.Email || 'Não informado'}</span>
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
           <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</p>
           <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
             <BookOpen className="size-3 sm:size-4 text-gray-400 shrink-0" />
@@ -165,6 +172,20 @@ function ViewModal({ isOpen, onClose, data, type }) {
           <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${getStatusColor(data.Status)}`}>
             {data.Status || 'Inscrito'}
           </span>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Certificação</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2">
+            <Award className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            {data.Certificacao || 'Pendente'}
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Verificação de Documentos</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2">
+            <FileText className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            {data.Verificacao_Documentos || 'Pendente'}
+          </p>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
           <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Matrícula</p>
@@ -1381,34 +1402,38 @@ export default function DashboardHome() {
         matricula.Turma || '-',
         matricula.Modulo || 1,
         matricula.Status || 'Inscrito',
+        matricula.Certificacao || 'Pendente',
+        matricula.Verificacao_Documentos || 'Pendente',
         matricula.Data_Matricula ? new Date(matricula.Data_Matricula).toLocaleDateString('pt-PT') : '-'
       ])
 
       autoTable(doc, {
         startY: 58,
-        head: [['Nº', 'Nome', 'Curso', 'Turma', 'Módulo', 'Status', 'Data Matrícula']],
+        head: [['Nº', 'Nome', 'Curso', 'Turma', 'Módulo', 'Status', 'Certificação', 'Verificação Docs', 'Data Matrícula']],
         body: tableData,
         theme: 'striped',
         headStyles: {
           fillColor: [10, 20, 40],
           textColor: [255, 255, 255],
-          fontSize: 8,
+          fontSize: 7,
           fontStyle: 'bold',
           halign: 'center'
         },
         styles: {
-          fontSize: 7,
+          fontSize: 6.5,
           cellPadding: 2,
           halign: 'center'
         },
         columnStyles: {
-          0: { cellWidth: 10 },
-          1: { cellWidth: 40 },
-          2: { cellWidth: 35 },
-          3: { cellWidth: 25 },
-          4: { cellWidth: 15 },
-          5: { cellWidth: 20 },
-          6: { cellWidth: 25 }
+          0: { cellWidth: 8 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 20 },
+          4: { cellWidth: 12 },
+          5: { cellWidth: 15 },
+          6: { cellWidth: 18 },
+          7: { cellWidth: 22 },
+          8: { cellWidth: 20 }
         }
       })
 
@@ -1684,8 +1709,7 @@ export default function DashboardHome() {
       doc.text(`Total de Cursos: ${cursos?.length || 0}`, 14, 88)
       doc.text(`Total de Formadores: ${formadores?.length || 0}`, 14, 96)
       
-      let startY = 102
-      
+      let startY = 102      
       if (matriculas && matriculas.length > 0) {
         doc.setFontSize(12)
         doc.setFont('helvetica', 'bold')
@@ -2207,6 +2231,10 @@ export default function DashboardHome() {
               <input name="Telefone" defaultValue={modalData?.Telefone} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required />
             </div>
             <div>
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Email</label>
+              <input type="email" name="Email" defaultValue={modalData?.Email} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
+            </div>
+            <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Curso *</label>
               <select name="Curso" defaultValue={modalData?.Curso} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required>
                 <option value="">Selecione um curso</option>
@@ -2243,6 +2271,24 @@ export default function DashboardHome() {
                 <option value="Admitido">Admitido</option>
                 <option value="Desistente">Desistente</option>
                 <option value="Concluido">Concluído</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Certificação</label>
+              <select name="Certificacao" defaultValue={modalData?.Certificacao || 'Pendente'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900">
+                <option value="Pendente">Pendente</option>
+                <option value="Em andamento">Em andamento</option>
+                <option value="Concluída">Concluída</option>
+                <option value="Cancelada">Cancelada</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Verificação de Documentos</label>
+              <select name="Verificacao_Documentos" defaultValue={modalData?.Verificacao_Documentos || 'Pendente'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900">
+                <option value="Pendente">Pendente</option>
+                <option value="Em verificação">Em verificação</option>
+                <option value="Verificado">Verificado</option>
+                <option value="Rejeitado">Rejeitado</option>
               </select>
             </div>
             <div>
