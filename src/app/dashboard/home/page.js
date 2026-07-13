@@ -48,11 +48,15 @@ import {
   FileDown
 } from 'lucide-react'
 
+// ========== URL BASE DA API ==========
 const API_BASE_URL = 'https://back-kamatambu-1.onrender.com'
 
+// ========== TOAST NOTIFICATION ==========
 function Toast({ message, type, onClose }) {
   useEffect(() => {
-    const timer = setTimeout(() => onClose(), 5000)
+    const timer = setTimeout(() => {
+      onClose()
+    }, 5000)
     return () => clearTimeout(timer)
   }, [onClose])
 
@@ -81,6 +85,7 @@ function Toast({ message, type, onClose }) {
   )
 }
 
+// ========== VIEW MODAL ==========
 function ViewModal({ isOpen, onClose, data, type }) {
   if (!isOpen || !data) return null
 
@@ -102,13 +107,321 @@ function ViewModal({ isOpen, onClose, data, type }) {
     return colors[status] || 'bg-gray-100 text-gray-700'
   }
 
+  const renderMatriculaDetails = () => (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+        <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-primary/10 shrink-0">
+          {data.Foto_User ? (
+            <img src={data.Foto_User} alt={data.Nome} className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover" />
+          ) : (
+            <UserCircle className="size-10 sm:size-12 text-primary" />
+          )}
+        </div>
+        <div className="text-center sm:text-left">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900">{data.Nome}</h3>
+          <p className="text-xs sm:text-sm text-gray-500">ID: {data.id}</p>
+          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${getStatusColor(data.Status)}`}>
+            {data.Status || 'Inscrito'}
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Nome Completo</p>
+          <p className="text-sm sm:text-base text-gray-900 break-words">{data.Nome}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Encarregado</p>
+          <p className="text-sm sm:text-base text-gray-900 break-words">{data.Encarregado || 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">BI/Cédula</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.BI_Cedula || 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Nascimento</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.Nascimento ? new Date(data.Nascimento).toLocaleDateString('pt-PT') : 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Estado Civil</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.Estado_Civil || 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Gênero</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.Genero || 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Morada</p>
+          <p className="text-sm sm:text-base text-gray-900 break-words">{data.Morada || 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
+            <Smartphone className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            <span className="break-words">{data.Telefone || 'Não informado'}</span>
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
+            <BookOpen className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            <span className="break-words">{data.Curso}</span>
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Turma</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2">
+            <UsersIcon className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            {data.Turma}
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</p>
+          <p className="text-sm sm:text-base text-gray-900">Módulo {data.Modulo || 1}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
+          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${getStatusColor(data.Status)}`}>
+            {data.Status || 'Inscrito'}
+          </span>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Certificado</p>
+          <div className="flex items-center gap-2">
+            {data.Foto_Certificado ? (
+              <a href={data.Foto_Certificado} target="_blank" rel="noopener noreferrer" className="text-sm sm:text-base text-primary hover:underline flex items-center gap-1">
+                <FileText className="size-3 sm:size-4" />
+                Ver Certificado
+              </a>
+            ) : (
+              <span className="text-sm sm:text-base text-gray-500">Não informado</span>
+            )}
+          </div>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Matrícula</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2">
+            <Clock className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            {data.Data_Matricula ? new Date(data.Data_Matricula).toLocaleDateString('pt-PT') : 'Não informado'}
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Criado em</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.createdAt ? new Date(data.createdAt).toLocaleString('pt-PT') : 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Atualizado em</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.updatedAt ? new Date(data.updatedAt).toLocaleString('pt-PT') : 'Não informado'}</p>
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderTurmaDetails = () => (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900">{data.Turma}</h3>
+        <p className="text-xs sm:text-sm text-gray-500">ID: {data.id}</p>
+        <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${getStatusColor(data.Status)}`}>
+          {data.Status || 'Pendente'}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
+            <BookOpen className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            <span className="break-words">{data.Curso}</span>
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</p>
+          <p className="text-sm sm:text-base text-gray-900">Módulo {data.Modulo || 1}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Período</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2">
+            <Clock className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            {data.Periodo || 'Manhã'}
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Formador</p>
+          <p className="text-sm sm:text-base text-gray-900 break-words">{data.Formador || 'Não definido'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Formandos</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2">
+            <UsersIcon className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            {data.Numero_Alunos || 0}
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Capacidade</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.Capacidade_Maxima || 30}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Data Início</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2">
+            <Calendar className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            {data.Data_INIC ? new Date(data.Data_INIC).toLocaleDateString('pt-PT') : 'Não definido'}
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Data Término</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2">
+            <Calendar className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            {data.Data_Term ? new Date(data.Data_Term).toLocaleDateString('pt-PT') : 'Não definido'}
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Sala</p>
+          <p className="text-sm sm:text-base text-gray-900 break-words">{data.Sala || 'Não definida'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
+          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${getStatusColor(data.Status)}`}>
+            {data.Status || 'Pendente'}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderCursoDetails = () => (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 break-words">{data.Nome}</h3>
+        <p className="text-xs sm:text-sm text-gray-500">ID: {data.id}</p>
+        <span className="inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium bg-[#006c49]/10 text-[#006c49]">
+          {data.Status || 'Ativo'}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="space-y-0.5 sm:space-y-1 col-span-full">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</p>
+          <p className="text-sm sm:text-base text-gray-900 break-words">{data.Desc || 'Sem descrição'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.Tipo_curso || 'Técnico'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Módulos</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.Modulos || 1}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Edição</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.Edicao || '1º'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Duração</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
+            <Clock className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            <span className="break-words">{data.Duracao || 'Não definida'}</span>
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Carga Horária</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.Carga_Horaria ? `${data.Carga_Horaria} horas` : 'Não definida'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Valor do Curso</p>
+          <p className="text-sm sm:text-base text-gray-900">
+            {data.Valor_curso ? `Kz ${parseFloat(data.Valor_curso).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}` : 'Não definido'}
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
+          <span className="inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium bg-[#006c49]/10 text-[#006c49]">
+            {data.Status || 'Ativo'}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderFormadorDetails = () => (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+        <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-primary/10 shrink-0">
+          {data.Foto ? (
+            <img src={data.Foto} alt={data.Nome} className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover" />
+          ) : (
+            <UserCircle className="size-10 sm:size-12 text-primary" />
+          )}
+        </div>
+        <div className="text-center sm:text-left">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 break-words">{data.Nome}</h3>
+          <p className="text-xs sm:text-sm text-gray-500">ID: {data.id}</p>
+          <span className="inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium bg-[#006c49]/10 text-[#006c49]">
+            {data.Status || 'Ativo'}
+          </span>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Email</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
+            <Mail className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            <span className="break-words">{data.Email}</span>
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
+            <Smartphone className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            <span className="break-words">{data.Telefone || 'Não informado'}</span>
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Especialidade</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
+            <Award className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            <span className="break-words">{data.Especialidade}</span>
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
+            <BookOpen className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            <span className="break-words">{data.Curso}</span>
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Turmas</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2">
+            <UsersIcon className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            {data.Turmas || 0}
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Gênero</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.Genero || 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
+          <span className="inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium bg-[#006c49]/10 text-[#006c49]">
+            {data.Status || 'Ativo'}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+
   const renderDetails = () => {
     switch (type) {
-      case 'matriculas': return renderMatriculaDetails()
-      case 'turmas': return renderTurmaDetails()
-      case 'cursos': return renderCursoDetails()
-      case 'formadores': return renderFormadorDetails()
-      default: return <p className="text-gray-500">Detalhes não disponíveis</p>
+      case 'matriculas':
+        return renderMatriculaDetails()
+      case 'turmas':
+        return renderTurmaDetails()
+      case 'cursos':
+        return renderCursoDetails()
+      case 'formadores':
+        return renderFormadorDetails()
+      default:
+        return <p className="text-gray-500">Detalhes não disponíveis</p>
     }
   }
 
@@ -142,6 +455,7 @@ function ViewModal({ isOpen, onClose, data, type }) {
   )
 }
 
+// ========== CONFIRM MODAL ==========
 function ConfirmModal({ isOpen, onClose, onConfirm, title, message, isLoading }) {
   if (!isOpen) return null
 
@@ -168,6 +482,7 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title, message, isLoading })
   )
 }
 
+// ========== FORM MODAL ==========
 function FormModal({ isOpen, onClose, title, children, onSubmit, isLoading }) {
   if (!isOpen) return null
 
@@ -196,7 +511,10 @@ function FormModal({ isOpen, onClose, title, children, onSubmit, isLoading }) {
   )
 }
 
+// ========== SIDEBAR ==========
 function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout }) {
+  const router = useRouter()
+
   const menuItems = [
     { id: 'dashboard', icon: Home, label: 'Dashboard' },
     { id: 'matriculas', icon: UserPlus, label: 'Matrículas' },
@@ -205,9 +523,14 @@ function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout }) {
     { id: 'formadores', icon: GraduationCap, label: 'Formadores' },
   ]
 
+  const handleLogout = () => {
+    onLogout()
+  }
+
   return (
     <>
       {isOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setIsOpen(false)} />}
+
       <aside className={`
         fixed inset-y-0 left-0 z-50 w-[280px] sm:w-64 bg-gradient-to-b from-[#091426] to-[#1e293b] text-white shadow-lg transition-transform duration-300 ease-in-out
         flex flex-col
@@ -221,6 +544,7 @@ function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout }) {
             <p className="text-[8px] sm:text-[10px] font-medium uppercase tracking-widest text-[#8590a6]">Admin Portal</p>
           </div>
         </div>
+
         <nav className="flex-1 overflow-y-auto px-2 sm:px-3 py-3 sm:py-4 space-y-0.5 sm:space-y-1">
           {menuItems.map((item) => {
             const Icon = item.icon
@@ -243,8 +567,9 @@ function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout }) {
             )
           })}
         </nav>
+
         <div className="border-t border-white/10 p-3 sm:p-4 shrink-0">
-          <button onClick={onLogout} className="flex w-full items-center gap-2 sm:gap-3 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-[#8590a6] transition-colors hover:bg-[#1e293b]/50 hover:text-white">
+          <button onClick={handleLogout} className="flex w-full items-center gap-2 sm:gap-3 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-[#8590a6] transition-colors hover:bg-[#1e293b]/50 hover:text-white">
             <LogOut className="size-4 sm:size-5 shrink-0" />
             <span className="truncate text-sm sm:text-base">Sair</span>
           </button>
@@ -254,7 +579,8 @@ function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout }) {
   )
 }
 
-function TopBar({ setIsSidebarOpen, onLogout, onSearch }) {
+// ========== TOPBAR COM DROPDOWN ==========
+function TopBar({ setIsSidebarOpen, onLogout }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef(null)
 
@@ -279,11 +605,11 @@ function TopBar({ setIsSidebarOpen, onLogout, onSearch }) {
           <input
             type="text"
             placeholder="Procurar..."
-            onChange={(e) => onSearch(e.target.value)}
             className="w-full rounded-full border border-[#c5c6cd] bg-white py-1.5 sm:py-2 pl-7 sm:pl-10 pr-3 sm:pr-4 text-xs sm:text-sm text-gray-900 outline-none transition-all focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]"
           />
         </div>
       </div>
+
       <div className="flex items-center gap-1 sm:gap-4 shrink-0">
         <button className="relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full hover:bg-[#eceef0] transition-colors">
           <Bell className="size-3.5 sm:size-5 text-[#45474c]" />
@@ -338,6 +664,7 @@ function TopBar({ setIsSidebarOpen, onLogout, onSearch }) {
   )
 }
 
+// ========== STATS CARDS ==========
 function StatsCards({ stats }) {
   const iconMap = {
     'Users': UsersIcon,
@@ -350,6 +677,7 @@ function StatsCards({ stats }) {
     'CalendarDays': CalendarDays,
     'TrendingUp': TrendingUp,
     'User': User,
+    'GraduationCap': GraduationCap,
   }
 
   const safeStats = Array.isArray(stats) ? stats : []
@@ -358,7 +686,12 @@ function StatsCards({ stats }) {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
       {safeStats.map((stat, index) => {
         const Icon = typeof stat.icon === 'string' ? iconMap[stat.icon] : stat.icon
-        if (!Icon) return null
+        
+        if (!Icon) {
+          console.warn(`Ícone não encontrado para: ${stat.icon}`)
+          return null
+        }
+        
         return (
           <div key={stat.label || index} className="rounded-xl border border-[#eceef0] bg-white p-3 sm:p-4 lg:p-5 shadow-sm transition-transform hover:-translate-y-1">
             <div className="mb-2 sm:mb-3 lg:mb-4 flex items-start justify-between">
@@ -380,6 +713,7 @@ function StatsCards({ stats }) {
   )
 }
 
+// ========== MATRÍCULAS RECENTES ==========
 function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
   const getStatusColor = (status) => {
     const colors = {
@@ -464,17 +798,27 @@ function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
   )
 }
 
+// ========== DASHBOARD TAB ==========
 function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento, inscricoesPorCurso, onGeneratePDF }) {
   const colors = ['bg-[#091426]', 'bg-[#006c49]', 'bg-[#006c49]/60', 'bg-[#c5c6cd]', 'bg-[#c5c6cd]/40']
-  const inscricoes = inscricoesPorCurso?.length > 0 ? inscricoesPorCurso : [
-    { name: 'Gestão de Empresas', value: 0 },
-    { name: 'Engenharia Software', value: 0 },
-    { name: 'Design & UX', value: 0 },
-    { name: 'Direito Académico', value: 0 },
-    { name: 'Outros', value: 0 }
-  ]
-  const maxHeight = crescimento?.length > 0 ? Math.max(...crescimento.map(item => item.total || 0), 1) : 140
-  const meses = crescimento?.length > 0 ? crescimento : ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN'].map(m => ({ mes: m, total: 0 }))
+
+  const inscricoes = inscricoesPorCurso && inscricoesPorCurso.length > 0 
+    ? inscricoesPorCurso 
+    : [
+        { name: 'Gestão de Empresas', value: 0 },
+        { name: 'Engenharia Software', value: 0 },
+        { name: 'Design & UX', value: 0 },
+        { name: 'Direito Académico', value: 0 },
+        { name: 'Outros', value: 0 }
+      ]
+
+  const maxHeight = crescimento && crescimento.length > 0 
+    ? Math.max(...crescimento.map(item => item.total || 0), 1)
+    : 140
+
+  const meses = crescimento && crescimento.length > 0 
+    ? crescimento 
+    : ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN'].map(m => ({ mes: m, total: 0 }))
 
   return (
     <div className="space-y-3 sm:space-y-4 lg:space-y-6">
@@ -483,12 +827,17 @@ function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento
           <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#091426]">Dashboard Administrativo</h2>
           <p className="text-[10px] sm:text-xs lg:text-sm text-[#45474c] mt-0.5">Visão geral do desempenho institucional da Academia Kamatambu.</p>
         </div>
-        <button onClick={onGeneratePDF} className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto">
+        <button 
+          onClick={onGeneratePDF}
+          className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto"
+        >
           <FileDown className="size-3.5 sm:size-4" />
           <span>Gerar Relatório</span>
         </button>
       </div>
+
       <StatsCards stats={stats} />
+
       <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 rounded-xl border border-[#eceef0] bg-white p-3 sm:p-4 lg:p-6 shadow-sm">
           <div className="mb-3 sm:mb-4 lg:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -507,7 +856,10 @@ function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento
                 const altura = maxHeight > 0 ? (item.total / maxHeight) * 100 : 0
                 return (
                   <div key={item.mes} className="flex flex-col items-center gap-0.5 sm:gap-1 lg:gap-2 flex-1">
-                    <div className="w-full max-w-5 sm:max-w-8 lg:max-w-12 rounded-lg bg-[#006c49] transition-all hover:bg-[#006c49]/80" style={{ height: `${Math.max(altura * 0.8, 4)}px` }} />
+                    <div 
+                      className="w-full max-w-5 sm:max-w-8 lg:max-w-12 rounded-lg bg-[#006c49] transition-all hover:bg-[#006c49]/80" 
+                      style={{ height: `${Math.max(altura * 0.8, 4)}px` }} 
+                    />
                     <span className="text-[6px] sm:text-[8px] lg:text-[10px] font-medium text-[#45474c]">{item.mes}</span>
                     <span className="text-[5px] sm:text-[6px] lg:text-[8px] text-[#45474c]">{item.total}</span>
                   </div>
@@ -516,6 +868,7 @@ function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento
             </div>
           </div>
         </div>
+
         <div className="rounded-xl border border-[#eceef0] bg-white p-3 sm:p-4 lg:p-6 shadow-sm">
           <h4 className="font-serif text-base sm:text-lg lg:text-xl font-semibold text-[#091426]">Inscrições por Curso</h4>
           <p className="mb-2 sm:mb-3 lg:mb-4 text-[10px] sm:text-xs lg:text-sm text-[#45474c]">Distribuição de alunos atuais</p>
@@ -534,12 +887,19 @@ function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento
           </div>
         </div>
       </div>
-      <MatriculasRecentes matriculas={matriculas} onEdit={onEdit} onDelete={onDelete} onView={onView} />
+
+      <MatriculasRecentes 
+        matriculas={matriculas} 
+        onEdit={onEdit} 
+        onDelete={onDelete}
+        onView={onView}
+      />
     </div>
   )
 }
 
-function MatriculasTab({ matriculas, loading, onEdit, onDelete, onView, onCreate, cursosList, turmasList, onGeneratePDF, searchTerm }) {
+// ========== MATRÍCULAS TAB ==========
+function MatriculasTab({ matriculas, loading, onEdit, onDelete, onView, onCreate, cursosList, turmasList, onGeneratePDF }) {
   const getStatusColor = (status) => {
     const colors = {
       'Ativo': 'bg-[#006c49]/10 text-[#006c49]',
@@ -555,19 +915,7 @@ function MatriculasTab({ matriculas, loading, onEdit, onDelete, onView, onCreate
     return colors[status] || 'bg-gray-100 text-gray-700'
   }
 
-  const filtered = Array.isArray(matriculas)
-    ? matriculas.filter(item => {
-        const term = searchTerm.toLowerCase()
-        return (
-          item.Nome?.toLowerCase().includes(term) ||
-          item.Curso?.toLowerCase().includes(term) ||
-          item.Turma?.toLowerCase().includes(term) ||
-          item.Status?.toLowerCase().includes(term) ||
-          item.BI_Cedula?.toLowerCase().includes(term) ||
-          item.Telefone?.toLowerCase().includes(term)
-        )
-      })
-    : []
+  const safeMatriculas = Array.isArray(matriculas) ? matriculas : []
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -577,13 +925,22 @@ function MatriculasTab({ matriculas, loading, onEdit, onDelete, onView, onCreate
           <p className="text-[10px] sm:text-xs lg:text-sm text-[#45474c] mt-0.5">Gerencie todas as matrículas da academia.</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <button onClick={onGeneratePDF} className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto">
+          <button 
+            onClick={onGeneratePDF}
+            className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto"
+          >
             <FileDown className="size-3.5 sm:size-4" />
             <span>Gerar PDF</span>
           </button>
           <button onClick={onCreate} className="flex items-center justify-center gap-2 rounded-lg bg-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#006c49]/90 w-full sm:w-auto">
             <Plus className="size-3.5 sm:size-4" /> Nova Matrícula
           </button>
+        </div>
+      </div>
+      <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 w-full sm:max-w-xs">
+          <Search className="absolute left-3 top-1/2 size-3.5 sm:size-4 -translate-y-1/2 text-[#45474c]" />
+          <input type="text" placeholder="Buscar matrícula..." className="w-full rounded-lg border border-[#c5c6cd] bg-white py-1.5 sm:py-2 pl-8 sm:pl-10 pr-3 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
         </div>
       </div>
       <div className="overflow-hidden rounded-xl border border-[#eceef0] bg-white shadow-sm">
@@ -605,8 +962,8 @@ function MatriculasTab({ matriculas, loading, onEdit, onDelete, onView, onCreate
                     <Loader2 className="size-5 sm:size-6 animate-spin mx-auto" />
                   </td>
                 </tr>
-              ) : filtered.length > 0 ? (
-                filtered.map((student) => (
+              ) : safeMatriculas.length > 0 ? (
+                safeMatriculas.map((student) => (
                   <tr key={student.id} className="transition-colors hover:bg-[#f7f9fb]">
                     <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
                       <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
@@ -654,7 +1011,8 @@ function MatriculasTab({ matriculas, loading, onEdit, onDelete, onView, onCreate
   )
 }
 
-function TurmasTab({ turmas, loading, onEdit, onDelete, onView, onCreate, cursosList, formadoresList, onGeneratePDF, searchTerm }) {
+// ========== TURMAS TAB ==========
+function TurmasTab({ turmas, loading, onEdit, onDelete, onView, onCreate, cursosList, formadoresList, onGeneratePDF }) {
   const getStatusColor = (status) => {
     const colors = {
       'Ativa': 'bg-[#006c49]/10 text-[#006c49]',
@@ -665,19 +1023,7 @@ function TurmasTab({ turmas, loading, onEdit, onDelete, onView, onCreate, cursos
     return colors[status] || 'bg-gray-100 text-gray-700'
   }
 
-  const filtered = Array.isArray(turmas)
-    ? turmas.filter(item => {
-        const term = searchTerm.toLowerCase()
-        return (
-          item.Turma?.toLowerCase().includes(term) ||
-          item.Curso?.toLowerCase().includes(term) ||
-          item.Formador?.toLowerCase().includes(term) ||
-          item.Status?.toLowerCase().includes(term) ||
-          item.Periodo?.toLowerCase().includes(term) ||
-          item.Sala?.toLowerCase().includes(term)
-        )
-      })
-    : []
+  const safeTurmas = Array.isArray(turmas) ? turmas : []
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -687,7 +1033,10 @@ function TurmasTab({ turmas, loading, onEdit, onDelete, onView, onCreate, cursos
           <p className="text-[10px] sm:text-xs lg:text-sm text-[#45474c] mt-0.5">Gerencie todas as turmas da academia.</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <button onClick={onGeneratePDF} className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto">
+          <button 
+            onClick={onGeneratePDF}
+            className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto"
+          >
             <FileDown className="size-3.5 sm:size-4" />
             <span>Gerar PDF</span>
           </button>
@@ -696,13 +1045,19 @@ function TurmasTab({ turmas, loading, onEdit, onDelete, onView, onCreate, cursos
           </button>
         </div>
       </div>
+      <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 w-full sm:max-w-xs">
+          <Search className="absolute left-3 top-1/2 size-3.5 sm:size-4 -translate-y-1/2 text-[#45474c]" />
+          <input type="text" placeholder="Buscar turma..." className="w-full rounded-lg border border-[#c5c6cd] bg-white py-1.5 sm:py-2 pl-8 sm:pl-10 pr-3 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
+        </div>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {loading ? (
           <div className="col-span-full flex justify-center py-8">
             <Loader2 className="size-6 sm:size-8 animate-spin text-[#006c49]" />
           </div>
-        ) : filtered.length > 0 ? (
-          filtered.map((turma) => (
+        ) : safeTurmas.length > 0 ? (
+          safeTurmas.map((turma) => (
             <div key={turma.id} className="rounded-xl border border-[#eceef0] bg-white p-3 sm:p-4 lg:p-6 shadow-sm">
               <div className="mb-2 sm:mb-3 flex flex-wrap items-center justify-between gap-1">
                 <h3 className="font-semibold text-[#091426] text-xs sm:text-sm lg:text-base break-words">{turma.Turma}</h3>
@@ -738,19 +1093,9 @@ function TurmasTab({ turmas, loading, onEdit, onDelete, onView, onCreate, cursos
   )
 }
 
-function CursosTab({ cursos, loading, onEdit, onDelete, onView, onCreate, onGeneratePDF, searchTerm }) {
-  const filtered = Array.isArray(cursos)
-    ? cursos.filter(item => {
-        const term = searchTerm.toLowerCase()
-        return (
-          item.Nome?.toLowerCase().includes(term) ||
-          item.Desc?.toLowerCase().includes(term) ||
-          item.Tipo_curso?.toLowerCase().includes(term) ||
-          item.Status?.toLowerCase().includes(term) ||
-          item.Duracao?.toLowerCase().includes(term)
-        )
-      })
-    : []
+// ========== CURSOS TAB ==========
+function CursosTab({ cursos, loading, onEdit, onDelete, onView, onCreate, onGeneratePDF }) {
+  const safeCursos = Array.isArray(cursos) ? cursos : []
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -760,11 +1105,17 @@ function CursosTab({ cursos, loading, onEdit, onDelete, onView, onCreate, onGene
           <p className="text-[10px] sm:text-xs lg:text-sm text-[#45474c] mt-0.5">Gerencie todos os cursos da academia.</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <button onClick={onGeneratePDF} className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto">
+          <button 
+            onClick={onGeneratePDF}
+            className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto"
+          >
             <FileDown className="size-3.5 sm:size-4" />
             <span>Gerar PDF</span>
           </button>
-          <button onClick={onCreate} className="flex items-center justify-center gap-2 rounded-lg bg-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#006c49]/90 w-full sm:w-auto">
+          <button 
+            onClick={onCreate}
+            className="flex items-center justify-center gap-2 rounded-lg bg-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#006c49]/90 w-full sm:w-auto"
+          >
             <Plus className="size-3.5 sm:size-4" /> Novo Curso
           </button>
         </div>
@@ -774,8 +1125,8 @@ function CursosTab({ cursos, loading, onEdit, onDelete, onView, onCreate, onGene
           <div className="col-span-full flex justify-center py-8">
             <Loader2 className="size-6 sm:size-8 animate-spin text-[#006c49]" />
           </div>
-        ) : filtered.length > 0 ? (
-          filtered.map((curso) => (
+        ) : safeCursos.length > 0 ? (
+          safeCursos.map((curso) => (
             <div key={curso.id} className="overflow-hidden rounded-xl border border-[#eceef0] bg-white shadow-sm transition-all hover:shadow-md">
               <div className="p-3 sm:p-4 lg:p-6">
                 <div className="mb-2 sm:mb-3 flex flex-wrap items-center justify-between gap-1">
@@ -813,20 +1164,9 @@ function CursosTab({ cursos, loading, onEdit, onDelete, onView, onCreate, onGene
   )
 }
 
-function FormadoresTab({ formadores, loading, onEdit, onDelete, onView, onCreate, onGeneratePDF, searchTerm }) {
-  const filtered = Array.isArray(formadores)
-    ? formadores.filter(item => {
-        const term = searchTerm.toLowerCase()
-        return (
-          item.Nome?.toLowerCase().includes(term) ||
-          item.Email?.toLowerCase().includes(term) ||
-          item.Especialidade?.toLowerCase().includes(term) ||
-          item.Curso?.toLowerCase().includes(term) ||
-          item.Status?.toLowerCase().includes(term) ||
-          item.Telefone?.toLowerCase().includes(term)
-        )
-      })
-    : []
+// ========== FORMADORES TAB ==========
+function FormadoresTab({ formadores, loading, onEdit, onDelete, onView, onCreate, onGeneratePDF }) {
+  const safeFormadores = Array.isArray(formadores) ? formadores : []
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -836,7 +1176,10 @@ function FormadoresTab({ formadores, loading, onEdit, onDelete, onView, onCreate
           <p className="text-[10px] sm:text-xs lg:text-sm text-[#45474c] mt-0.5">Gerencie todos os formadores da academia.</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <button onClick={onGeneratePDF} className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto">
+          <button 
+            onClick={onGeneratePDF}
+            className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto"
+          >
             <FileDown className="size-3.5 sm:size-4" />
             <span>Gerar PDF</span>
           </button>
@@ -845,13 +1188,19 @@ function FormadoresTab({ formadores, loading, onEdit, onDelete, onView, onCreate
           </button>
         </div>
       </div>
+      <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 w-full sm:max-w-xs">
+          <Search className="absolute left-3 top-1/2 size-3.5 sm:size-4 -translate-y-1/2 text-[#45474c]" />
+          <input type="text" placeholder="Buscar formador..." className="w-full rounded-lg border border-[#c5c6cd] bg-white py-1.5 sm:py-2 pl-8 sm:pl-10 pr-3 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
+        </div>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {loading ? (
           <div className="col-span-full flex justify-center py-8">
             <Loader2 className="size-6 sm:size-8 animate-spin text-[#006c49]" />
           </div>
-        ) : filtered.length > 0 ? (
-          filtered.map((formador) => (
+        ) : safeFormadores.length > 0 ? (
+          safeFormadores.map((formador) => (
             <div key={formador.id} className="rounded-xl border border-[#eceef0] bg-white p-3 sm:p-4 lg:p-6 shadow-sm">
               <div className="mb-2 sm:mb-3 flex flex-wrap items-start justify-between gap-1">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -893,6 +1242,7 @@ function FormadoresTab({ formadores, loading, onEdit, onDelete, onView, onCreate
   )
 }
 
+// ========== ACCESS DENIED ==========
 function AccessDenied() {
   const router = useRouter()
   return (
@@ -913,13 +1263,13 @@ function AccessDenied() {
   )
 }
 
+// ========== PÁGINA PRINCIPAL ==========
 export default function DashboardHome() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('dashboard')
   const [isLoading, setIsLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isChecking, setIsChecking] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
   const router = useRouter()
   const fileInputRef = useRef(null)
 
@@ -949,20 +1299,591 @@ export default function DashboardHome() {
       const apiKey = '232f3c0e8a3eb4b401113f5fdcd3be64'
       const formData = new FormData()
       formData.append('image', base64Image)
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: 'POST', body: formData })
+
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: 'POST',
+        body: formData
+      })
+
       const data = await response.json()
-      return data?.data?.url || null
+      
+      if (data && data.data && data.data.url) {
+        return data.data.url
+      }
+      return null
     } catch (error) {
-      console.error('Erro no upload:', error)
+      console.error('Erro ao fazer upload para ImgBB:', error)
       return null
     }
   }
 
-  const generateCursosPDF = () => { /* mantido igual */ }
-  const generateMatriculasPDF = () => { /* mantido igual */ }
-  const generateTurmasPDF = () => { /* mantido igual */ }
-  const generateFormadoresPDF = () => { /* mantido igual */ }
-  const generateRelatorioGeral = () => { /* mantido igual */ }
+  // ========== GERAR PDF ==========
+  const generateCursosPDF = () => {
+    if (!cursos || cursos.length === 0) {
+      showToast('Nenhum curso encontrado para gerar PDF', 'warning')
+      return
+    }
+
+    try {
+      const doc = new jsPDF('landscape', 'mm', 'a4')
+      const pageWidth = doc.internal.pageSize.getWidth()
+      
+      doc.setFontSize(22)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(10, 20, 40)
+      doc.text('Academia Kamatambu', pageWidth / 2, 20, { align: 'center' })
+      
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(100, 100, 100)
+      doc.text('Centro de Formação Profissional', pageWidth / 2, 28, { align: 'center' })
+      
+      doc.setDrawColor(10, 20, 40)
+      doc.setLineWidth(0.5)
+      doc.line(14, 35, pageWidth - 14, 35)
+      
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(10, 20, 40)
+      doc.text('RELATÓRIO DE CURSOS', pageWidth / 2, 45, { align: 'center' })
+      
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(100, 100, 100)
+      const dataAtual = new Date().toLocaleDateString('pt-PT', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+      doc.text(`Emissão: ${dataAtual}`, pageWidth - 20, 52, { align: 'right' })
+      doc.text(`Total de Cursos: ${cursos.length}`, 20, 52, { align: 'left' })
+      
+      const tableData = cursos.map((curso, index) => [
+        index + 1,
+        curso.Nome || '-',
+        curso.Desc || 'Sem descrição',
+        curso.Tipo_curso || 'Técnico',
+        curso.Modulos || 1,
+        curso.Edicao || '1º',
+        curso.Duracao || 'Não definida',
+        curso.Carga_Horaria ? `${curso.Carga_Horaria}h` : 'Não definida',
+        curso.Valor_curso ? `Kz ${parseFloat(curso.Valor_curso).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}` : '0.00',
+        curso.Status || 'Ativo'
+      ])
+
+      autoTable(doc, {
+        startY: 58,
+        head: [['Nº', 'Nome do Curso', 'Descrição', 'Tipo', 'Módulos', 'Edição', 'Duração', 'Carga Horária', 'Valor', 'Status']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [10, 20, 40],
+          textColor: [255, 255, 255],
+          fontSize: 7,
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        styles: {
+          fontSize: 6.5,
+          cellPadding: 2,
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { cellWidth: 8 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 35 },
+          3: { cellWidth: 20 },
+          4: { cellWidth: 12 },
+          5: { cellWidth: 10 },
+          6: { cellWidth: 15 },
+          7: { cellWidth: 18 },
+          8: { cellWidth: 22 },
+          9: { cellWidth: 15 }
+        }
+      })
+
+      const finalY = doc.lastAutoTable.finalY + 10
+      doc.setFontSize(8)
+      doc.setTextColor(150, 150, 150)
+      doc.text(
+        'Documento gerado automaticamente pela plataforma Academia Kamatambu',
+        pageWidth / 2,
+        finalY,
+        { align: 'center' }
+      )
+      
+      doc.save('cursos_academia_kamatambu.pdf')
+      showToast('PDF gerado com sucesso!', 'success')
+      
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error)
+      showToast('Erro ao gerar PDF', 'error')
+    }
+  }
+
+  const generateMatriculasPDF = () => {
+    if (!matriculas || matriculas.length === 0) {
+      showToast('Nenhuma matrícula encontrada para gerar PDF', 'warning')
+      return
+    }
+
+    try {
+      const doc = new jsPDF('landscape', 'mm', 'a4')
+      const pageWidth = doc.internal.pageSize.getWidth()
+      
+      doc.setFontSize(22)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(10, 20, 40)
+      doc.text('Academia Kamatambu', pageWidth / 2, 20, { align: 'center' })
+      
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(100, 100, 100)
+      doc.text('Centro de Formação Profissional', pageWidth / 2, 28, { align: 'center' })
+      
+      doc.setDrawColor(10, 20, 40)
+      doc.setLineWidth(0.5)
+      doc.line(14, 35, pageWidth - 14, 35)
+      
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(10, 20, 40)
+      doc.text('RELATÓRIO DE MATRÍCULAS', pageWidth / 2, 45, { align: 'center' })
+      
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(100, 100, 100)
+      const dataAtual = new Date().toLocaleDateString('pt-PT', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+      doc.text(`Emissão: ${dataAtual}`, pageWidth - 20, 52, { align: 'right' })
+      doc.text(`Total de Matrículas: ${matriculas.length}`, 20, 52, { align: 'left' })
+      
+      const tableData = matriculas.map((matricula, index) => [
+        index + 1,
+        matricula.Nome || '-',
+        matricula.Curso || '-',
+        matricula.Turma || '-',
+        matricula.Modulo || 1,
+        matricula.Status || 'Inscrito',
+        matricula.BI_Cedula || '-',
+        matricula.Telefone || '-',
+        matricula.Data_Matricula ? new Date(matricula.Data_Matricula).toLocaleDateString('pt-PT') : '-'
+      ])
+
+      autoTable(doc, {
+        startY: 58,
+        head: [['Nº', 'Nome', 'Curso', 'Turma', 'Módulo', 'Status', 'BI/Cédula', 'Telefone', 'Data Matrícula']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [10, 20, 40],
+          textColor: [255, 255, 255],
+          fontSize: 7,
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        styles: {
+          fontSize: 6.5,
+          cellPadding: 2,
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { cellWidth: 8 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 20 },
+          4: { cellWidth: 12 },
+          5: { cellWidth: 18 },
+          6: { cellWidth: 20 },
+          7: { cellWidth: 20 },
+          8: { cellWidth: 22 }
+        }
+      })
+
+      const finalY = doc.lastAutoTable.finalY + 10
+      doc.setFontSize(8)
+      doc.setTextColor(150, 150, 150)
+      doc.text(
+        'Documento gerado automaticamente pela plataforma Academia Kamatambu',
+        pageWidth / 2,
+        finalY,
+        { align: 'center' }
+      )
+      
+      doc.save('matriculas_academia_kamatambu.pdf')
+      showToast('PDF gerado com sucesso!', 'success')
+      
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error)
+      showToast('Erro ao gerar PDF', 'error')
+    }
+  }
+
+  const generateTurmasPDF = () => {
+    if (!turmas || turmas.length === 0) {
+      showToast('Nenhuma turma encontrada para gerar PDF', 'warning')
+      return
+    }
+
+    try {
+      const doc = new jsPDF('landscape', 'mm', 'a4')
+      const pageWidth = doc.internal.pageSize.getWidth()
+      
+      doc.setFontSize(22)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(10, 20, 40)
+      doc.text('Academia Kamatambu', pageWidth / 2, 20, { align: 'center' })
+      
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(100, 100, 100)
+      doc.text('Centro de Formação Profissional', pageWidth / 2, 28, { align: 'center' })
+      
+      doc.setDrawColor(10, 20, 40)
+      doc.setLineWidth(0.5)
+      doc.line(14, 35, pageWidth - 14, 35)
+      
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(10, 20, 40)
+      doc.text('RELATÓRIO DE TURMAS', pageWidth / 2, 45, { align: 'center' })
+      
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(100, 100, 100)
+      const dataAtual = new Date().toLocaleDateString('pt-PT', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+      doc.text(`Emissão: ${dataAtual}`, pageWidth - 20, 52, { align: 'right' })
+      doc.text(`Total de Turmas: ${turmas.length}`, 20, 52, { align: 'left' })
+      
+      const tableData = turmas.map((turma, index) => [
+        index + 1,
+        turma.Turma || '-',
+        turma.Curso || '-',
+        turma.Modulo || 1,
+        turma.Periodo || 'Manhã',
+        turma.Formador || 'Não definido',
+        turma.Numero_Alunos || 0,
+        turma.Capacidade_Maxima || 30,
+        turma.Status || 'Pendente'
+      ])
+
+      autoTable(doc, {
+        startY: 58,
+        head: [['Nº', 'Turma', 'Curso', 'Módulo', 'Período', 'Formador', 'Alunos', 'Capacidade', 'Status']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [10, 20, 40],
+          textColor: [255, 255, 255],
+          fontSize: 7,
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        styles: {
+          fontSize: 6.5,
+          cellPadding: 2,
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { cellWidth: 10 },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 15 },
+          4: { cellWidth: 15 },
+          5: { cellWidth: 25 },
+          6: { cellWidth: 15 },
+          7: { cellWidth: 18 },
+          8: { cellWidth: 18 }
+        }
+      })
+
+      const finalY = doc.lastAutoTable.finalY + 10
+      doc.setFontSize(8)
+      doc.setTextColor(150, 150, 150)
+      doc.text(
+        'Documento gerado automaticamente pela plataforma Academia Kamatambu',
+        pageWidth / 2,
+        finalY,
+        { align: 'center' }
+      )
+      
+      doc.save('turmas_academia_kamatambu.pdf')
+      showToast('PDF gerado com sucesso!', 'success')
+      
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error)
+      showToast('Erro ao gerar PDF', 'error')
+    }
+  }
+
+  const generateFormadoresPDF = () => {
+    if (!formadores || formadores.length === 0) {
+      showToast('Nenhum formador encontrado para gerar PDF', 'warning')
+      return
+    }
+
+    try {
+      const doc = new jsPDF('landscape', 'mm', 'a4')
+      const pageWidth = doc.internal.pageSize.getWidth()
+      
+      doc.setFontSize(22)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(10, 20, 40)
+      doc.text('Academia Kamatambu', pageWidth / 2, 20, { align: 'center' })
+      
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(100, 100, 100)
+      doc.text('Centro de Formação Profissional', pageWidth / 2, 28, { align: 'center' })
+      
+      doc.setDrawColor(10, 20, 40)
+      doc.setLineWidth(0.5)
+      doc.line(14, 35, pageWidth - 14, 35)
+      
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(10, 20, 40)
+      doc.text('RELATÓRIO DE FORMADORES', pageWidth / 2, 45, { align: 'center' })
+      
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(100, 100, 100)
+      const dataAtual = new Date().toLocaleDateString('pt-PT', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+      doc.text(`Emissão: ${dataAtual}`, pageWidth - 20, 52, { align: 'right' })
+      doc.text(`Total de Formadores: ${formadores.length}`, 20, 52, { align: 'left' })
+      
+      const tableData = formadores.map((formador, index) => [
+        index + 1,
+        formador.Nome || '-',
+        formador.Email || '-',
+        formador.Telefone || '-',
+        formador.Especialidade || '-',
+        formador.Curso || '-',
+        formador.Turmas || 0,
+        formador.Status || 'Ativo'
+      ])
+
+      autoTable(doc, {
+        startY: 58,
+        head: [['Nº', 'Nome', 'Email', 'Telefone', 'Especialidade', 'Curso', 'Turmas', 'Status']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [10, 20, 40],
+          textColor: [255, 255, 255],
+          fontSize: 8,
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        styles: {
+          fontSize: 7,
+          cellPadding: 2,
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { cellWidth: 10 },
+          1: { cellWidth: 35 },
+          2: { cellWidth: 45 },
+          3: { cellWidth: 25 },
+          4: { cellWidth: 30 },
+          5: { cellWidth: 30 },
+          6: { cellWidth: 15 },
+          7: { cellWidth: 18 }
+        }
+      })
+
+      const finalY = doc.lastAutoTable.finalY + 10
+      doc.setFontSize(8)
+      doc.setTextColor(150, 150, 150)
+      doc.text(
+        'Documento gerado automaticamente pela plataforma Academia Kamatambu',
+        pageWidth / 2,
+        finalY,
+        { align: 'center' }
+      )
+      
+      doc.save('formadores_academia_kamatambu.pdf')
+      showToast('PDF gerado com sucesso!', 'success')
+      
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error)
+      showToast('Erro ao gerar PDF', 'error')
+    }
+  }
+
+  const generateRelatorioGeral = () => {
+    try {
+      const doc = new jsPDF('landscape', 'mm', 'a4')
+      const pageWidth = doc.internal.pageSize.getWidth()
+      
+      doc.setFontSize(22)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(10, 20, 40)
+      doc.text('Academia Kamatambu', pageWidth / 2, 20, { align: 'center' })
+      
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(100, 100, 100)
+      doc.text('Centro de Formação Profissional', pageWidth / 2, 28, { align: 'center' })
+      
+      doc.setDrawColor(10, 20, 40)
+      doc.setLineWidth(0.5)
+      doc.line(14, 35, pageWidth - 14, 35)
+      
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(10, 20, 40)
+      doc.text('RELATÓRIO GERAL', pageWidth / 2, 45, { align: 'center' })
+      
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(100, 100, 100)
+      const dataAtual = new Date().toLocaleDateString('pt-PT', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+      doc.text(`Emissão: ${dataAtual}`, pageWidth - 20, 52, { align: 'right' })
+      
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(10, 20, 40)
+      doc.text('Resumo Geral', 14, 62)
+      
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(60, 60, 60)
+      doc.text(`Total de Matrículas: ${matriculas?.length || 0}`, 14, 72)
+      doc.text(`Total de Turmas: ${turmas?.length || 0}`, 14, 80)
+      doc.text(`Total de Cursos: ${cursos?.length || 0}`, 14, 88)
+      doc.text(`Total de Formadores: ${formadores?.length || 0}`, 14, 96)
+      
+      let startY = 102      
+      if (matriculas && matriculas.length > 0) {
+        doc.setFontSize(12)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(10, 20, 40)
+        doc.text('Matrículas', 14, startY)
+        
+        const matriculasData = matriculas.slice(0, 15).map((m, i) => [
+          i + 1,
+          m.Nome || '-',
+          m.Curso || '-',
+          m.Turma || '-',
+          m.Status || 'Inscrito'
+        ])
+        
+        autoTable(doc, {
+          startY: startY + 4,
+          head: [['Nº', 'Nome', 'Curso', 'Turma', 'Status']],
+          body: matriculasData,
+          theme: 'striped',
+          headStyles: {
+            fillColor: [10, 20, 40],
+            textColor: [255, 255, 255],
+            fontSize: 7,
+            fontStyle: 'bold',
+            halign: 'center'
+          },
+          styles: {
+            fontSize: 6.5,
+            cellPadding: 1.5,
+            halign: 'center'
+          },
+          columnStyles: {
+            0: { cellWidth: 8 },
+            1: { cellWidth: 35 },
+            2: { cellWidth: 30 },
+            3: { cellWidth: 25 },
+            4: { cellWidth: 18 }
+          }
+        })
+        
+        startY = doc.lastAutoTable.finalY + 8
+      }
+      
+      if (cursos && cursos.length > 0) {
+        doc.setFontSize(12)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(10, 20, 40)
+        doc.text('Cursos', 14, startY)
+        
+        const cursosData = cursos.slice(0, 10).map((c, i) => [
+          i + 1,
+          c.Nome || '-',
+          c.Tipo_curso || 'Técnico',
+          c.Modulos || 1,
+          c.Status || 'Ativo'
+        ])
+        
+        autoTable(doc, {
+          startY: startY + 4,
+          head: [['Nº', 'Nome', 'Tipo', 'Módulos', 'Status']],
+          body: cursosData,
+          theme: 'striped',
+          headStyles: {
+            fillColor: [10, 20, 40],
+            textColor: [255, 255, 255],
+            fontSize: 7,
+            fontStyle: 'bold',
+            halign: 'center'
+          },
+          styles: {
+            fontSize: 6.5,
+            cellPadding: 1.5,
+            halign: 'center'
+          },
+          columnStyles: {
+            0: { cellWidth: 8 },
+            1: { cellWidth: 45 },
+            2: { cellWidth: 25 },
+            3: { cellWidth: 18 },
+            4: { cellWidth: 20 }
+          }
+        })
+        
+        startY = doc.lastAutoTable.finalY + 8
+      }
+      
+      const finalY = Math.max(startY + 4, doc.internal.pageSize.getHeight() - 20)
+      doc.setFontSize(8)
+      doc.setTextColor(150, 150, 150)
+      doc.text(
+        'Documento gerado automaticamente pela plataforma Academia Kamatambu',
+        pageWidth / 2,
+        finalY,
+        { align: 'center' }
+      )
+      
+      doc.save('relatorio_geral_academia_kamatambu.pdf')
+      showToast('Relatório geral gerado com sucesso!', 'success')
+      
+    } catch (error) {
+      console.error('Erro ao gerar relatório:', error)
+      showToast('Erro ao gerar relatório', 'error')
+    }
+  }
 
   const apiFetch = async (endpoint, options = {}) => {
     const token = localStorage.getItem('token')
@@ -988,14 +1909,15 @@ export default function DashboardHome() {
   const loadData = async () => {
     try {
       setLoading({ matriculas: true, turmas: true, cursos: true, formadores: true })
+
       const token = localStorage.getItem('token')
 
-      // Stats
       try {
         const statsRes = await fetch(`${API_BASE_URL}/api/stats/dashboard`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
         const statsData = await statsRes.json()
+
         if (statsData.success) {
           const processedStats = (statsData.data.stats || []).map(stat => ({
             ...stat,
@@ -1006,7 +1928,8 @@ export default function DashboardHome() {
           setInscricoesPorCurso(statsData.data.inscricoesPorCurso || [])
           setMatriculas(statsData.data.matriculasRecentes || [])
         }
-      } catch {
+      } catch (statsError) {
+        console.error('Erro ao buscar estatísticas:', statsError)
         setStats([
           { label: 'Total Alunos', value: 0, icon: 'UsersIcon', color: 'bg-blue-100 text-blue-600', change: '+0%' },
           { label: 'Cursos Ativos', value: 0, icon: 'BookOpen', color: 'bg-green-100 text-green-600', change: '+0%' },
@@ -1015,32 +1938,42 @@ export default function DashboardHome() {
         ])
       }
 
-      // Dados principais
       const [matriculasRes, turmasRes, cursosRes, formadoresRes] = await Promise.all([
         apiFetch('/matriculas'),
         apiFetch('/turmas'),
         apiFetch('/cursos'),
         apiFetch('/formadores')
       ])
+
       if (matriculasRes.success) setMatriculas(matriculasRes.data)
       if (turmasRes.success) setTurmas(turmasRes.data)
       if (cursosRes.success) setCursos(cursosRes.data)
       if (formadoresRes.success) setFormadores(formadoresRes.data)
 
-      // Listas para selects
       try {
         const [cursosListRes, turmasListRes, formadoresListRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/cursos/lista`, { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/turmas`, { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/formadores/lista`, { headers: { 'Authorization': `Bearer ${token}` } })
+          fetch(`${API_BASE_URL}/api/cursos/lista`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }),
+          fetch(`${API_BASE_URL}/api/turmas`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }),
+          fetch(`${API_BASE_URL}/api/formadores/lista`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
         ])
+
         const cursosListData = await cursosListRes.json()
         const turmasListData = await turmasListRes.json()
         const formadoresListData = await formadoresListRes.json()
+
         if (cursosListData.success) setCursosList(cursosListData.data)
         if (turmasListData.success) setTurmasList(turmasListData.data)
         if (formadoresListData.success) setFormadoresList(formadoresListData.data)
-      } catch {}
+      } catch (listError) {
+        console.error('Erro ao carregar listas:', listError)
+      }
+
     } catch (error) {
       console.error('Erro ao carregar dados:', error)
       showToast('Erro ao carregar dados', 'error')
@@ -1052,14 +1985,17 @@ export default function DashboardHome() {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
+
     if (!file.type.startsWith('image/')) {
-      showToast('Selecione uma imagem válida', 'error')
+      showToast('Por favor, selecione uma imagem válida', 'error')
       return
     }
+
     if (file.size > 5 * 1024 * 1024) {
       showToast('A imagem deve ter no máximo 5MB', 'error')
       return
     }
+
     setIsUploading(true)
     try {
       const reader = new FileReader()
@@ -1067,6 +2003,7 @@ export default function DashboardHome() {
         try {
           const base64String = reader.result.split(',')[1]
           const imageUrl = await uploadToImgBB(base64String)
+          
           if (imageUrl) {
             setFotoUrl(imageUrl)
             setFotoPreview(reader.result)
@@ -1074,35 +2011,73 @@ export default function DashboardHome() {
           } else {
             showToast('Erro ao enviar imagem', 'error')
           }
-        } catch {
+        } catch (error) {
+          console.error('Erro:', error)
           showToast('Erro ao processar imagem', 'error')
         } finally {
           setIsUploading(false)
         }
       }
       reader.readAsDataURL(file)
-    } catch {
+    } catch (error) {
+      console.error('Erro:', error)
       showToast('Erro ao processar imagem', 'error')
       setIsUploading(false)
     }
   }
 
+  // ========== HANDLE CREATE ==========
   const handleCreate = async (data, type) => {
     setModalLoading(true)
     try {
       if (type === 'cursos') {
-        data.Valor_curso = data.Valor_curso ? String(data.Valor_curso) : "0.00"
-        const tiposValidos = ['Formação profissional inicial', 'Formação profissional continua', 'Formação profissional de dupla Certificação']
-        if (!tiposValidos.includes(data.Tipo_curso)) data.Tipo_curso = 'Formação profissional inicial'
+        if (data.Valor_curso) {
+          data.Valor_curso = String(data.Valor_curso)
+        } else {
+          data.Valor_curso = "0.00"
+        }
+        
+        const tiposValidos = [
+          'Formação profissional inicial',
+          'Formação profissional continua',
+          'Formação profissional de dupla Certificação'
+        ]
+        if (!tiposValidos.includes(data.Tipo_curso)) {
+          data.Tipo_curso = 'Formação profissional inicial'
+        }
+        
         const edicoesValidas = ['1º', '2º', '3º', '4º', '5º', '6º', '7º', '8º', '9º', '10º']
-        if (!edicoesValidas.includes(data.Edicao)) data.Edicao = '1º'
+        if (!edicoesValidas.includes(data.Edicao)) {
+          data.Edicao = '1º'
+        }
+        
         const statusValidos = ['Ativo', 'Inativo', 'Em desenvolvimento']
-        if (!statusValidos.includes(data.Status)) data.Status = 'Ativo'
-        data.Modulos = data.Modulos ? parseInt(data.Modulos) : 1
-        data.Carga_Horaria = data.Carga_Horaria ? parseInt(data.Carga_Horaria) : null
+        if (!statusValidos.includes(data.Status)) {
+          data.Status = 'Ativo'
+        }
+        
+        if (data.Modulos) {
+          data.Modulos = parseInt(data.Modulos)
+        }
+        
+        if (data.Carga_Horaria) {
+          data.Carga_Horaria = parseInt(data.Carga_Horaria)
+        } else {
+          data.Carga_Horaria = null
+        }
       }
-      if (fotoUrl) data.Foto_User = fotoUrl
-      const response = await apiFetch(`/${type}`, { method: 'POST', body: JSON.stringify(data) })
+
+      if (fotoUrl) {
+        data.Foto_User = fotoUrl
+      }
+
+      console.log('Enviando dados:', data)
+
+      const response = await apiFetch(`/${type}`, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      })
+      
       if (response.success) {
         showToast(`${type.slice(0, -1)} criado com sucesso!`, 'success')
         setModalOpen(false)
@@ -1110,32 +2085,69 @@ export default function DashboardHome() {
         setFotoPreview(null)
         loadData()
       } else {
+        console.error('Erro do backend:', response)
         showToast(response.message || 'Erro ao criar', 'error')
       }
     } catch (error) {
-      console.error(error)
+      console.error('Erro detalhado:', error)
       showToast('Erro ao criar', 'error')
     } finally {
       setModalLoading(false)
     }
   }
 
+  // ========== HANDLE UPDATE ==========
   const handleUpdate = async (id, data, type) => {
     setModalLoading(true)
     try {
       if (type === 'cursos') {
-        data.Valor_curso = data.Valor_curso ? String(data.Valor_curso) : "0.00"
-        const tiposValidos = ['Formação profissional inicial', 'Formação profissional continua', 'Formação profissional de dupla Certificação']
-        if (!tiposValidos.includes(data.Tipo_curso)) data.Tipo_curso = 'Formação profissional inicial'
+        if (data.Valor_curso) {
+          data.Valor_curso = String(data.Valor_curso)
+        } else {
+          data.Valor_curso = "0.00"
+        }
+        
+        const tiposValidos = [
+          'Formação profissional inicial',
+          'Formação profissional continua',
+          'Formação profissional de dupla Certificação'
+        ]
+        if (!tiposValidos.includes(data.Tipo_curso)) {
+          data.Tipo_curso = 'Formação profissional inicial'
+        }
+        
         const edicoesValidas = ['1º', '2º', '3º', '4º', '5º', '6º', '7º', '8º', '9º', '10º']
-        if (!edicoesValidas.includes(data.Edicao)) data.Edicao = '1º'
+        if (!edicoesValidas.includes(data.Edicao)) {
+          data.Edicao = '1º'
+        }
+        
         const statusValidos = ['Ativo', 'Inativo', 'Em desenvolvimento']
-        if (!statusValidos.includes(data.Status)) data.Status = 'Ativo'
-        data.Modulos = data.Modulos ? parseInt(data.Modulos) : 1
-        data.Carga_Horaria = data.Carga_Horaria ? parseInt(data.Carga_Horaria) : null
+        if (!statusValidos.includes(data.Status)) {
+          data.Status = 'Ativo'
+        }
+        
+        if (data.Modulos) {
+          data.Modulos = parseInt(data.Modulos)
+        }
+        
+        if (data.Carga_Horaria) {
+          data.Carga_Horaria = parseInt(data.Carga_Horaria)
+        } else {
+          data.Carga_Horaria = null
+        }
       }
-      if (fotoUrl) data.Foto_User = fotoUrl
-      const response = await apiFetch(`/${type}/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+
+      if (fotoUrl) {
+        data.Foto_User = fotoUrl
+      }
+
+      console.log('Enviando dados para atualização:', data)
+
+      const response = await apiFetch(`/${type}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      })
+      
       if (response.success) {
         showToast(`${type.slice(0, -1)} atualizado com sucesso!`, 'success')
         setModalOpen(false)
@@ -1143,10 +2155,11 @@ export default function DashboardHome() {
         setFotoPreview(null)
         loadData()
       } else {
+        console.error('Erro do backend:', response)
         showToast(response.message || 'Erro ao atualizar', 'error')
       }
     } catch (error) {
-      console.error(error)
+      console.error('Erro detalhado:', error)
       showToast('Erro ao atualizar', 'error')
     } finally {
       setModalLoading(false)
@@ -1157,7 +2170,9 @@ export default function DashboardHome() {
     const { id, type } = confirmModal
     setModalLoading(true)
     try {
-      const response = await apiFetch(`/${type}/${id}`, { method: 'DELETE' })
+      const response = await apiFetch(`/${type}/${id}`, {
+        method: 'DELETE'
+      })
       if (response.success) {
         showToast(`${type.slice(0, -1)} deletado com sucesso!`, 'success')
         setConfirmModal({ open: false, id: null, type: '' })
@@ -1165,13 +2180,14 @@ export default function DashboardHome() {
       } else {
         showToast(response.message || 'Erro ao deletar', 'error')
       }
-    } catch {
+    } catch (error) {
       showToast('Erro ao deletar', 'error')
     } finally {
       setModalLoading(false)
     }
   }
 
+  // ========== LOGOUT ==========
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token')
@@ -1189,6 +2205,7 @@ export default function DashboardHome() {
           setIsChecking(false)
           return
         }
+
         const userData = localStorage.getItem('user')
         if (userData) {
           const user = JSON.parse(userData)
@@ -1219,13 +2236,14 @@ export default function DashboardHome() {
         }
         setIsChecking(false)
       } catch (error) {
-        console.error(error)
+        console.error('Erro ao verificar permissões:', error)
         setIsChecking(false)
         router.push('/auth/login')
       } finally {
         setIsLoading(false)
       }
     }
+
     checkAdminAccess()
   }, [router])
 
@@ -1263,20 +2281,19 @@ export default function DashboardHome() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardTab
-          stats={stats}
-          matriculas={matriculas}
-          onEdit={(data) => handleOpenModal('matriculas', data)}
-          onDelete={(id) => handleConfirmDelete(id, 'matriculas')}
+        return <DashboardTab 
+          stats={stats} 
+          matriculas={matriculas} 
+          onEdit={(data) => handleOpenModal('matriculas', data)} 
+          onDelete={(id) => handleConfirmDelete(id, 'matriculas')} 
           onView={(data) => handleOpenModal('view', data)}
           crescimento={crescimento}
           inscricoesPorCurso={inscricoesPorCurso}
           onGeneratePDF={generateRelatorioGeral}
         />
       case 'matriculas':
-        return <MatriculasTab
-          searchTerm={searchTerm}
-          matriculas={matriculas}
+        return <MatriculasTab 
+          matriculas={matriculas} 
           loading={loading.matriculas}
           onEdit={(data) => handleOpenModal('matriculas', data)}
           onDelete={(id) => handleConfirmDelete(id, 'matriculas')}
@@ -1287,9 +2304,8 @@ export default function DashboardHome() {
           onGeneratePDF={generateMatriculasPDF}
         />
       case 'turmas':
-        return <TurmasTab
-          searchTerm={searchTerm}
-          turmas={turmas}
+        return <TurmasTab 
+          turmas={turmas} 
           loading={loading.turmas}
           onEdit={(data) => handleOpenModal('turmas', data)}
           onDelete={(id) => handleConfirmDelete(id, 'turmas')}
@@ -1300,9 +2316,8 @@ export default function DashboardHome() {
           onGeneratePDF={generateTurmasPDF}
         />
       case 'cursos':
-        return <CursosTab
-          searchTerm={searchTerm}
-          cursos={cursos}
+        return <CursosTab 
+          cursos={cursos} 
           loading={loading.cursos}
           onEdit={(data) => handleOpenModal('cursos', data)}
           onDelete={(id) => handleConfirmDelete(id, 'cursos')}
@@ -1311,9 +2326,8 @@ export default function DashboardHome() {
           onGeneratePDF={generateCursosPDF}
         />
       case 'formadores':
-        return <FormadoresTab
-          searchTerm={searchTerm}
-          formadores={formadores}
+        return <FormadoresTab 
+          formadores={formadores} 
           loading={loading.formadores}
           onEdit={(data) => handleOpenModal('formadores', data)}
           onDelete={(id) => handleConfirmDelete(id, 'formadores')}
@@ -1322,11 +2336,11 @@ export default function DashboardHome() {
           onGeneratePDF={generateFormadoresPDF}
         />
       default:
-        return <DashboardTab
-          stats={stats}
-          matriculas={matriculas}
-          onEdit={(data) => handleOpenModal('matriculas', data)}
-          onDelete={(id) => handleConfirmDelete(id, 'matriculas')}
+        return <DashboardTab 
+          stats={stats} 
+          matriculas={matriculas} 
+          onEdit={(data) => handleOpenModal('matriculas', data)} 
+          onDelete={(id) => handleConfirmDelete(id, 'matriculas')} 
           onView={(data) => handleOpenModal('view', data)}
           crescimento={crescimento}
           inscricoesPorCurso={inscricoesPorCurso}
@@ -1337,19 +2351,20 @@ export default function DashboardHome() {
 
   return (
     <div className="flex min-h-screen bg-[#f7f9fb]">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        setIsOpen={setIsSidebarOpen}
-        activeTab={activeTab}
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        setIsOpen={setIsSidebarOpen} 
+        activeTab={activeTab} 
         setActiveTab={setActiveTab}
         onLogout={handleLogout}
       />
+
       <div className="flex-1 flex flex-col min-h-screen">
-        <TopBar
-          setIsSidebarOpen={setIsSidebarOpen}
+        <TopBar 
+          setIsSidebarOpen={setIsSidebarOpen} 
           onLogout={handleLogout}
-          onSearch={setSearchTerm}
         />
+
         <main className="flex-1 p-2 sm:p-3 lg:p-6">
           <div className="mx-auto max-w-[1440px] space-y-3 sm:space-y-4 lg:space-y-6">
             {renderContent()}
@@ -1359,32 +2374,18 @@ export default function DashboardHome() {
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <ConfirmModal
-        isOpen={confirmModal.open}
-        onClose={() => setConfirmModal({ open: false, id: null, type: '' })}
-        onConfirm={handleDelete}
-        title="Confirmar exclusão"
-        message={`Tem certeza que deseja excluir este ${confirmModal.type ? confirmModal.type.slice(0, -1) : 'item'}? Esta ação não pode ser desfeita.`}
-        isLoading={modalLoading}
-      />
+      <ConfirmModal isOpen={confirmModal.open} onClose={() => setConfirmModal({ open: false, id: null, type: '' })} onConfirm={handleDelete} title="Confirmar exclusão" message={`Tem certeza que deseja excluir este ${confirmModal.type ? confirmModal.type.slice(0, -1) : 'item'}? Esta ação não pode ser desfeita.`} isLoading={modalLoading} />
 
-      <FormModal
-        isOpen={modalOpen}
-        onClose={handleCloseModal}
-        title={modalData ? `Editar ${modalType.slice(0, -1)}` : `Novo ${modalType.slice(0, -1)}`}
-        onSubmit={(e) => {
-          e.preventDefault()
-          const formData = new FormData(e.target)
-          const data = Object.fromEntries(formData.entries())
-          if (modalData) {
-            handleUpdate(modalData.id, data, modalType)
-          } else {
-            handleCreate(data, modalType)
-          }
-        }}
-        isLoading={modalLoading}
-      >
-        {/* Campos dos formulários - mantidos iguais ao código original */}
+      <FormModal isOpen={modalOpen} onClose={handleCloseModal} title={modalData ? `Editar ${modalType.slice(0, -1)}` : `Novo ${modalType.slice(0, -1)}`} onSubmit={(e) => {
+        e.preventDefault()
+        const formData = new FormData(e.target)
+        const data = Object.fromEntries(formData.entries())
+        if (modalData) {
+          handleUpdate(modalData.id, data, modalType)
+        } else {
+          handleCreate(data, modalType)
+        }
+      }} isLoading={modalLoading}>
         {modalType === 'matriculas' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
@@ -1478,13 +2479,31 @@ export default function DashboardHome() {
                 <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                   <Upload className="size-3.5 sm:size-4" />
                   {isUploading ? 'Enviando...' : 'Escolher imagem'}
-                  <input type="file" accept="image/*" onChange={handleFileUpload} ref={fileInputRef} className="hidden" disabled={isUploading} />
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleFileUpload} 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    disabled={isUploading}
+                  />
                 </label>
                 {isUploading && <Loader2 className="size-4 sm:size-5 animate-spin text-primary" />}
                 {(fotoPreview || modalData?.Foto_User) && (
                   <div className="flex items-center gap-2">
-                    <img src={fotoPreview || modalData?.Foto_User} alt="Preview" className="h-10 w-10 sm:h-12 sm:w-12 rounded-full object-cover border-2 border-gray-200" />
-                    <button type="button" onClick={() => { setFotoUrl(null); setFotoPreview(null) }} className="text-[10px] sm:text-xs text-red-500 hover:text-red-700">
+                    <img 
+                      src={fotoPreview || modalData?.Foto_User} 
+                      alt="Preview" 
+                      className="h-10 w-10 sm:h-12 sm:w-12 rounded-full object-cover border-2 border-gray-200" 
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setFotoUrl(null)
+                        setFotoPreview(null)
+                      }}
+                      className="text-[10px] sm:text-xs text-red-500 hover:text-red-700"
+                    >
                       Remover
                     </button>
                   </div>
@@ -1500,13 +2519,27 @@ export default function DashboardHome() {
                 <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                   <FileText className="size-3.5 sm:size-4" />
                   {isUploading ? 'Enviando...' : 'Enviar Certificado'}
-                  <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" disabled={isUploading} />
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleFileUpload} 
+                    className="hidden" 
+                    disabled={isUploading}
+                  />
                 </label>
                 {isUploading && <Loader2 className="size-4 sm:size-5 animate-spin text-primary" />}
                 {modalData?.Foto_Certificado && (
                   <div className="flex items-center gap-2">
                     <a href={modalData.Foto_Certificado} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs sm:text-sm">Ver certificado atual</a>
-                    <button type="button" className="text-[10px] sm:text-xs text-red-500 hover:text-red-700">Remover</button>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        // Aqui você pode adicionar lógica para remover o certificado
+                      }}
+                      className="text-[10px] sm:text-xs text-red-500 hover:text-red-700"
+                    >
+                      Remover
+                    </button>
                   </div>
                 )}
               </div>
@@ -1591,15 +2624,30 @@ export default function DashboardHome() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Nome do Curso *</label>
-              <input name="Nome" defaultValue={modalData?.Nome} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required />
+              <input 
+                name="Nome" 
+                defaultValue={modalData?.Nome} 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" 
+                required 
+              />
             </div>
             <div className="col-span-full">
               <label className="text-xs sm:text-sm font-medium text-gray-700">Descrição</label>
-              <textarea name="Desc" defaultValue={modalData?.Desc} rows="3" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
+              <textarea 
+                name="Desc" 
+                defaultValue={modalData?.Desc} 
+                rows="3" 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" 
+              />
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Tipo de Curso *</label>
-              <select name="Tipo_curso" defaultValue={modalData?.Tipo_curso || 'Formação profissional inicial'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required>
+              <select 
+                name="Tipo_curso" 
+                defaultValue={modalData?.Tipo_curso || 'Formação profissional inicial'} 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"
+                required
+              >
                 <option value="Formação profissional inicial">Formação profissional inicial</option>
                 <option value="Formação profissional continua">Formação profissional continua</option>
                 <option value="Formação profissional de dupla Certificação">Formação profissional de dupla Certificação</option>
@@ -1607,11 +2655,21 @@ export default function DashboardHome() {
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Módulos</label>
-              <input type="number" name="Modulos" defaultValue={modalData?.Modulos || 1} min="1" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
+              <input 
+                type="number" 
+                name="Modulos" 
+                defaultValue={modalData?.Modulos || 1} 
+                min="1"
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" 
+              />
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Edição</label>
-              <select name="Edicao" defaultValue={modalData?.Edicao || '1º'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900">
+              <select 
+                name="Edicao" 
+                defaultValue={modalData?.Edicao || '1º'} 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"
+              >
                 <option value="1º">1º</option>
                 <option value="2º">2º</option>
                 <option value="3º">3º</option>
@@ -1626,19 +2684,41 @@ export default function DashboardHome() {
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Duração</label>
-              <input name="Duracao" defaultValue={modalData?.Duracao} placeholder="Ex: 6 meses" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
+              <input 
+                name="Duracao" 
+                defaultValue={modalData?.Duracao} 
+                placeholder="Ex: 6 meses" 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" 
+              />
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Carga Horária (horas)</label>
-              <input type="number" name="Carga_Horaria" defaultValue={modalData?.Carga_Horaria} min="0" placeholder="Ex: 120" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
+              <input 
+                type="number" 
+                name="Carga_Horaria" 
+                defaultValue={modalData?.Carga_Horaria} 
+                min="0"
+                placeholder="Ex: 120" 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" 
+              />
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Valor do Curso (Kz)</label>
-              <input type="text" name="Valor_curso" defaultValue={modalData?.Valor_curso || "0.00"} placeholder="0.00" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
+              <input 
+                type="text" 
+                name="Valor_curso" 
+                defaultValue={modalData?.Valor_curso || "0.00"} 
+                placeholder="0.00" 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" 
+              />
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Status</label>
-              <select name="Status" defaultValue={modalData?.Status || 'Ativo'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900">
+              <select 
+                name="Status" 
+                defaultValue={modalData?.Status || 'Ativo'} 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"
+              >
                 <option value="Ativo">Ativo</option>
                 <option value="Inativo">Inativo</option>
                 <option value="Em desenvolvimento">Em desenvolvimento</option>
@@ -1703,11 +2783,11 @@ export default function DashboardHome() {
         )}
       </FormModal>
 
-      <ViewModal
-        isOpen={modalOpen && modalType === 'view'}
-        onClose={handleCloseModal}
-        data={modalData}
-        type={activeTab === 'dashboard' ? 'matriculas' : activeTab === 'turmas' ? 'turmas' : activeTab === 'cursos' ? 'cursos' : activeTab === 'formadores' ? 'formadores' : 'matriculas'}
+      <ViewModal 
+        isOpen={modalOpen && modalType === 'view'} 
+        onClose={handleCloseModal} 
+        data={modalData} 
+        type={activeTab === 'dashboard' ? 'matriculas' : activeTab === 'turmas' ? 'turmas' : activeTab === 'cursos' ? 'cursos' : activeTab === 'formadores' ? 'formadores' : 'matriculas'} 
       />
     </div>
   )
