@@ -327,6 +327,12 @@ function ViewModal({ isOpen, onClose, data, type }) {
           <p className="text-sm sm:text-base text-gray-900">{data.Carga_Horaria ? `${data.Carga_Horaria} horas` : 'Não definida'}</p>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Valor do Curso</p>
+          <p className="text-sm sm:text-base text-gray-900">
+            {data.Valor_curso ? `Kz ${parseFloat(data.Valor_curso).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}` : 'Não definido'}
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
           <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
           <span className="inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium bg-[#006c49]/10 text-[#006c49]">
             {data.Status || 'Ativo'}
@@ -1096,6 +1102,7 @@ function CursosTab({ cursos, loading, onEdit, onDelete, onView, onCreate, onGene
                   <p className="text-[#45474c]"><span className="font-medium">Edição:</span> {curso.Edicao || '1º'}</p>
                   <p className="text-[#45474c]"><span className="font-medium">Duração:</span> <span className="break-words">{curso.Duracao || 'Não definida'}</span></p>
                   <p className="text-[#45474c]"><span className="font-medium">Carga Horária:</span> {curso.Carga_Horaria ? `${curso.Carga_Horaria} horas` : 'Não definida'}</p>
+                  <p className="text-[#45474c]"><span className="font-medium">Valor:</span> {curso.Valor_curso ? `Kz ${parseFloat(curso.Valor_curso).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}` : 'Não definido'}</p>
                 </div>
                 <div className="mt-2 sm:mt-3 lg:mt-4 flex gap-2 border-t border-[#eceef0] pt-2 sm:pt-3">
                   <button onClick={() => onView(curso)} className="flex-1 rounded-lg border border-[#c5c6cd] px-2 sm:px-3 py-1 text-[10px] sm:text-xs lg:text-sm text-[#45474c] hover:bg-[#f7f9fb]">Ver</button>
@@ -1322,36 +1329,38 @@ export default function DashboardHome() {
         curso.Edicao || '1º',
         curso.Duracao || 'Não definida',
         curso.Carga_Horaria ? `${curso.Carga_Horaria}h` : 'Não definida',
+        curso.Valor_curso ? `Kz ${parseFloat(curso.Valor_curso).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}` : '0.00',
         curso.Status || 'Ativo'
       ])
 
       autoTable(doc, {
         startY: 58,
-        head: [['Nº', 'Nome do Curso', 'Descrição', 'Tipo', 'Módulos', 'Edição', 'Duração', 'Carga Horária', 'Status']],
+        head: [['Nº', 'Nome do Curso', 'Descrição', 'Tipo', 'Módulos', 'Edição', 'Duração', 'Carga Horária', 'Valor', 'Status']],
         body: tableData,
         theme: 'striped',
         headStyles: {
           fillColor: [10, 20, 40],
           textColor: [255, 255, 255],
-          fontSize: 8,
+          fontSize: 7,
           fontStyle: 'bold',
           halign: 'center'
         },
         styles: {
-          fontSize: 7,
+          fontSize: 6.5,
           cellPadding: 2,
           halign: 'center'
         },
         columnStyles: {
-          0: { cellWidth: 10 },
-          1: { cellWidth: 35 },
-          2: { cellWidth: 40 },
+          0: { cellWidth: 8 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 35 },
           3: { cellWidth: 20 },
-          4: { cellWidth: 15 },
-          5: { cellWidth: 15 },
-          6: { cellWidth: 20 },
-          7: { cellWidth: 20 },
-          8: { cellWidth: 18 }
+          4: { cellWidth: 12 },
+          5: { cellWidth: 10 },
+          6: { cellWidth: 15 },
+          7: { cellWidth: 18 },
+          8: { cellWidth: 22 },
+          9: { cellWidth: 15 }
         }
       })
 
@@ -2507,6 +2516,17 @@ export default function DashboardHome() {
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Carga Horária (horas)</label>
               <input type="number" name="Carga_Horaria" defaultValue={modalData?.Carga_Horaria} placeholder="Ex: 120" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" />
+            </div>
+            <div>
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Valor do Curso (Kz)</label>
+              <input 
+                type="number" 
+                step="0.01" 
+                name="Valor_curso" 
+                defaultValue={modalData?.Valor_curso || 0} 
+                className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" 
+                placeholder="0.00"
+              />
             </div>
             <div>
               <label className="text-xs sm:text-sm font-medium text-gray-700">Status</label>
