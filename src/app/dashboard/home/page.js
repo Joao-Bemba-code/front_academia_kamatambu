@@ -2951,6 +2951,12 @@ export default function DashboardHome() {
         ...defaultOptions, ...options,
         headers: { ...defaultOptions.headers, ...options.headers }
       })
+      if (response.status === 401) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        window.location.href = '/auth/login'
+        return { success: false, message: 'Sessão expirada' }
+      }
       return response.json()
     } catch (error) {
       console.error('Erro na requisição:', error)
