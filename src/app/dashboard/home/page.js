@@ -58,7 +58,7 @@ import {
 } from 'lucide-react'
 
 // ========== URL BASE DA API ==========
-const API_BASE_URL = 'https://back-kamatambu-1.onrender.com'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
 
 // ========== TOAST NOTIFICATION ==========
 function Toast({ message, type, onClose }) {
@@ -638,23 +638,35 @@ function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout }) {
 
   return (
     <>
-      {isOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setIsOpen(false)} />}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden transition-opacity"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
 
-      <aside className={`
-        fixed inset-y-0 left-0 z-50 w-[280px] sm:w-64 bg-gradient-to-b from-[#091426] to-[#1e293b] text-white shadow-lg transition-transform duration-300 ease-in-out
-        flex flex-col
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static lg:z-auto
-      `}>
-        <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-4 sm:py-5 border-b border-white/10 shrink-0">
-          <Image src="/LOGOTIPO 02.svg" alt="Academia Kamatambu" width={32} height={32} className="h-8 w-8 sm:h-10 sm:w-10 object-contain brightness-0 invert" />
+      <aside
+        className={`
+          fixed inset-y-0 left-0 z-50 w-[280px] sm:w-[260px]
+          bg-[#0f172a] text-white
+          shadow-xl
+          transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+          flex flex-col
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0 lg:static lg:z-auto
+        `}
+      >
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10 shrink-0">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#006c49]">
+            <Image src="/LOGOTIPO 02.svg" alt="Academia Kamatambu" width={24} height={24} className="object-contain brightness-0 invert" />
+          </div>
           <div>
-            <h1 className="font-serif text-lg sm:text-[22px] font-bold leading-tight text-white">Kamatambu</h1>
-            <p className="text-[8px] sm:text-[10px] font-medium uppercase tracking-widest text-[#8590a6]">Admin Portal</p>
+            <h1 className="text-[17px] font-bold text-white">Kamatambu</h1>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400">Admin Portal</p>
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-2 sm:px-3 py-3 sm:py-4 space-y-0.5 sm:space-y-1">
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
           {menuItems.map((item) => {
             const Icon = item.icon
             const isActive = activeTab === item.id
@@ -666,21 +678,27 @@ function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout }) {
                   setIsOpen(false)
                 }}
                 className={`
-                  flex w-full items-center gap-2 sm:gap-3 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium transition-all
-                  ${isActive ? 'bg-[#006c49] text-white shadow-md' : 'text-[#8590a6] hover:bg-[#1e293b]/50 hover:text-white'}
+                  flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors
+                  ${isActive
+                    ? 'bg-[#006c49] text-white'
+                    : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                  }
                 `}
               >
-                <Icon className="size-4 sm:size-5 shrink-0" />
-                <span className="truncate text-sm sm:text-base">{item.label}</span>
+                <Icon className="size-[18px] shrink-0" />
+                <span className="truncate">{item.label}</span>
               </button>
             )
           })}
         </nav>
 
-        <div className="border-t border-white/10 p-3 sm:p-4 shrink-0">
-          <button onClick={handleLogout} className="flex w-full items-center gap-2 sm:gap-3 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-[#8590a6] transition-colors hover:bg-[#1e293b]/50 hover:text-white">
-            <LogOut className="size-4 sm:size-5 shrink-0" />
-            <span className="truncate text-sm sm:text-base">Sair</span>
+        <div className="border-t border-white/10 p-3 shrink-0">
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-slate-400 transition-colors hover:bg-red-500/10 hover:text-red-400"
+          >
+            <LogOut className="size-[18px] shrink-0" />
+            <span className="truncate">Sair da conta</span>
           </button>
         </div>
       </aside>
@@ -743,10 +761,10 @@ function TopBar({ setIsSidebarOpen, onLogout, onSearch }) {
     switch (type) {
       case 'matricula': return <UserPlus className="size-4 text-blue-600" />
       case 'turma': return <UsersIcon className="size-4 text-purple-600" />
-      case 'curso': return <BookOpen className="size-4 text-green-600" />
-      case 'formador': return <GraduationCap className="size-4 text-orange-600" />
+      case 'curso': return <BookOpen className="size-4 text-emerald-600" />
+      case 'formador': return <GraduationCap className="size-4 text-amber-600" />
       case 'pagamento': return <Receipt className="size-4 text-indigo-600" />
-      case 'nota': return <BookOpenIcon className="size-4 text-yellow-600" />
+      case 'nota': return <BookOpenIcon className="size-4 text-rose-600" />
       default: return <Search className="size-4 text-gray-400" />
     }
   }
@@ -764,16 +782,19 @@ function TopBar({ setIsSidebarOpen, onLogout, onSearch }) {
   }
 
   return (
-    <header className="sticky top-0 z-30 h-14 sm:h-16 border-b border-[#c5c6cd] bg-[#f7f9fb] px-2 sm:px-4 flex items-center justify-between shrink-0">
-      <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-        <button onClick={() => setIsSidebarOpen(true)} className="rounded-lg p-1.5 text-gray-700 hover:bg-[#1e293b]/10 lg:hidden shrink-0">
-          <Menu className="size-5 sm:size-6" />
+    <header className="sticky top-0 z-30 h-16 border-b border-gray-200 bg-white px-4 sm:px-6 flex items-center justify-between shrink-0">
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className="rounded-xl p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 lg:hidden shrink-0 transition-colors"
+        >
+          <Menu className="size-5" />
         </button>
-        <div className="relative flex-1 max-w-[140px] sm:max-w-md min-w-[60px] sm:min-w-[100px]" ref={searchRef}>
-          <Search className="absolute left-2 sm:left-3 top-1/2 size-3.5 sm:size-4 -translate-y-1/2 text-[#45474c]" />
+        <div className="relative flex-1 max-w-lg min-w-0" ref={searchRef}>
+          <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Pesquisar alunos, turmas, cursos, formadores, pagamentos, avaliações..."
+            placeholder="Pesquisar alunos, turmas, cursos, formadores..."
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             onFocus={() => {
@@ -781,7 +802,7 @@ function TopBar({ setIsSidebarOpen, onLogout, onSearch }) {
                 setShowResults(true)
               }
             }}
-            className="w-full rounded-full border border-[#c5c6cd] bg-white py-1.5 sm:py-2 pl-7 sm:pl-10 pr-3 sm:pr-4 text-xs sm:text-sm text-gray-900 outline-none transition-all focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]"
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-11 pr-4 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-[#006c49] focus:bg-white focus:ring-1 focus:ring-[#006c49]/20"
           />
           {searchQuery && (
             <button
@@ -790,24 +811,24 @@ function TopBar({ setIsSidebarOpen, onLogout, onSearch }) {
                 setSearchResults([])
                 setShowResults(false)
               }}
-              className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
             >
-              <X className="size-3.5 sm:size-4" />
+              <X className="size-4" />
             </button>
           )}
-          
+
           {showResults && (
-            <div className="absolute top-full left-0 right-0 mt-1 sm:mt-2 max-h-80 overflow-y-auto rounded-lg bg-white shadow-lg border border-[#eceef0] z-50">
+            <div className="absolute top-full left-0 right-0 mt-2 max-h-80 overflow-y-auto rounded-xl bg-white shadow-xl shadow-black/8 border border-gray-200/80 z-50">
               {isSearching ? (
-                <div className="flex items-center justify-center py-6">
+                <div className="flex items-center justify-center py-8">
                   <Loader2 className="size-5 animate-spin text-[#006c49]" />
                 </div>
               ) : searchResults.length > 0 ? (
-                <div className="py-1">
+                <div className="py-1.5">
                   {searchResults.map((result, index) => (
                     <div
                       key={`${result.type}-${result.id}-${index}`}
-                      className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 hover:bg-[#f7f9fb] cursor-pointer transition-colors"
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
                       onClick={() => {
                         setShowResults(false)
                         const tabMap = {
@@ -819,49 +840,49 @@ function TopBar({ setIsSidebarOpen, onLogout, onSearch }) {
                           'nota': 'academico'
                         }
                         if (result.type && tabMap[result.type]) {
-                          window.dispatchEvent(new CustomEvent('navigateTo', { 
-                            detail: { tab: tabMap[result.type], id: result.id } 
+                          window.dispatchEvent(new CustomEvent('navigateTo', {
+                            detail: { tab: tabMap[result.type], id: result.id }
                           }))
                         }
                         setSearchQuery('')
                         setSearchResults([])
                       }}
                     >
-                      <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-[#eceef0] shrink-0">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 shrink-0">
                         {result.avatar ? (
-                          <img src={result.avatar} alt={result.title} className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover" />
+                          <img src={result.avatar} alt={result.title} className="h-9 w-9 rounded-lg object-cover" />
                         ) : (
                           getResultIcon(result.type)
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1 sm:gap-2">
-                          <p className="text-xs sm:text-sm font-semibold text-[#091426] truncate">{result.title}</p>
-                          <span className="text-[8px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full bg-[#006c49]/10 text-[#006c49] font-medium whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-gray-900 truncate">{result.title}</p>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#006c49]/8 text-[#006c49] font-semibold whitespace-nowrap">
                             {getResultTypeLabel(result.type)}
                           </span>
                         </div>
-                        <p className="text-[10px] sm:text-xs text-[#45474c] truncate">{result.subtitle}</p>
+                        <p className="text-xs text-gray-500 truncate">{result.subtitle}</p>
                       </div>
-                      <span className="text-[10px] sm:text-xs text-[#45474c]">
-                        {result.status && (
-                          <span className={`inline-block rounded-full px-1.5 py-0.5 text-[8px] font-medium ${
-                            result.status === 'Ativo' || result.status === 'Ativa' || result.status === 'Inscrito' || result.status === 'pago' || result.status === 'aprovado'
-                              ? 'bg-[#006c49]/10 text-[#006c49]'
-                              : 'bg-[#c0c1ff]/30 text-[#040057]'
-                          }`}>
-                            {result.status}
-                          </span>
-                        )}
-                      </span>
+                      {result.status && (
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold whitespace-nowrap ${
+                          ['Ativo','Ativa','Inscrito','pago','aprovado'].includes(result.status)
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-amber-50 text-amber-700'
+                        }`}>
+                          {result.status}
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
               ) : searchQuery.trim() ? (
-                <div className="flex flex-col items-center justify-center py-6 px-4 text-center">
-                  <AlertCircle className="size-6 sm:size-8 text-gray-300 mb-2" />
-                  <p className="text-xs sm:text-sm text-gray-500">Nenhum resultado encontrado</p>
-                  <p className="text-[10px] sm:text-xs text-gray-400 mt-1">Tente buscar por nome, curso ou turma</p>
+                <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 mb-3">
+                    <AlertCircle className="size-6 text-gray-300" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-500">Nenhum resultado encontrado</p>
+                  <p className="text-xs text-gray-400 mt-1">Tente buscar por nome, curso ou turma</p>
                 </div>
               ) : null}
             </div>
@@ -869,49 +890,41 @@ function TopBar({ setIsSidebarOpen, onLogout, onSearch }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-1 sm:gap-4 shrink-0">
-        <button className="relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full hover:bg-[#eceef0] transition-colors">
-          <Bell className="size-3.5 sm:size-5 text-[#45474c]" />
-          <span className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#ba1a1a]" />
+      <div className="flex items-center gap-2 shrink-0">
+        <button className="relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+          <Bell className="size-5" />
+          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
         </button>
-        <button className="hidden sm:flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full hover:bg-[#eceef0] transition-colors">
-          <HelpCircle className="size-4 sm:size-5 text-[#45474c]" />
-        </button>
-        <div className="h-5 w-px sm:h-8 bg-[#c5c6cd]" />
+        <div className="h-8 w-px bg-gray-200" />
         <div className="relative" ref={menuRef}>
-          <div 
-            className="flex cursor-pointer items-center gap-1 sm:gap-3 min-w-0"
+          <button
+            className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 hover:bg-gray-50 transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            <div className="text-right truncate hidden sm:block">
-              <p className="text-xs sm:text-sm font-semibold text-[#091426] truncate">Administrador</p>
-              <p className="hidden sm:block text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Admin</p>
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-semibold text-gray-900">Administrador</p>
+              <p className="text-[11px] font-medium text-gray-500">Admin</p>
             </div>
-            <div className="flex h-7 w-7 sm:h-10 sm:w-10 items-center justify-center rounded-full border-2 border-[#006c49]/20 bg-[#006c49]/10 shrink-0">
-              <User className="size-3.5 sm:size-5 text-[#006c49]" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#006c49] to-[#004d34] text-white shadow-md shadow-[#006c49]/20 shrink-0">
+              <User className="size-4" />
             </div>
-          </div>
+          </button>
           {isMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-50">
-              <div className="py-1">
+            <div className="absolute right-0 mt-2 w-52 rounded-xl bg-white shadow-xl shadow-black/8 border border-gray-200/80 z-50 overflow-hidden">
+              <div className="p-1.5">
                 <button
-                  onClick={() => {
-                    setIsMenuOpen(false)
-                  }}
-                  className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex w-full items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 >
-                  <User className="size-4" />
+                  <User className="size-4 text-gray-400" />
                   Perfil
                 </button>
                 <button
-                  onClick={() => {
-                    setIsMenuOpen(false)
-                    onLogout()
-                  }}
-                  className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                  onClick={() => { setIsMenuOpen(false); onLogout() }}
+                  className="flex w-full items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   <LogOut className="size-4" />
-                  Sair
+                  Sair da conta
                 </button>
               </div>
             </div>
@@ -940,29 +953,34 @@ function StatsCards({ stats }) {
   const safeStats = Array.isArray(stats) ? stats : []
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
       {safeStats.map((stat, index) => {
         const Icon = typeof stat.icon === 'string' ? iconMap[stat.icon] : stat.icon
-        
-        if (!Icon) {
-          console.warn(`Ícone não encontrado para: ${stat.icon}`)
-          return null
-        }
-        
+        if (!Icon) return null
+
         return (
-          <div key={stat.label || index} className="rounded-xl border border-[#eceef0] bg-white p-3 sm:p-4 lg:p-5 shadow-sm transition-transform hover:-translate-y-1">
-            <div className="mb-2 sm:mb-3 lg:mb-4 flex items-start justify-between">
-              <div className={`rounded-lg p-1 sm:p-1.5 lg:p-2 ${stat.color}`}>
-                <Icon className="size-3.5 sm:size-4 lg:size-5" />
+          <div
+            key={stat.label || index}
+            className="rounded-xl border border-gray-200 bg-white p-3 sm:p-5"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs font-medium text-gray-500 truncate">{stat.label}</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900 mt-0.5 sm:mt-1">{stat.value}</p>
               </div>
-              <span className={`flex items-center gap-0.5 sm:gap-1 rounded-full px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[10px] lg:text-xs font-bold ${stat.changeColor || 'text-[#006c49] bg-[#006c49]/5'}`}>
-                <TrendingUp className="size-2.5 sm:size-3 lg:size-3.5" />
-                {stat.change}
-              </span>
+              <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
+                <Icon className="size-4 sm:size-5" />
+              </div>
             </div>
-            <p className="text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-widest text-[#45474c]">{stat.label}</p>
-            <h3 className="mt-0.5 sm:mt-1 font-serif text-xl sm:text-2xl lg:text-3xl font-bold text-[#091426]">{stat.value}</h3>
-            <p className="mt-0.5 sm:mt-1 lg:mt-2 text-[8px] sm:text-[10px] lg:text-xs text-[#45474c]/70">vs. mês anterior</p>
+            {stat.change && (
+              <div className="mt-2 sm:mt-3 flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-[11px] font-medium text-emerald-700">
+                  <ArrowUpRight className="size-3" />
+                  {stat.change}
+                </span>
+                <span className="text-[10px] sm:text-[11px] text-gray-400">vs mes anterior</span>
+              </div>
+            )}
           </div>
         )
       })}
@@ -974,70 +992,75 @@ function StatsCards({ stats }) {
 function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
   const getStatusColor = (status) => {
     const colors = {
-      'Ativo': 'bg-[#006c49]/10 text-[#006c49]',
-      'Inscrito': 'bg-[#006c49]/10 text-[#006c49]',
-      'Pendente': 'bg-[#c0c1ff]/30 text-[#040057]',
-      'Admitido': 'bg-[#6cf8bb]/30 text-[#005236]',
-      'Concluído': 'bg-[#6cf8bb]/30 text-[#005236]',
-      'Concluido': 'bg-[#6cf8bb]/30 text-[#005236]',
-      'Cancelado': 'bg-[#ffdad6] text-[#93000a]',
-      'Desistente': 'bg-[#ffdad6] text-[#93000a]',
-      'Trancado': 'bg-[#c5c6cd]/30 text-[#45474c]'
+      'Ativo': 'bg-emerald-50 text-emerald-700 ring-emerald-600/10',
+      'Inscrito': 'bg-emerald-50 text-emerald-700 ring-emerald-600/10',
+      'Pendente': 'bg-amber-50 text-amber-700 ring-amber-600/10',
+      'Admitido': 'bg-blue-50 text-blue-700 ring-blue-600/10',
+      'Concluído': 'bg-emerald-50 text-emerald-700 ring-emerald-600/10',
+      'Concluido': 'bg-emerald-50 text-emerald-700 ring-emerald-600/10',
+      'Cancelado': 'bg-red-50 text-red-700 ring-red-600/10',
+      'Desistente': 'bg-red-50 text-red-700 ring-red-600/10',
+      'Trancado': 'bg-gray-50 text-gray-600 ring-gray-500/10'
     }
-    return colors[status] || 'bg-gray-100 text-gray-700'
+    return colors[status] || 'bg-gray-50 text-gray-600 ring-gray-500/10'
   }
 
   const safeMatriculas = Array.isArray(matriculas) ? matriculas : []
 
   return (
-    <div className="overflow-hidden rounded-xl border border-[#eceef0] bg-white shadow-sm">
-      <div className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 border-b border-[#eceef0] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-        <h3 className="font-semibold text-[#091426] text-xs sm:text-sm lg:text-base">Matrículas Recentes</h3>
-        <button className="text-[10px] sm:text-xs lg:text-sm text-[#006c49] hover:underline">Ver todas</button>
+    <div className="overflow-hidden rounded-2xl border border-gray-200/60 bg-white shadow-sm">
+      <div className="px-4 sm:px-6 py-3 sm:py-5 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <h3 className="font-bold text-gray-900 text-sm sm:text-base">Matriculas Recentes</h3>
+          <p className="text-[11px] sm:text-sm text-gray-500 mt-0.5">Ultimas matriculas realizadas</p>
+        </div>
+        <button className="text-xs sm:text-sm font-semibold text-[#006c49] hover:text-[#004d34] transition-colors">
+          Ver todas
+        </button>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-[10px] sm:text-xs lg:text-sm">
-          <thead className="bg-[#eceef0]">
-            <tr>
-              <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Nome</th>
-              <th className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Curso</th>
-              <th className="hidden lg:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Turma</th>
-              <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Status</th>
-              <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Ações</th>
+        <table className="w-full text-left text-xs sm:text-sm">
+          <thead>
+            <tr className="border-b border-gray-100">
+              <th className="px-3 sm:px-6 py-2.5 sm:py-3.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Nome</th>
+              <th className="hidden md:table-cell px-3 sm:px-6 py-2.5 sm:py-3.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Curso</th>
+              <th className="hidden lg:table-cell px-3 sm:px-6 py-2.5 sm:py-3.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Turma</th>
+              <th className="px-3 sm:px-6 py-2.5 sm:py-3.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+              <th className="px-3 sm:px-6 py-2.5 sm:py-3.5 text-right text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Acoes</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#c5c6cd]/50">
+          <tbody className="divide-y divide-gray-100">
             {safeMatriculas.length > 0 ? (
               safeMatriculas.slice(0, 5).map((student) => (
-                <tr key={student.id} className="transition-colors hover:bg-[#f7f9fb]">
-                  <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
-                    <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
-                      <div className="flex h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 items-center justify-center rounded-full bg-[#eceef0] text-[8px] sm:text-[10px] lg:text-xs font-bold text-[#091426]">
-                        {student.Nome ? student.Nome.split(' ').map(n => n[0]).join('') : '?'}
+                <tr key={student.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-3 sm:px-6 py-2.5 sm:py-4">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#006c49] to-[#004d34] text-[9px] sm:text-xs font-bold text-white shrink-0">
+                        {student.Nome ? student.Nome.split(' ').map(n => n[0]).join('').slice(0, 2) : '?'}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[10px] sm:text-xs lg:text-sm font-semibold text-[#091426] truncate">{student.Nome}</p>
-                        <p className="text-[8px] sm:text-[10px] lg:text-[11px] text-[#45474c]">ID: {student.id}</p>
+                        <p className="font-semibold text-gray-900 truncate text-xs sm:text-sm">{student.Nome}</p>
+                        <p className="text-[10px] sm:text-xs text-gray-500">ID: {student.id}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c] truncate max-w-[80px] sm:max-w-[100px]">{student.Curso}</td>
-                  <td className="hidden lg:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c]">{student.Turma}</td>
-                  <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
-                    <span className={`rounded-full px-1.5 sm:px-2 lg:px-3 py-0.5 text-[7px] sm:text-[9px] lg:text-[11px] font-bold uppercase tracking-tighter ${getStatusColor(student.Status)}`}>
+                  <td className="hidden md:table-cell px-3 sm:px-6 py-2.5 sm:py-4 text-gray-600 truncate max-w-[200px]">{student.Curso}</td>
+                  <td className="hidden lg:table-cell px-3 sm:px-6 py-2.5 sm:py-4 text-gray-600">{student.Turma}</td>
+                  <td className="px-3 sm:px-6 py-2.5 sm:py-4">
+                    <span className={`inline-flex items-center rounded-full px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold ring-1 ring-inset ${getStatusColor(student.Status)}`}>
                       {student.Status || 'Inscrito'}
                     </span>
                   </td>
-                  <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right">
+                  <td className="px-3 sm:px-6 py-2.5 sm:py-4 text-right">
                     <div className="flex items-center justify-end gap-0.5 sm:gap-1">
-                      <button onClick={() => onView(student)} className="rounded p-0.5 sm:p-1 text-blue-600 hover:bg-blue-50" title="Visualizar">
-                        <Eye className="size-3 sm:size-3.5 lg:size-4" />
+                      <button onClick={() => onView(student)} className="rounded-lg p-1 sm:p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Visualizar">
+                        <Eye className="size-3.5 sm:size-4" />
                       </button>
-                      <button onClick={() => onEdit(student)} className="rounded p-0.5 sm:p-1 text-green-600 hover:bg-green-50" title="Editar">
-                        <Edit className="size-3 sm:size-3.5 lg:size-4" />
+                      <button onClick={() => onEdit(student)} className="rounded-lg p-1 sm:p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Editar">
+                        <Edit className="size-3.5 sm:size-4" />
                       </button>
-                      <button onClick={() => onDelete(student.id)} className="rounded p-0.5 sm:p-1 text-red-600 hover:bg-red-50" title="Excluir">
-                        <Trash2 className="size-3 sm:size-3.5 lg:size-4" />
+                      <button onClick={() => onDelete(student.id)} className="rounded-lg p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Excluir">
+                        <Trash2 className="size-3.5 sm:size-4" />
                       </button>
                     </div>
                   </td>
@@ -1045,7 +1068,17 @@ function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="px-6 py-8 text-center text-gray-500">Nenhuma matrícula encontrada</td>
+                <td colSpan="5" className="px-6 py-12 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+                      <UsersIcon className="size-6 text-gray-300" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-500">Nenhuma matricula encontrada</p>
+                      <p className="text-sm text-gray-400">As matriculas aparecerao aqui</p>
+                    </div>
+                  </div>
+                </td>
               </tr>
             )}
           </tbody>
@@ -1057,101 +1090,143 @@ function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
 
 // ========== DASHBOARD TAB ==========
 function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento, inscricoesPorCurso, onGeneratePDF }) {
-  const colors = ['bg-[#091426]', 'bg-[#006c49]', 'bg-[#006c49]/60', 'bg-[#c5c6cd]', 'bg-[#c5c6cd]/40']
-
-  const inscricoes = inscricoesPorCurso && inscricoesPorCurso.length > 0 
-    ? inscricoesPorCurso 
+  const inscricoes = inscricoesPorCurso && inscricoesPorCurso.length > 0
+    ? inscricoesPorCurso
     : [
-        { name: 'Gestão de Empresas', value: 0 },
+        { name: 'Gestao de Empresas', value: 0 },
         { name: 'Engenharia Software', value: 0 },
         { name: 'Design & UX', value: 0 },
-        { name: 'Direito Académico', value: 0 },
+        { name: 'Direito Academico', value: 0 },
         { name: 'Outros', value: 0 }
       ]
 
-  const maxHeight = crescimento && crescimento.length > 0 
-    ? Math.max(...crescimento.map(item => item.total || 0), 1)
-    : 140
-
-  const meses = crescimento && crescimento.length > 0 
-    ? crescimento 
+  const meses = crescimento && crescimento.length > 0
+    ? crescimento
     : ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN'].map(m => ({ mes: m, total: 0 }))
 
+  const totalInscricoes = inscricoes.reduce((sum, item) => sum + (item.value || 0), 0)
+  const donutColors = ['#006c49', '#1e293b', '#6b7280', '#9ca3af', '#d1d5db']
+  const maxVal = Math.max(...meses.map(m => m.total || 0), 1)
+
   return (
-    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#091426]">Dashboard Administrativo</h2>
-          <p className="text-[10px] sm:text-xs lg:text-sm text-[#45474c] mt-0.5">Visão geral do desempenho institucional da Academia Kamatambu.</p>
+          <h2 className="text-xl font-bold text-gray-900">Dashboard</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Visao geral do desempenho institucional</p>
         </div>
-        <button 
+        <button
           onClick={onGeneratePDF}
-          className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors w-full sm:w-auto"
         >
-          <FileDown className="size-3.5 sm:size-4" />
-          <span>Gerar Relatório</span>
+          <FileDown className="size-4" />
+          Gerar Relatorio
         </button>
       </div>
 
       <StatsCards stats={stats} />
 
-      <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 rounded-xl border border-[#eceef0] bg-white p-3 sm:p-4 lg:p-6 shadow-sm">
-          <div className="mb-3 sm:mb-4 lg:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Growth Chart */}
+        <div className="lg:col-span-2 rounded-xl border border-gray-200 bg-white p-6">
+          <div className="mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h4 className="font-serif text-base sm:text-lg lg:text-xl font-semibold text-[#091426]">Crescimento de Matrículas</h4>
-              <p className="text-[10px] sm:text-xs lg:text-sm text-[#45474c]">Análise de ingressos nos últimos 6 meses</p>
+              <h4 className="text-base font-bold text-gray-900">Crescimento de Matriculas</h4>
+              <p className="text-sm text-gray-500">Ingressos nos ultimos 6 meses</p>
             </div>
-            <select className="rounded-lg border-[#c5c6cd] bg-[#f7f9fb] px-2 sm:px-3 py-1 text-[10px] sm:text-xs lg:text-sm outline-none focus:ring-2 focus:ring-[#006c49]/20 w-full sm:w-auto">
-              <option>Semestre Atual</option>
-              <option>Ano Inteiro</option>
-            </select>
           </div>
-          <div className="h-36 sm:h-48 lg:h-64 w-full">
-            <div className="flex h-full items-end justify-between gap-1 sm:gap-2 px-1 sm:px-2 lg:px-4">
+          <div className="h-64 w-full">
+            <svg viewBox="0 0 400 200" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+              {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => (
+                <g key={i}>
+                  <line x1="40" y1={10 + 160 * (1 - pct)} x2="390" y2={10 + 160 * (1 - pct)} stroke="#f1f5f9" strokeWidth="1" />
+                  <text x="36" y={14 + 160 * (1 - pct)} textAnchor="end" className="fill-gray-400" style={{ fontSize: '9px' }}>
+                    {Math.round(maxVal * pct)}
+                  </text>
+                </g>
+              ))}
               {meses.map((item, index) => {
-                const altura = maxHeight > 0 ? (item.total / maxHeight) * 100 : 0
-                const uniqueKey = `${item.mes}-${index}`
+                const barW = 40
+                const totalW = 350
+                const spacing = totalW / meses.length
+                const x = 45 + index * spacing + (spacing - barW) / 2
+                const h = maxVal > 0 ? (item.total / maxVal) * 160 : 0
                 return (
-                  <div key={uniqueKey} className="flex flex-col items-center gap-0.5 sm:gap-1 lg:gap-2 flex-1">
-                    <div 
-                      className="w-full max-w-5 sm:max-w-8 lg:max-w-12 rounded-lg bg-[#006c49] transition-all hover:bg-[#006c49]/80" 
-                      style={{ height: `${Math.max(altura * 0.8, 4)}px` }} 
+                  <g key={`${item.mes}-${index}`}>
+                    <rect
+                      x={x}
+                      y={10 + 160 - h}
+                      width={barW}
+                      height={h}
+                      rx="4"
+                      fill="#006c49"
+                      className="animate-chart-grow"
+                      style={{ transformOrigin: `${x + barW / 2}px ${10 + 160}px`, animationDelay: `${index * 0.12}s` }}
                     />
-                    <span className="text-[6px] sm:text-[8px] lg:text-[10px] font-medium text-[#45474c]">{item.mes}</span>
-                    <span className="text-[5px] sm:text-[6px] lg:text-[8px] text-[#45474c]">{item.total}</span>
-                  </div>
+                    <text x={x + barW / 2} y={6 + 160 - h} textAnchor="middle" className="fill-gray-600" style={{ fontSize: '9px', fontWeight: 600 }}>
+                      {item.total}
+                    </text>
+                    <text x={x + barW / 2} y={188} textAnchor="middle" className="fill-gray-500" style={{ fontSize: '10px', fontWeight: 500 }}>
+                      {item.mes}
+                    </text>
+                  </g>
                 )
               })}
-            </div>
+            </svg>
           </div>
         </div>
 
-        <div className="rounded-xl border border-[#eceef0] bg-white p-3 sm:p-4 lg:p-6 shadow-sm">
-          <h4 className="font-serif text-base sm:text-lg lg:text-xl font-semibold text-[#091426]">Inscrições por Curso</h4>
-          <p className="mb-2 sm:mb-3 lg:mb-4 text-[10px] sm:text-xs lg:text-sm text-[#45474c]">Distribuição de alunos atuais</p>
-          <div className="space-y-2 sm:space-y-3 lg:space-y-4">
-            {inscricoes.map((item, index) => {
-              const uniqueKey = `${item.name}-${index}`
-              return (
-                <div key={uniqueKey} className="space-y-0.5">
-                  <div className="flex justify-between text-[10px] sm:text-xs lg:text-sm">
-                    <span className="font-medium truncate">{item.name}</span>
-                    <span className="text-[#45474c] shrink-0">{item.value}%</span>
-                  </div>
-                  <div className="h-1 sm:h-1.5 lg:h-2 w-full overflow-hidden rounded-full bg-[#eceef0]">
-                    <div className={`h-full rounded-full ${colors[index % colors.length]}`} style={{ width: `${Math.min(item.value, 100)}%` }} />
-                  </div>
+        {/* Donut Chart */}
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <h4 className="text-base font-bold text-gray-900">Inscricoes por Curso</h4>
+          <p className="text-sm text-gray-500 mb-4">Distribuicao atual</p>
+          <div className="flex justify-center mb-4">
+            <svg width="160" height="160" viewBox="0 0 160 160">
+              {(() => {
+                let acc = 0
+                const radius = 60
+                const circumference = 2 * Math.PI * radius
+                return inscricoes.map((item, i) => {
+                  const pct = totalInscricoes > 0 ? (item.value / totalInscricoes) : (1 / inscricoes.length)
+                  const dashLen = pct * circumference
+                  const targetOffset = -acc * circumference
+                  acc += pct
+                  return (
+                    <circle
+                      key={`${item.name}-${i}`}
+                      cx="80" cy="80" r={radius}
+                      fill="none"
+                      stroke={donutColors[i % donutColors.length]}
+                      strokeWidth="20"
+                      strokeDasharray={`${dashLen} ${circumference - dashLen}`}
+                      strokeDashoffset={circumference}
+                      className="animate-donut"
+                      style={{ '--circumference': circumference, '--target-offset': targetOffset, animationDelay: `${i * 0.15}s` }}
+                    />
+                  )
+                })
+              })()}
+              <text x="80" y="76" textAnchor="middle" className="fill-gray-900" style={{ fontSize: '22px', fontWeight: 700 }}>{totalInscricoes}</text>
+              <text x="80" y="94" textAnchor="middle" className="fill-gray-400" style={{ fontSize: '11px' }}>total</text>
+            </svg>
+          </div>
+          <div className="space-y-2">
+            {inscricoes.map((item, i) => (
+              <div key={`${item.name}-${i}`} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="size-2.5 rounded-full shrink-0" style={{ backgroundColor: donutColors[i % donutColors.length] }} />
+                  <span className="text-gray-600 truncate">{item.name}</span>
                 </div>
-              )
-            })}
+                <span className="font-semibold text-gray-900 shrink-0 ml-2">{item.value}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      <MatriculasRecentes 
-        matriculas={matriculas} 
-        onEdit={onEdit} 
+      <MatriculasRecentes
+        matriculas={matriculas}
+        onEdit={onEdit}
         onDelete={onDelete}
         onView={onView}
       />
@@ -1625,33 +1700,40 @@ function FinanceiroResumo({ stats }) {
   }
 
   const items = [
-    { label: 'Total Arrecadado', value: formatarMoeda(stats?.totalArrecadado || 0), icon: <TrendingUp className="size-5 text-green-600" />, color: 'bg-green-100' },
-    { label: 'Total em Atraso', value: formatarMoeda(stats?.totalAtraso || 0), icon: <AlertTriangle className="size-5 text-red-600" />, color: 'bg-red-100' },
-    { label: 'Alunos Inadimplentes', value: stats?.inadimplentes || 0, icon: <UsersIcon className="size-5 text-orange-600" />, color: 'bg-orange-100' },
-    { label: 'Previsão do Mês', value: formatarMoeda(stats?.previsaoMes || 0), icon: <CalendarDays className="size-5 text-blue-600" />, color: 'bg-blue-100' },
-    { label: 'Saldo em Caixa', value: formatarMoeda(stats?.saldoCaixa || 0), icon: <Wallet className="size-5 text-purple-600" />, color: 'bg-purple-100' },
-    { label: 'Taxa de Inadimplência', value: `${stats?.taxaInadimplencia || 0}%`, icon: <ShieldAlert className="size-5 text-yellow-600" />, color: 'bg-yellow-100' }
+    { label: 'Total Arrecadado', value: formatarMoeda(stats?.totalArrecadado || 0), icon: TrendingUp, accent: '#006c49' },
+    { label: 'Total em Atraso', value: formatarMoeda(stats?.totalAtraso || 0), icon: AlertTriangle, accent: '#dc2626' },
+    { label: 'Inadimplentes', value: stats?.inadimplentes || 0, icon: UsersIcon, accent: '#ea580c' },
+    { label: 'Previsao Mes', value: formatarMoeda(stats?.previsaoMes || 0), icon: CalendarDays, accent: '#2563eb' },
+    { label: 'Saldo em Caixa', value: formatarMoeda(stats?.saldoCaixa || 0), icon: Wallet, accent: '#7c3aed' },
+    { label: 'Taxa Inadimplencia', value: `${stats?.taxaInadimplencia || 0}%`, icon: ShieldAlert, accent: '#ca8a04' }
   ]
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-      {items.map((item, index) => (
-        <div key={index} className="rounded-xl border border-[#eceef0] bg-white p-4 shadow-sm transition-transform hover:-translate-y-1">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-[#45474c]">{item.label}</p>
-              <p className="text-base sm:text-lg font-bold text-[#091426]">{item.value}</p>
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+      {items.map((item, index) => {
+        const Icon = item.icon
+        return (
+          <div
+            key={index}
+            className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 transition-colors hover:bg-gray-50/50"
+          >
+            <div className="flex items-center gap-2.5 mb-2.5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-50 border border-gray-100">
+                <Icon className="size-4" style={{ color: item.accent }} />
+              </div>
+              <p className="text-[10px] sm:text-[11px] font-medium text-gray-500 leading-tight">{item.label}</p>
             </div>
-            <div className={`rounded-lg p-2 ${item.color}`}>{item.icon}</div>
+            <p className="text-sm sm:text-base font-bold text-gray-900">{item.value}</p>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
 
-// ========== GRÁFICO DE RECEITAS ==========
 function GraficoReceitas({ dados }) {
+  const [hoveredBar, setHoveredBar] = useState(null)
+
   const dadosGrafico = dados || [
     { mes: 'JAN', receita: 0, previsao: 0 },
     { mes: 'FEV', receita: 0, previsao: 0 },
@@ -1662,69 +1744,172 @@ function GraficoReceitas({ dados }) {
   ]
 
   const maxValor = Math.max(...dadosGrafico.map(d => Math.max(d.receita || 0, d.previsao || 0)), 1)
+  const H = 150, L = 42, R = 272, T = 16
+  const bw = 20
+  const n = dadosGrafico.length
+  const spacing = (R - L) / n
 
   return (
-    <div className="rounded-xl border border-[#eceef0] bg-white p-4 shadow-sm">
+    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
       <div className="mb-4">
-        <h4 className="text-sm font-semibold text-[#091426]">Evolução de Receitas</h4>
-        <p className="text-[10px] text-[#45474c]">Análise de arrecadação vs previsão</p>
+        <h4 className="text-sm font-bold text-gray-900">Evolucao de Receitas</h4>
+        <p className="text-[11px] text-gray-500">Arrecadacao vs previsao mensal</p>
       </div>
-      <div className="h-48 w-full">
-        <div className="flex h-full items-end justify-between gap-1">
-          {dadosGrafico.map((item, index) => {
-            const alturaReceita = (item.receita / maxValor) * 100
-            const alturaPrevisao = (item.previsao / maxValor) * 100
-            return (
-              <div key={index} className="flex flex-1 flex-col items-center gap-1">
-                <div className="flex w-full justify-center gap-0.5">
-                  <div className="w-3 rounded-t bg-[#006c49] transition-all hover:bg-[#006c49]/80" style={{ height: `${Math.max(alturaReceita * 0.8, 4)}px` }} title={`Receita: Kz ${item.receita}`} />
-                  <div className="w-3 rounded-t bg-[#006c49]/40 transition-all hover:bg-[#006c49]/60" style={{ height: `${Math.max(alturaPrevisao * 0.8, 4)}px` }} title={`Previsão: Kz ${item.previsao}`} />
-                </div>
-                <span className="text-[8px] font-medium text-[#45474c]">{item.mes}</span>
-                <span className="text-[6px] text-[#45474c]">Kz {item.receita}</span>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-      <div className="mt-3 flex items-center justify-center gap-4 text-xs">
-        <div className="flex items-center gap-1"><div className="h-2 w-4 rounded bg-[#006c49]" /><span>Receita Realizada</span></div>
-        <div className="flex items-center gap-1"><div className="h-2 w-4 rounded bg-[#006c49]/40" /><span>Previsão</span></div>
+      <svg viewBox="0 0 280 195" className="w-full" style={{ height: '180px' }}>
+        <defs>
+          <linearGradient id="barG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#00a36b" />
+            <stop offset="100%" stopColor="#006c49" />
+          </linearGradient>
+          <linearGradient id="barGhost" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#006c49" stopOpacity="0.08" />
+            <stop offset="100%" stopColor="#006c49" stopOpacity="0.02" />
+          </linearGradient>
+          <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#006c49" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="#006c49" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => (
+          <g key={i}>
+            <line x1={L} y1={T + H * (1 - pct)} x2={R} y2={T + H * (1 - pct)} stroke="#f1f5f9" strokeWidth="0.7" />
+            <text x={L - 5} y={T + H * (1 - pct) + 3} textAnchor="end" fill="#94a3b8" style={{ fontSize: '7.5px' }}>
+              {Math.round(maxValor * pct).toLocaleString('pt-PT')}
+            </text>
+          </g>
+        ))}
+        <line x1={L} y1={T + H} x2={R} y2={T + H} stroke="#e2e8f0" strokeWidth="0.5" />
+
+        {dadosGrafico.some(d => d.receita > 0) && (() => {
+          const pts = dadosGrafico.map((d, i) => {
+            const x = L + i * spacing + spacing / 2
+            const y = T + H - (maxValor > 0 ? (d.receita / maxValor) * H : 0)
+            return { x, y }
+          })
+          const areaPath = `M${pts[0].x},${T + H} ` + pts.map(p => `L${p.x},${p.y}`).join(' ') + ` L${pts[pts.length - 1].x},${T + H} Z`
+          const linePath = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
+          return (
+            <g>
+              <path d={areaPath} fill="url(#areaGrad)" opacity="0.7" />
+              <path d={linePath} fill="none" stroke="#006c49" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
+            </g>
+          )
+        })()}
+
+        {dadosGrafico.map((item, index) => {
+          const x = L + index * spacing + (spacing - bw * 2 - 2) / 2
+          const hP = maxValor > 0 ? (item.previsao / maxValor) * H : 0
+          const hR = maxValor > 0 ? (item.receita / maxValor) * H : 0
+          const hovered = hoveredBar === index
+
+          return (
+            <g key={index} onMouseEnter={() => setHoveredBar(index)} onMouseLeave={() => setHoveredBar(null)} style={{ cursor: 'pointer' }}>
+              <rect x={x} y={T + H - hP} width={bw} height={Math.max(hP, 0)} rx="3" fill="url(#barGhost)" className="animate-chart-grow" style={{ transformOrigin: `${x + bw / 2}px ${T + H}px`, animationDelay: `${index * 0.08}s` }} />
+              <rect x={x + bw + 2} y={T + H - hR} width={bw} height={Math.max(hR, 0)} rx="3" fill="url(#barG)" className="animate-chart-grow" style={{ transformOrigin: `${x + bw + 2 + bw / 2}px ${T + H}px`, animationDelay: `${index * 0.08 + 0.04}s`, opacity: hovered ? 1 : 0.85, transition: 'opacity 0.15s' }} />
+
+              {hovered && item.receita > 0 && (
+                <g>
+                  <rect x={x + bw + 2 - 6} y={T + H - hR - 26} width={bw + 12} height="18" rx="5" fill="#0f172a" opacity="0.92" />
+                  <text x={x + bw + 2 + bw / 2} y={T + H - hR - 14} textAnchor="middle" fill="white" style={{ fontSize: '8px', fontWeight: 600 }}>{formatKz(item.receita)}</text>
+                </g>
+              )}
+
+              <text x={x + bw + 1} y={T + H + 12} textAnchor="middle" fill={hovered ? '#0f172a' : '#94a3b8'} style={{ fontSize: '8px', fontWeight: hovered ? 700 : 500, transition: 'fill 0.15s' }}>{item.mes}</text>
+            </g>
+          )
+        })}
+      </svg>
+      <div className="mt-3 flex items-center justify-center gap-4 text-[11px] text-gray-600">
+        <div className="flex items-center gap-1.5"><div className="h-2.5 w-4 rounded-sm" style={{ background: 'linear-gradient(180deg, #00a36b, #006c49)' }} />Receita</div>
+        <div className="flex items-center gap-1.5"><div className="h-2.5 w-4 rounded-sm bg-[#006c49]/10" />Previsao</div>
       </div>
     </div>
   )
 }
 
-// ========== GRÁFICO DE INADIMPLÊNCIA ==========
+function formatKz(valor) {
+  return `Kz ${parseFloat(valor || 0).toLocaleString('pt-PT', { maximumFractionDigits: 0 })}`
+}
+
 function GraficoInadimplencia({ inadimplentes }) {
-  const dados = inadimplentes?.slice(0, 10) || []
+  const [hoveredSlice, setHoveredSlice] = useState(null)
+
+  const dados = inadimplentes?.slice(0, 6) || []
+  const donutColors = ['#dc2626', '#ea580c', '#ca8a04', '#6366f1', '#8b5cf6', '#ec4899']
+  const totalDebito = dados.reduce((sum, d) => sum + (d.debito || 0), 0)
+  const maxDebito = Math.max(...dados.map(d => d.debito || 0), 1)
 
   return (
-    <div className="rounded-xl border border-[#eceef0] bg-white p-4 shadow-sm">
+    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
       <div className="mb-4">
-        <h4 className="text-sm font-semibold text-[#091426]">Top Inadimplentes</h4>
-        <p className="text-[10px] text-[#45474c]">Alunos com maiores débitos</p>
+        <h4 className="text-sm font-bold text-gray-900">Inadimplencia</h4>
+        <p className="text-[11px] text-gray-500">Alunos com debitos pendentes</p>
       </div>
       {dados.length > 0 ? (
-        <div className="space-y-2">
-          {dados.map((aluno, index) => (
-            <div key={index} className="space-y-0.5">
-              <div className="flex justify-between text-xs">
-                <span className="truncate font-medium">{aluno.nome}</span>
-                <span className="text-red-600 font-semibold">Kz {parseFloat(aluno.debito || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</span>
+        <>
+          <div className="flex justify-center mb-4">
+            <div className="relative" style={{ width: 140, height: 140 }}>
+              <svg width="140" height="140" viewBox="0 0 140 140">
+                {(() => {
+                  let acc = 0
+                  const radius = 52
+                  const circumference = 2 * Math.PI * radius
+                  return dados.map((item, i) => {
+                    const pct = totalDebito > 0 ? (item.debito / totalDebito) : (1 / dados.length)
+                    const dashLen = pct * circumference
+                    const targetOffset = -acc * circumference
+                    acc += pct
+                    return (
+                      <circle
+                        key={i}
+                        cx="70" cy="70" r={radius}
+                        fill="none"
+                        stroke={donutColors[i % donutColors.length]}
+                        strokeWidth={hoveredSlice === i ? '21' : '18'}
+                        strokeDasharray={`${dashLen} ${circumference - dashLen}`}
+                        strokeDashoffset={circumference}
+                        className="animate-donut"
+                        style={{ '--circumference': circumference, '--target-offset': targetOffset, animationDelay: `${i * 0.15}s`, transition: 'stroke-width 0.2s', filter: hoveredSlice === i ? 'drop-shadow(0 0 4px rgba(0,0,0,0.15))' : 'none' }}
+                        onMouseEnter={() => setHoveredSlice(i)}
+                        onMouseLeave={() => setHoveredSlice(null)}
+                      />
+                    )
+                  })
+                })()}
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-sm font-bold text-gray-900">{formatKz(totalDebito)}</span>
+                <span className="text-[8px] text-gray-400">total em atraso</span>
               </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#eceef0]">
-                <div className="h-full rounded-full bg-red-500" style={{ width: `${Math.min((aluno.debito / 100000) * 100, 100)}%` }} />
-              </div>
-              <p className="text-[8px] text-[#45474c]">{aluno.dias_atraso} dias em atraso</p>
             </div>
-          ))}
-        </div>
+          </div>
+          <div className="space-y-2.5">
+            {dados.map((aluno, index) => {
+              const pct = maxDebito > 0 ? (aluno.debito / maxDebito) * 100 : 0
+              return (
+                <div key={index} className="animate-fade-in-up" style={{ animationDelay: `${index * 0.08}s` }}>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-medium text-gray-700 truncate mr-2">{aluno.nome}</span>
+                    <span className="text-red-600 font-bold shrink-0">{formatKz(aluno.debito)}</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: donutColors[index % donutColors.length] }}
+                    />
+                  </div>
+                  <p className="text-[9px] text-gray-400 mt-0.5">{aluno.dias_atraso} dias em atraso</p>
+                </div>
+              )
+            })}
+          </div>
+        </>
       ) : (
         <div className="flex flex-col items-center justify-center py-8 text-gray-500">
           <CheckCircle className="size-10 text-green-500 mb-2" />
-          <p className="text-sm">Nenhum aluno inadimplente</p>
-          <p className="text-xs">Todos os pagamentos estão em dia</p>
+          <p className="text-sm font-medium">Nenhum aluno inadimplente</p>
+          <p className="text-xs">Todos os pagamentos em dia</p>
         </div>
       )}
     </div>
@@ -1903,6 +2088,7 @@ function AcademicoTab({
   onView, 
   onCreate,
   onGerarBoletim,
+  onGerarAvaliacao,
   matriculas,
   cursosList,
   formadoresList
@@ -1913,6 +2099,7 @@ function AcademicoTab({
   const [filterDisciplina, setFilterDisciplina] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [gerandoBoletim, setGerandoBoletim] = useState(false)
+  const [gerandoAvaliacao, setGerandoAvaliacao] = useState(false)
 
   useEffect(() => {
     let filtered = [...(notas || [])]
@@ -1967,6 +2154,17 @@ function AcademicoTab({
       console.error('Erro ao gerar boletim:', error)
     } finally {
       setGerandoBoletim(false)
+    }
+  }
+
+  const handleGerarAvaliacaoClick = async (alunoId) => {
+    setGerandoAvaliacao(true)
+    try {
+      await onGerarAvaliacao(alunoId)
+    } catch (error) {
+      console.error('Erro ao gerar avaliação:', error)
+    } finally {
+      setGerandoAvaliacao(false)
     }
   }
 
@@ -2120,8 +2318,13 @@ function AcademicoTab({
                     {gerandoBoletim ? <Loader2 className="size-3 animate-spin inline mr-1" /> : <FileDown className="size-3 inline mr-1" />}
                     Gerar Boletim
                   </button>
-                  <button className="flex-1 rounded-lg border border-[#c5c6cd] px-3 py-1 text-xs text-[#45474c] hover:bg-[#f7f9fb]">
-                    <Eye className="size-3 inline mr-1" /> Ver
+                  <button 
+                    onClick={() => handleGerarAvaliacaoClick(aluno.id)}
+                    disabled={gerandoAvaliacao || !media}
+                    className="flex-1 rounded-lg border border-[#006c49] px-3 py-1 text-xs text-[#006c49] hover:bg-[#006c49]/5 disabled:opacity-50"
+                  >
+                    {gerandoAvaliacao ? <Loader2 className="size-3 animate-spin inline mr-1" /> : <FileDown className="size-3 inline mr-1" />}
+                    Gerar Avaliação
                   </button>
                 </div>
               </div>
@@ -2179,10 +2382,11 @@ export default function DashboardHome() {
   const [formadores, setFormadores] = useState([])
   const [pagamentos, setPagamentos] = useState([])
   const [notas, setNotas] = useState([])
+  const [criteriosAvaliacao, setCriteriosAvaliacao] = useState([])
   const [stats, setStats] = useState([])
   const [statsFinanceiro, setStatsFinanceiro] = useState({})
   const [inadimplentes, setInadimplentes] = useState([])
-  const [loading, setLoading] = useState({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, notas: false })
+  const [loading, setLoading] = useState({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, notas: false, criterios: false })
   const [crescimento, setCrescimento] = useState([])
   const [inscricoesPorCurso, setInscricoesPorCurso] = useState([])
   const [cursosList, setCursosList] = useState([])
@@ -2352,40 +2556,198 @@ export default function DashboardHome() {
   }, [matriculas, turmas, cursos, formadores, pagamentos, notas])
 
   // ========== GERAR PDF ==========
-  const generateCursosPDF = () => {
+  const getLogoBase64 = async () => {
+    try {
+      const res = await fetch('/LOGOTIPO 02.svg')
+      const svg = await res.text()
+      const canvas = document.createElement('canvas')
+      const img = new Image()
+      return new Promise((resolve) => {
+        img.onload = () => {
+          canvas.width = img.naturalWidth * 2
+          canvas.height = img.naturalHeight * 2
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+          resolve(canvas.toDataURL('image/png'))
+        }
+        img.onerror = () => resolve(null)
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)))
+      })
+    } catch { return null }
+  }
+
+  const PDF_COLORS = {
+    primary: [0, 108, 73],
+    primaryLight: [230, 245, 240],
+    primaryDark: [0, 80, 53],
+    dark: [30, 30, 30],
+    gray: [100, 100, 100],
+    grayLight: [160, 160, 160],
+    grayLighter: [220, 220, 220],
+    white: [255, 255, 255],
+    tableAlt: [246, 250, 248],
+    tableHead: [0, 90, 60],
+  }
+
+  const addPDFHeader = async (doc, title, stats) => {
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const logo = await getLogoBase64()
+    const lm = 14
+    const rm = pageWidth - 14
+    const docRef = `REF: AK-${Date.now().toString(36).toUpperCase()}`
+
+    doc.setFillColor(...PDF_COLORS.primary)
+    doc.rect(0, 0, pageWidth, 2, 'F')
+    doc.setFillColor(...PDF_COLORS.primaryDark)
+    doc.rect(0, 2, pageWidth, 0.8, 'F')
+
+    if (logo) {
+      doc.addImage(logo, 'PNG', lm, 8, 0, 16)
+    }
+
+    const nameX = logo ? lm + 26 : pageWidth / 2
+    const nameAlign = logo ? 'left' : 'center'
+
+    doc.setFontSize(22)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...PDF_COLORS.primary)
+    doc.text('Academia Kamatambu', nameX, 14, { align: nameAlign })
+
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...PDF_COLORS.gray)
+    doc.text('Centro de Formacao Profissional', nameX, 20, { align: nameAlign })
+
+    doc.setDrawColor(...PDF_COLORS.grayLighter)
+    doc.setLineWidth(0.15)
+    doc.line(lm, 28, rm, 28)
+
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...PDF_COLORS.grayLight)
+    doc.text(docRef, lm, 32)
+
+    const dataAtual = new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    const horaAtual = new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })
+    doc.text(`${dataAtual} | ${horaAtual}`, rm, 32, { align: 'right' })
+
+    doc.setFillColor(...PDF_COLORS.primaryLight)
+    doc.roundedRect(lm, 36, rm - lm, 10, 1.5, 1.5, 'F')
+    doc.setDrawColor(...PDF_COLORS.primary)
+    doc.setLineWidth(0.3)
+    doc.roundedRect(lm, 36, rm - lm, 10, 1.5, 1.5, 'S')
+
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...PDF_COLORS.dark)
+    doc.text(title, pageWidth / 2, 43, { align: 'center' })
+
+    let y = 52
+    if (stats && stats.length > 0) {
+      const cardWidth = (rm - lm - (stats.length - 1) * 4) / stats.length
+      stats.forEach((stat, i) => {
+        const cx = lm + i * (cardWidth + 4)
+        doc.setFillColor(...PDF_COLORS.white)
+        doc.roundedRect(cx, y, cardWidth, 16, 2, 2, 'F')
+        doc.setDrawColor(...PDF_COLORS.grayLighter)
+        doc.setLineWidth(0.15)
+        doc.roundedRect(cx, y, cardWidth, 16, 2, 2, 'S')
+        doc.setFillColor(...PDF_COLORS.primary)
+        doc.roundedRect(cx, y, 3, 16, 1, 1, 'F')
+        doc.setFontSize(7)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(...PDF_COLORS.gray)
+        doc.text(stat.label.toUpperCase(), cx + 8, y + 5)
+        doc.setFontSize(13)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...PDF_COLORS.primary)
+        doc.text(String(stat.value), cx + 8, y + 12)
+      })
+      y += 22
+    }
+
+    doc.setDrawColor(...PDF_COLORS.grayLighter)
+    doc.setLineWidth(0.1)
+    doc.line(lm, y, rm, y)
+
+    return y + 4
+  }
+
+  const addPDFFooter = (doc, pageNum) => {
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const lm = 14
+    const rm = pageWidth - 14
+
+    doc.setDrawColor(...PDF_COLORS.grayLighter)
+    doc.setLineWidth(0.15)
+    doc.line(lm, pageHeight - 16, rm, pageHeight - 16)
+
+    doc.setFillColor(...PDF_COLORS.primary)
+    doc.rect(0, pageHeight - 2, pageWidth, 2, 'F')
+
+    doc.setFontSize(6.5)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...PDF_COLORS.grayLight)
+    doc.text('Documento confidencial - Uso exclusivo da Administracao', lm, pageHeight - 10)
+
+    const totalPages = doc.internal.getNumberOfPages()
+    doc.text(`Pagina ${pageNum} de ${totalPages}`, rm, pageHeight - 10, { align: 'right' })
+
+    doc.setFontSize(6)
+    doc.setTextColor(...PDF_COLORS.grayLighter)
+    doc.text('Academia Kamatambu | Plataforma de Gestao Academica', pageWidth / 2, pageHeight - 6, { align: 'center' })
+  }
+
+  const TABLE_BASE = {
+    headStyles: {
+      fillColor: PDF_COLORS.tableHead,
+      textColor: PDF_COLORS.white,
+      fontSize: 7,
+      fontStyle: 'bold',
+      halign: 'center',
+      cellPadding: 3,
+      lineWidth: 0.2,
+      lineColor: PDF_COLORS.primary,
+    },
+    alternateRowStyles: { fillColor: PDF_COLORS.tableAlt },
+    styles: {
+      fontSize: 6.5,
+      cellPadding: 2.5,
+      halign: 'center',
+      textColor: PDF_COLORS.dark,
+      lineWidth: 0.1,
+      lineColor: PDF_COLORS.grayLighter,
+      font: 'helvetica',
+    },
+    tableLineColor: PDF_COLORS.grayLighter,
+    tableLineWidth: 0.1,
+  }
+
+  const generateCursosPDF = async () => {
     if (!cursos || cursos.length === 0) { showToast('Nenhum curso encontrado para gerar PDF', 'warning'); return }
     try {
       const doc = new jsPDF('landscape', 'mm', 'a4')
-      const pageWidth = doc.internal.pageSize.getWidth()
-      doc.setFontSize(22); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-      doc.text('Academia Kamatambu', pageWidth / 2, 20, { align: 'center' })
-      doc.setFontSize(12); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100)
-      doc.text('Centro de Formação Profissional', pageWidth / 2, 28, { align: 'center' })
-      doc.setDrawColor(10, 20, 40); doc.setLineWidth(0.5); doc.line(14, 35, pageWidth - 14, 35)
-      doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-      doc.text('RELATÓRIO DE CURSOS', pageWidth / 2, 45, { align: 'center' })
-      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100)
-      const dataAtual = new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-      doc.text(`Emissão: ${dataAtual}`, pageWidth - 20, 52, { align: 'right' })
-      doc.text(`Total de Cursos: ${cursos.length}`, 20, 52, { align: 'left' })
-      const tableData = cursos.map((curso, index) => [
-        index + 1, curso.Nome || '-', curso.Desc || 'Sem descrição', curso.Tipo_curso || 'Técnico',
-        curso.Modulos || 1, curso.Edicao || '1º', curso.Duracao || 'Não definida',
-        curso.Carga_Horaria ? `${curso.Carga_Horaria}h` : 'Não definida',
-        curso.Valor_curso ? `Kz ${parseFloat(curso.Valor_curso).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}` : '0.00',
-        curso.Status || 'Ativo'
+      const startY = await addPDFHeader(doc, 'RELATORIO DE CURSOS', [
+        { label: 'Total de Cursos', value: cursos.length },
+        { label: 'Ativos', value: cursos.filter(c => c.Status === 'Ativo').length },
+        { label: 'Valor Total', value: `Kz ${cursos.reduce((s, c) => s + parseFloat(c.Valor_curso || 0), 0).toLocaleString('pt-PT')}` },
+      ])
+      const tableData = cursos.map((c, index) => [
+        index + 1, c.Nome || '-', c.Desc || '-', c.Tipo_curso || 'Tecnico',
+        `${c.Modulos || 1}o`, c.Edicao || '-', c.Duracao || '-',
+        c.Carga_Horaria ? `${c.Carga_Horaria}h` : '-',
+        c.Valor_curso ? `Kz ${parseFloat(c.Valor_curso).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}` : '0,00',
+        c.Status || 'Ativo'
       ])
       autoTable(doc, {
-        startY: 58,
-        head: [['Nº', 'Nome do Curso', 'Descrição', 'Tipo', 'Módulos', 'Edição', 'Duração', 'Carga Horária', 'Valor', 'Status']],
+        startY,
+        head: [['No', 'Nome do Curso', 'Descricao', 'Tipo', 'Modulo', 'Edicao', 'Duracao', 'Carga Horaria', 'Valor (Kz)', 'Status']],
         body: tableData, theme: 'striped',
-        headStyles: { fillColor: [10, 20, 40], textColor: [255, 255, 255], fontSize: 7, fontStyle: 'bold', halign: 'center' },
-        styles: { fontSize: 6.5, cellPadding: 2, halign: 'center' },
-        columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 30 }, 2: { cellWidth: 35 }, 3: { cellWidth: 20 }, 4: { cellWidth: 12 }, 5: { cellWidth: 10 }, 6: { cellWidth: 15 }, 7: { cellWidth: 18 }, 8: { cellWidth: 22 }, 9: { cellWidth: 15 } }
+        ...TABLE_BASE,
+        columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 32 }, 2: { cellWidth: 32 }, 3: { cellWidth: 22 }, 4: { cellWidth: 14 }, 5: { cellWidth: 14 }, 6: { cellWidth: 16 }, 7: { cellWidth: 18 }, 8: { cellWidth: 24 }, 9: { cellWidth: 16 } },
+        didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
       })
-      const finalY = doc.lastAutoTable.finalY + 10
-      doc.setFontSize(8); doc.setTextColor(150, 150, 150)
-      doc.text('Documento gerado automaticamente pela plataforma Academia Kamatambu', pageWidth / 2, finalY, { align: 'center' })
       doc.save('cursos_academia_kamatambu.pdf')
       showToast('PDF gerado com sucesso!', 'success')
     } catch (error) {
@@ -2393,38 +2755,30 @@ export default function DashboardHome() {
     }
   }
 
-  const generateMatriculasPDF = () => {
-    if (!matriculas || matriculas.length === 0) { showToast('Nenhuma matrícula encontrada para gerar PDF', 'warning'); return }
+  const generateMatriculasPDF = async () => {
+    if (!matriculas || matriculas.length === 0) { showToast('Nenhuma matricula encontrada para gerar PDF', 'warning'); return }
     try {
       const doc = new jsPDF('landscape', 'mm', 'a4')
-      const pageWidth = doc.internal.pageSize.getWidth()
-      doc.setFontSize(22); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-      doc.text('Academia Kamatambu', pageWidth / 2, 20, { align: 'center' })
-      doc.setFontSize(12); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100)
-      doc.text('Centro de Formação Profissional', pageWidth / 2, 28, { align: 'center' })
-      doc.setDrawColor(10, 20, 40); doc.setLineWidth(0.5); doc.line(14, 35, pageWidth - 14, 35)
-      doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-      doc.text('RELATÓRIO DE MATRÍCULAS', pageWidth / 2, 45, { align: 'center' })
-      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100)
-      const dataAtual = new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-      doc.text(`Emissão: ${dataAtual}`, pageWidth - 20, 52, { align: 'right' })
-      doc.text(`Total de Matrículas: ${matriculas.length}`, 20, 52, { align: 'left' })
-      const tableData = matriculas.map((matricula, index) => [
-        index + 1, matricula.Nome || '-', matricula.Curso || '-', matricula.Turma || '-',
-        matricula.Modulo || 1, matricula.Status || 'Inscrito', matricula.BI_Cedula || '-',
-        matricula.Telefone || '-', matricula.Data_Matricula ? new Date(matricula.Data_Matricula).toLocaleDateString('pt-PT') : '-'
+      const inscritos = matriculas.filter(m => m.Status === 'Inscrito').length
+      const concluidos = matriculas.filter(m => m.Status === 'Concluido' || m.Status === 'Concluido').length
+      const startY = await addPDFHeader(doc, 'RELATORIO DE MATRICULAS', [
+        { label: 'Total', value: matriculas.length },
+        { label: 'Inscritos', value: inscritos },
+        { label: 'Concluidos', value: concluidos },
+      ])
+      const tableData = matriculas.map((m, index) => [
+        index + 1, m.Nome || '-', m.Curso || '-', m.Turma || '-',
+        `${m.Modulo || 1}o`, m.Status || 'Inscrito', m.BI_Cedula || '-',
+        m.Telefone || '-', m.Data_Matricula ? new Date(m.Data_Matricula).toLocaleDateString('pt-PT') : '-'
       ])
       autoTable(doc, {
-        startY: 58,
-        head: [['Nº', 'Nome', 'Curso', 'Turma', 'Módulo', 'Status', 'BI/Cédula', 'Telefone', 'Data Matrícula']],
+        startY,
+        head: [['No', 'Nome', 'Curso', 'Turma', 'Modulo', 'Status', 'BI/Cedula', 'Telefone', 'Data Matricula']],
         body: tableData, theme: 'striped',
-        headStyles: { fillColor: [10, 20, 40], textColor: [255, 255, 255], fontSize: 7, fontStyle: 'bold', halign: 'center' },
-        styles: { fontSize: 6.5, cellPadding: 2, halign: 'center' },
-        columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 30 }, 2: { cellWidth: 25 }, 3: { cellWidth: 20 }, 4: { cellWidth: 12 }, 5: { cellWidth: 18 }, 6: { cellWidth: 20 }, 7: { cellWidth: 20 }, 8: { cellWidth: 22 } }
+        ...TABLE_BASE,
+        columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 32 }, 2: { cellWidth: 28 }, 3: { cellWidth: 22 }, 4: { cellWidth: 14 }, 5: { cellWidth: 20 }, 6: { cellWidth: 22 }, 7: { cellWidth: 22 }, 8: { cellWidth: 22 } },
+        didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
       })
-      const finalY = doc.lastAutoTable.finalY + 10
-      doc.setFontSize(8); doc.setTextColor(150, 150, 150)
-      doc.text('Documento gerado automaticamente pela plataforma Academia Kamatambu', pageWidth / 2, finalY, { align: 'center' })
       doc.save('matriculas_academia_kamatambu.pdf')
       showToast('PDF gerado com sucesso!', 'success')
     } catch (error) {
@@ -2432,38 +2786,30 @@ export default function DashboardHome() {
     }
   }
 
-  const generateTurmasPDF = () => {
+  const generateTurmasPDF = async () => {
     if (!turmas || turmas.length === 0) { showToast('Nenhuma turma encontrada para gerar PDF', 'warning'); return }
     try {
       const doc = new jsPDF('landscape', 'mm', 'a4')
-      const pageWidth = doc.internal.pageSize.getWidth()
-      doc.setFontSize(22); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-      doc.text('Academia Kamatambu', pageWidth / 2, 20, { align: 'center' })
-      doc.setFontSize(12); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100)
-      doc.text('Centro de Formação Profissional', pageWidth / 2, 28, { align: 'center' })
-      doc.setDrawColor(10, 20, 40); doc.setLineWidth(0.5); doc.line(14, 35, pageWidth - 14, 35)
-      doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-      doc.text('RELATÓRIO DE TURMAS', pageWidth / 2, 45, { align: 'center' })
-      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100)
-      const dataAtual = new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-      doc.text(`Emissão: ${dataAtual}`, pageWidth - 20, 52, { align: 'right' })
-      doc.text(`Total de Turmas: ${turmas.length}`, 20, 52, { align: 'left' })
-      const tableData = turmas.map((turma, index) => [
-        index + 1, turma.Turma || '-', turma.Curso || '-', turma.Modulo || 1,
-        turma.Periodo || 'Manhã', turma.Formador || 'Não definido', turma.Numero_Alunos || 0,
-        turma.Capacidade_Maxima || 30, turma.Status || 'Pendente'
+      const totalAlunos = turmas.reduce((s, t) => s + parseInt(t.Numero_Alunos || 0), 0)
+      const capacidadeTotal = turmas.reduce((s, t) => s + parseInt(t.Capacidade_Maxima || 30), 0)
+      const startY = await addPDFHeader(doc, 'RELATORIO DE TURMAS', [
+        { label: 'Total Turmas', value: turmas.length },
+        { label: 'Total Alunos', value: totalAlunos },
+        { label: 'Ocupacao', value: capacidadeTotal > 0 ? `${Math.round((totalAlunos / capacidadeTotal) * 100)}%` : '0%' },
+      ])
+      const tableData = turmas.map((t, index) => [
+        index + 1, t.Turma || '-', t.Curso || '-', `${t.Modulo || 1}o`,
+        t.Periodo || 'Manha', t.Formador || '-', t.Numero_Alunos || 0,
+        t.Capacidade_Maxima || 30, t.Status || 'Pendente'
       ])
       autoTable(doc, {
-        startY: 58,
-        head: [['Nº', 'Turma', 'Curso', 'Módulo', 'Período', 'Formador', 'Alunos', 'Capacidade', 'Status']],
+        startY,
+        head: [['No', 'Turma', 'Curso', 'Modulo', 'Periodo', 'Formador', 'Alunos', 'Capacidade', 'Status']],
         body: tableData, theme: 'striped',
-        headStyles: { fillColor: [10, 20, 40], textColor: [255, 255, 255], fontSize: 7, fontStyle: 'bold', halign: 'center' },
-        styles: { fontSize: 6.5, cellPadding: 2, halign: 'center' },
-        columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 25 }, 2: { cellWidth: 30 }, 3: { cellWidth: 15 }, 4: { cellWidth: 15 }, 5: { cellWidth: 25 }, 6: { cellWidth: 15 }, 7: { cellWidth: 18 }, 8: { cellWidth: 18 } }
+        ...TABLE_BASE,
+        columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 28 }, 2: { cellWidth: 30 }, 3: { cellWidth: 14 }, 4: { cellWidth: 18 }, 5: { cellWidth: 28 }, 6: { cellWidth: 14 }, 7: { cellWidth: 18 }, 8: { cellWidth: 18 } },
+        didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
       })
-      const finalY = doc.lastAutoTable.finalY + 10
-      doc.setFontSize(8); doc.setTextColor(150, 150, 150)
-      doc.text('Documento gerado automaticamente pela plataforma Academia Kamatambu', pageWidth / 2, finalY, { align: 'center' })
       doc.save('turmas_academia_kamatambu.pdf')
       showToast('PDF gerado com sucesso!', 'success')
     } catch (error) {
@@ -2471,37 +2817,27 @@ export default function DashboardHome() {
     }
   }
 
-  const generateFormadoresPDF = () => {
+  const generateFormadoresPDF = async () => {
     if (!formadores || formadores.length === 0) { showToast('Nenhum formador encontrado para gerar PDF', 'warning'); return }
     try {
       const doc = new jsPDF('landscape', 'mm', 'a4')
-      const pageWidth = doc.internal.pageSize.getWidth()
-      doc.setFontSize(22); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-      doc.text('Academia Kamatambu', pageWidth / 2, 20, { align: 'center' })
-      doc.setFontSize(12); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100)
-      doc.text('Centro de Formação Profissional', pageWidth / 2, 28, { align: 'center' })
-      doc.setDrawColor(10, 20, 40); doc.setLineWidth(0.5); doc.line(14, 35, pageWidth - 14, 35)
-      doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-      doc.text('RELATÓRIO DE FORMADORES', pageWidth / 2, 45, { align: 'center' })
-      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100)
-      const dataAtual = new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-      doc.text(`Emissão: ${dataAtual}`, pageWidth - 20, 52, { align: 'right' })
-      doc.text(`Total de Formadores: ${formadores.length}`, 20, 52, { align: 'left' })
-      const tableData = formadores.map((formador, index) => [
-        index + 1, formador.Nome || '-', formador.Email || '-', formador.Telefone || '-',
-        formador.Especialidade || '-', formador.Curso || '-', formador.Turmas || 0, formador.Status || 'Ativo'
+      const startY = await addPDFHeader(doc, 'RELATORIO DE FORMADORES', [
+        { label: 'Total Formadores', value: formadores.length },
+        { label: 'Ativos', value: formadores.filter(f => f.Status === 'Ativo').length },
+        { label: 'Especialidades', value: [...new Set(formadores.map(f => f.Especialidade).filter(Boolean))].length },
+      ])
+      const tableData = formadores.map((f, index) => [
+        index + 1, f.Nome || '-', f.Email || '-', f.Telefone || '-',
+        f.Especialidade || '-', f.Curso || '-', f.Turmas || 0, f.Status || 'Ativo'
       ])
       autoTable(doc, {
-        startY: 58,
-        head: [['Nº', 'Nome', 'Email', 'Telefone', 'Especialidade', 'Curso', 'Turmas', 'Status']],
+        startY,
+        head: [['No', 'Nome', 'Email', 'Telefone', 'Especialidade', 'Curso', 'Turmas', 'Status']],
         body: tableData, theme: 'striped',
-        headStyles: { fillColor: [10, 20, 40], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold', halign: 'center' },
-        styles: { fontSize: 7, cellPadding: 2, halign: 'center' },
-        columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 35 }, 2: { cellWidth: 45 }, 3: { cellWidth: 25 }, 4: { cellWidth: 30 }, 5: { cellWidth: 30 }, 6: { cellWidth: 15 }, 7: { cellWidth: 18 } }
+        ...TABLE_BASE,
+        columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 36 }, 2: { cellWidth: 48 }, 3: { cellWidth: 26 }, 4: { cellWidth: 30 }, 5: { cellWidth: 30 }, 6: { cellWidth: 14 }, 7: { cellWidth: 16 } },
+        didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
       })
-      const finalY = doc.lastAutoTable.finalY + 10
-      doc.setFontSize(8); doc.setTextColor(150, 150, 150)
-      doc.text('Documento gerado automaticamente pela plataforma Academia Kamatambu', pageWidth / 2, finalY, { align: 'center' })
       doc.save('formadores_academia_kamatambu.pdf')
       showToast('PDF gerado com sucesso!', 'success')
     } catch (error) {
@@ -2509,102 +2845,99 @@ export default function DashboardHome() {
     }
   }
 
-  const generateRelatorioGeral = () => {
+  const generateRelatorioGeral = async () => {
     try {
       const doc = new jsPDF('landscape', 'mm', 'a4')
-      const pageWidth = doc.internal.pageSize.getWidth()
-      doc.setFontSize(22); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-      doc.text('Academia Kamatambu', pageWidth / 2, 20, { align: 'center' })
-      doc.setFontSize(12); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100)
-      doc.text('Centro de Formação Profissional', pageWidth / 2, 28, { align: 'center' })
-      doc.setDrawColor(10, 20, 40); doc.setLineWidth(0.5); doc.line(14, 35, pageWidth - 14, 35)
-      doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-      doc.text('RELATÓRIO GERAL', pageWidth / 2, 45, { align: 'center' })
-      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100)
-      const dataAtual = new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-      doc.text(`Emissão: ${dataAtual}`, pageWidth - 20, 52, { align: 'right' })
-      doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-      doc.text('Resumo Geral', 14, 62)
-      doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(60, 60, 60)
-      doc.text(`Total de Matrículas: ${matriculas?.length || 0}`, 14, 72)
-      doc.text(`Total de Turmas: ${turmas?.length || 0}`, 14, 80)
-      doc.text(`Total de Cursos: ${cursos?.length || 0}`, 14, 88)
-      doc.text(`Total de Formadores: ${formadores?.length || 0}`, 14, 96)
-      let startY = 102
-      if (matriculas && matriculas.length > 0) {
-        doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-        doc.text('Matrículas', 14, startY)
-        const matriculasData = matriculas.slice(0, 15).map((m, i) => [i + 1, m.Nome || '-', m.Curso || '-', m.Turma || '-', m.Status || 'Inscrito'])
+      const lm = 14, rm = doc.internal.pageSize.getWidth() - 14
+      const startY = await addPDFHeader(doc, 'RELATORIO GERAL DA ACADEMIA', [
+        { label: 'Matriculas', value: matriculas?.length || 0 },
+        { label: 'Turmas', value: turmas?.length || 0 },
+        { label: 'Cursos', value: cursos?.length || 0 },
+        { label: 'Formadores', value: formadores?.length || 0 },
+      ])
+      let y = startY
+
+      const drawSection = (label, headers, data, colWidths) => {
+        if (!data || data.length === 0) return
+        doc.setFillColor(...PDF_COLORS.primaryLight)
+        doc.roundedRect(lm, y - 3, rm - lm, 8, 1.5, 1.5, 'F')
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...PDF_COLORS.primary)
+        doc.text(label, lm + 4, y + 2)
+        doc.setFontSize(8)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(...PDF_COLORS.gray)
+        doc.text(`${data.length} registro(s)`, rm - 4, y + 2, { align: 'right' })
+        y += 8
         autoTable(doc, {
-          startY: startY + 4, head: [['Nº', 'Nome', 'Curso', 'Turma', 'Status']], body: matriculasData, theme: 'striped',
-          headStyles: { fillColor: [10, 20, 40], textColor: [255, 255, 255], fontSize: 7, fontStyle: 'bold', halign: 'center' },
-          styles: { fontSize: 6.5, cellPadding: 1.5, halign: 'center' },
-          columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 35 }, 2: { cellWidth: 30 }, 3: { cellWidth: 25 }, 4: { cellWidth: 18 } }
+          startY: y, head: [headers], body: data, theme: 'striped',
+          ...TABLE_BASE,
+          columnStyles: colWidths,
+          didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
         })
-        startY = doc.lastAutoTable.finalY + 8
+        y = doc.lastAutoTable.finalY + 8
       }
-      if (cursos && cursos.length > 0) {
-        doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-        doc.text('Cursos', 14, startY)
-        const cursosData = cursos.slice(0, 10).map((c, i) => [i + 1, c.Nome || '-', c.Tipo_curso || 'Técnico', c.Modulos || 1, c.Status || 'Ativo'])
-        autoTable(doc, {
-          startY: startY + 4, head: [['Nº', 'Nome', 'Tipo', 'Módulos', 'Status']], body: cursosData, theme: 'striped',
-          headStyles: { fillColor: [10, 20, 40], textColor: [255, 255, 255], fontSize: 7, fontStyle: 'bold', halign: 'center' },
-          styles: { fontSize: 6.5, cellPadding: 1.5, halign: 'center' },
-          columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 45 }, 2: { cellWidth: 25 }, 3: { cellWidth: 18 }, 4: { cellWidth: 20 } }
-        })
-        startY = doc.lastAutoTable.finalY + 8
+
+      if (matriculas?.length > 0) {
+        drawSection('MATRICULAS', ['No', 'Nome', 'Curso', 'Turma', 'Status'],
+          matriculas.slice(0, 20).map((m, i) => [i + 1, m.Nome || '-', m.Curso || '-', m.Turma || '-', m.Status || '-']),
+          { 0: { cellWidth: 10 }, 1: { cellWidth: 40 }, 2: { cellWidth: 35 }, 3: { cellWidth: 30 }, 4: { cellWidth: 20 } }
+        )
       }
-      const finalY = Math.max(startY + 4, doc.internal.pageSize.getHeight() - 20)
-      doc.setFontSize(8); doc.setTextColor(150, 150, 150)
-      doc.text('Documento gerado automaticamente pela plataforma Academia Kamatambu', pageWidth / 2, finalY, { align: 'center' })
+      if (cursos?.length > 0) {
+        drawSection('CURSOS', ['No', 'Nome', 'Tipo', 'Modulos', 'Valor', 'Status'],
+          cursos.slice(0, 15).map((c, i) => [i + 1, c.Nome || '-', c.Tipo_curso || '-', `${c.Modulos || 1}o`, c.Valor_curso ? `Kz ${parseFloat(c.Valor_curso).toLocaleString('pt-PT')}` : '-', c.Status || '-']),
+          { 0: { cellWidth: 10 }, 1: { cellWidth: 45 }, 2: { cellWidth: 28 }, 3: { cellWidth: 18 }, 4: { cellWidth: 28 }, 5: { cellWidth: 18 } }
+        )
+      }
+      if (turmas?.length > 0) {
+        drawSection('TURMAS', ['No', 'Turma', 'Curso', 'Formador', 'Alunos', 'Status'],
+          turmas.slice(0, 15).map((t, i) => [i + 1, t.Turma || '-', t.Curso || '-', t.Formador || '-', `${t.Numero_Alunos || 0}/${t.Capacidade_Maxima || 30}`, t.Status || '-']),
+          { 0: { cellWidth: 10 }, 1: { cellWidth: 28 }, 2: { cellWidth: 32 }, 3: { cellWidth: 30 }, 4: { cellWidth: 20 }, 5: { cellWidth: 18 } }
+        )
+      }
+
+      addPDFFooter(doc, 1)
       doc.save('relatorio_geral_academia_kamatambu.pdf')
-      showToast('Relatório geral gerado com sucesso!', 'success')
+      showToast('Relatorio geral gerado com sucesso!', 'success')
     } catch (error) {
-      console.error('Erro ao gerar relatório:', error); showToast('Erro ao gerar relatório', 'error')
+      console.error('Erro ao gerar relatorio:', error); showToast('Erro ao gerar relatorio', 'error')
     }
   }
 
-  const generateRelatorioFinanceiro = () => {
-    if (!pagamentos || pagamentos.length === 0) { showToast('Nenhum pagamento encontrado para gerar relatório', 'warning'); return }
+  const generateRelatorioFinanceiro = async () => {
+    if (!pagamentos || pagamentos.length === 0) { showToast('Nenhum pagamento encontrado para gerar relatorio', 'warning'); return }
     try {
       const doc = new jsPDF('landscape', 'mm', 'a4')
-      const pageWidth = doc.internal.pageSize.getWidth()
-      doc.setFontSize(22); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-      doc.text('Academia Kamatambu', pageWidth / 2, 20, { align: 'center' })
-      doc.setFontSize(12); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100)
-      doc.text('Centro de Formação Profissional', pageWidth / 2, 28, { align: 'center' })
-      doc.setDrawColor(10, 20, 40); doc.setLineWidth(0.5); doc.line(14, 35, pageWidth - 14, 35)
-      doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.setTextColor(10, 20, 40)
-      doc.text('RELATÓRIO FINANCEIRO', pageWidth / 2, 45, { align: 'center' })
-      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100)
-      const dataAtual = new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-      doc.text(`Emissão: ${dataAtual}`, pageWidth - 20, 52, { align: 'right' })
-      doc.text(`Total de Pagamentos: ${pagamentos.length}`, 20, 52, { align: 'left' })
-      const totalArrecadado = pagamentos.reduce((sum, p) => sum + parseFloat(p.valor || 0), 0)
-      doc.text(`Total Arrecadado: Kz ${totalArrecadado.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`, 20, 60, { align: 'left' })
-      const tableData = pagamentos.map((pagamento, index) => [
-        index + 1, pagamento.aluno || '-', pagamento.curso || '-',
-        pagamento.tipo || '-', pagamento.forma_pagamento || '-',
-        `Kz ${parseFloat(pagamento.valor || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`,
-        pagamento.status || 'pendente',
-        pagamento.data_pagamento ? new Date(pagamento.data_pagamento).toLocaleDateString('pt-PT') : '-'
+      const totalArrecadado = pagamentos.reduce((s, p) => s + parseFloat(p.valor || 0), 0)
+      const pagos = pagamentos.filter(p => p.status === 'pago' || p.status === 'Pago').length
+      const pendentes = pagamentos.filter(p => p.status === 'pendente').length
+      const startY = await addPDFHeader(doc, 'RELATORIO FINANCEIRO', [
+        { label: 'Pagamentos', value: pagamentos.length },
+        { label: 'Pago', value: pagos },
+        { label: 'Pendente', value: pendentes },
+        { label: 'Total Arrecadado', value: `Kz ${totalArrecadado.toLocaleString('pt-PT')}` },
+      ])
+      const tableData = pagamentos.map((p, index) => [
+        index + 1, p.aluno || '-', p.curso || '-',
+        p.tipo || '-', p.forma_pagamento || '-',
+        `Kz ${parseFloat(p.valor || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`,
+        p.status || '-',
+        p.data_pagamento ? new Date(p.data_pagamento).toLocaleDateString('pt-PT') : '-'
       ])
       autoTable(doc, {
-        startY: 66,
-        head: [['Nº', 'Aluno', 'Curso', 'Tipo', 'Forma', 'Valor', 'Status', 'Data']],
+        startY,
+        head: [['No', 'Aluno', 'Curso', 'Tipo', 'Forma Pagamento', 'Valor (Kz)', 'Status', 'Data']],
         body: tableData, theme: 'striped',
-        headStyles: { fillColor: [10, 20, 40], textColor: [255, 255, 255], fontSize: 7, fontStyle: 'bold', halign: 'center' },
-        styles: { fontSize: 6.5, cellPadding: 2, halign: 'center' },
-        columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 30 }, 2: { cellWidth: 25 }, 3: { cellWidth: 20 }, 4: { cellWidth: 20 }, 5: { cellWidth: 22 }, 6: { cellWidth: 18 }, 7: { cellWidth: 22 } }
+        ...TABLE_BASE,
+        columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 32 }, 2: { cellWidth: 28 }, 3: { cellWidth: 20 }, 4: { cellWidth: 22 }, 5: { cellWidth: 24 }, 6: { cellWidth: 18 }, 7: { cellWidth: 22 } },
+        didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
       })
-      const finalY = doc.lastAutoTable.finalY + 10
-      doc.setFontSize(8); doc.setTextColor(150, 150, 150)
-      doc.text('Documento gerado automaticamente pela plataforma Academia Kamatambu', pageWidth / 2, finalY, { align: 'center' })
       doc.save('relatorio_financeiro_academia_kamatambu.pdf')
-      showToast('Relatório financeiro gerado com sucesso!', 'success')
+      showToast('Relatorio financeiro gerado com sucesso!', 'success')
     } catch (error) {
-      console.error('Erro ao gerar relatório financeiro:', error); showToast('Erro ao gerar relatório financeiro', 'error')
+      console.error('Erro ao gerar relatorio financeiro:', error); showToast('Erro ao gerar relatorio financeiro', 'error')
     }
   }
 
@@ -2632,7 +2965,7 @@ export default function DashboardHome() {
 
   const loadData = async () => {
     try {
-      setLoading({ matriculas: true, turmas: true, cursos: true, formadores: true, pagamentos: true, notas: true })
+      setLoading({ matriculas: true, turmas: true, cursos: true, formadores: true, pagamentos: true, notas: true, criterios: true })
       const token = localStorage.getItem('token')
 
       try {
@@ -2660,9 +2993,10 @@ export default function DashboardHome() {
         ])
       }
 
-      const [matriculasRes, turmasRes, cursosRes, formadoresRes, pagamentosRes, financeiroStatsRes, notasRes] = await Promise.all([
+      const [matriculasRes, turmasRes, cursosRes, formadoresRes, pagamentosRes, financeiroStatsRes, notasRes, criteriosRes] = await Promise.all([
         apiFetch('/matriculas'), apiFetch('/turmas'), apiFetch('/cursos'), apiFetch('/formadores'),
-        apiFetch('/pagamentos'), apiFetch('/pagamentos/financeiro/stats'), apiFetch('/academico/notas')
+        apiFetch('/pagamentos'), apiFetch('/pagamentos/financeiro/stats'), apiFetch('/academico/notas'),
+        apiFetch('/criterios-avaliacao')
       ])
 
       if (matriculasRes.success) setMatriculas(matriculasRes.data)
@@ -2675,6 +3009,7 @@ export default function DashboardHome() {
         setInadimplentes(financeiroStatsRes.data?.inadimplentesList || [])
       }
       if (notasRes.success) setNotas(notasRes.data)
+      if (criteriosRes.success) setCriteriosAvaliacao(criteriosRes.data)
 
       try {
         const [cursosListRes, turmasListRes, formadoresListRes] = await Promise.all([
@@ -2695,7 +3030,7 @@ export default function DashboardHome() {
       console.error('Erro ao carregar dados:', error)
       showToast('Erro ao carregar dados', 'error')
     } finally {
-      setLoading({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, notas: false })
+      setLoading({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, notas: false, criterios: false })
     }
   }
 
@@ -2848,6 +3183,175 @@ export default function DashboardHome() {
     } catch (error) {
       console.error('Erro ao gerar boletim:', error)
       showToast('Erro ao gerar boletim', 'error')
+    }
+  }
+
+  const generateAvaliacaoPDF = async (alunoId) => {
+    try {
+      const aluno = matriculas.find(m => m.id === alunoId)
+      if (!aluno) {
+        showToast('Aluno não encontrado', 'error')
+        return
+      }
+
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${API_BASE_URL}/api/academico/notas/aluno/${alunoId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const data = await response.json()
+
+      if (!data.success || !data.data || data.data.length === 0) {
+        showToast('Este aluno não possui notas para gerar avaliação', 'warning')
+        return
+      }
+
+      const notasAluno = data.data
+      const criterios = criteriosAvaliacao
+      if (!criterios || criterios.length === 0) {
+        showToast('Critérios de avaliação não configurados', 'warning')
+        return
+      }
+
+      const totalPesoCriterios = criterios.reduce((sum, c) => sum + parseFloat(c.peso), 0)
+
+      const mediaFinal = notasAluno.length > 0
+        ? (notasAluno.reduce((sum, n) => sum + parseFloat(n.nota), 0) / notasAluno.length).toFixed(1)
+        : 0
+
+      let classificacao = 'Insuficiente'
+      let corClassificacao = [200, 0, 0]
+      if (mediaFinal >= 90) { classificacao = 'Excelente'; corClassificacao = [0, 120, 60] }
+      else if (mediaFinal >= 75) { classificacao = 'Muito Bom'; corClassificacao = [0, 100, 180] }
+      else if (mediaFinal >= 60) { classificacao = 'Bom'; corClassificacao = [0, 108, 73] }
+      else if (mediaFinal >= 50) { classificacao = 'Suficiente'; corClassificacao = [200, 150, 0] }
+
+      const doc = new jsPDF('portrait', 'mm', 'a4')
+      const lm = 14
+      const rm = doc.internal.pageSize.getWidth() - 14
+      const pageWidth = doc.internal.pageSize.getWidth()
+
+      await addPDFHeader(doc, 'CRITERIO DE AVALIACAO', [
+        { label: 'Aluno', value: aluno.Nome },
+        { label: 'Curso', value: aluno.Curso },
+        { label: 'Turma', value: aluno.Turma }
+      ])
+
+      let y = 68
+
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(PDF_COLORS.gray[0], PDF_COLORS.gray[1], PDF_COLORS.gray[2])
+      doc.text(`Modulo: ${aluno.Modulo || 1}`, lm, y)
+      doc.text(`Data: ${new Date().toLocaleDateString('pt-PT')}`, rm, y, { align: 'right' })
+      y += 8
+
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(PDF_COLORS.dark[0], PDF_COLORS.dark[1], PDF_COLORS.dark[2])
+      doc.text('Criterios de Avaliacao', lm, y)
+      y += 2
+
+      autoTable(doc, {
+        startY: y,
+        head: [['Criterio', 'Indicador', 'Peso (%)', 'Instrumento']],
+        body: criterios.map(c => [
+          c.nome,
+          c.indicador,
+          `${parseFloat(c.peso).toFixed(0)}%`,
+          c.instrumento
+        ]),
+        ...TABLE_BASE,
+        columnStyles: {
+          0: { cellWidth: 35, halign: 'left', fontStyle: 'bold' },
+          1: { cellWidth: 60, halign: 'left' },
+          2: { cellWidth: 20, halign: 'center' },
+          3: { cellWidth: 55, halign: 'left' }
+        },
+        margin: { left: lm, right: 14 }
+      })
+
+      y = doc.lastAutoTable.finalY + 10
+
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(PDF_COLORS.dark[0], PDF_COLORS.dark[1], PDF_COLORS.dark[2])
+      doc.text('Resultado Final', lm, y)
+      y += 2
+
+      autoTable(doc, {
+        startY: y,
+        head: [['Nota Final', 'Classificacao', 'Resultado']],
+        body: [[
+          `${mediaFinal}`,
+          classificacao,
+          mediaFinal >= 50 ? 'Apto' : 'Nao Apto'
+        ]],
+        ...TABLE_BASE,
+        headStyles: {
+          ...TABLE_BASE.headStyles,
+          fillColor: corClassificacao
+        },
+        columnStyles: {
+          0: { cellWidth: 40, fontStyle: 'bold', fontSize: 10 },
+          1: { cellWidth: 60, fontSize: 10 },
+          2: { cellWidth: 50, fontSize: 10, fontStyle: 'bold' }
+        },
+        margin: { left: lm, right: 14 }
+      })
+
+      y = doc.lastAutoTable.finalY + 10
+
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(PDF_COLORS.dark[0], PDF_COLORS.dark[1], PDF_COLORS.dark[2])
+      doc.text('Escala de Classificacao', lm, y)
+      y += 2
+
+      autoTable(doc, {
+        startY: y,
+        head: [['Percentagem', 'Classificacao', 'Resultado']],
+        body: [
+          ['90% - 100%', 'Excelente', 'Apto'],
+          ['75% - 89%', 'Muito Bom', 'Apto'],
+          ['60% - 74%', 'Bom', 'Apto'],
+          ['50% - 59%', 'Suficiente', 'Apto'],
+          ['Abaixo de 50%', 'Insuficiente', 'Nao Apto']
+        ],
+        ...TABLE_BASE,
+        columnStyles: {
+          0: { cellWidth: 50 },
+          1: { cellWidth: 60, fontStyle: 'bold' },
+          2: { cellWidth: 40 }
+        },
+        margin: { left: lm, right: 14 }
+      })
+
+      y = doc.lastAutoTable.finalY + 10
+
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(PDF_COLORS.dark[0], PDF_COLORS.dark[1], PDF_COLORS.dark[2])
+      doc.text('Observacao', lm, y)
+      y += 2
+
+      doc.setDrawColor(PDF_COLORS.grayLighter[0], PDF_COLORS.grayLighter[1], PDF_COLORS.grayLighter[2])
+      doc.setLineWidth(0.3)
+      doc.roundedRect(lm, y, rm - lm, 40, 2, 2)
+
+      for (let i = 0; i < 5; i++) {
+        doc.setDrawColor(PDF_COLORS.grayLighter[0], PDF_COLORS.grayLighter[1], PDF_COLORS.grayLighter[2])
+        doc.setLineWidth(0.15)
+        doc.line(lm + 5, y + 8 + (i * 7), rm - 5, y + 8 + (i * 7))
+      }
+
+      addPDFFooter(doc, 1)
+
+      doc.save(`Avaliacao_${aluno.Nome.replace(/\s/g, '_')}.pdf`)
+      showToast('Avaliação gerada com sucesso!', 'success')
+
+    } catch (error) {
+      console.error('Erro ao gerar avaliação:', error)
+      showToast('Erro ao gerar avaliação', 'error')
     }
   }
 
@@ -3066,19 +3570,19 @@ export default function DashboardHome() {
       case 'tesouraria':
         return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} stats={statsFinanceiro} inadimplentes={inadimplentes} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} />
       case 'academico':
-        return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} />
+        return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} />
       default:
         return <DashboardTab stats={stats} matriculas={matriculas} onEdit={(data) => handleOpenModal('matriculas', data)} onDelete={(id) => handleConfirmDelete(id, 'matriculas')} onView={(data) => handleOpenModal('view', data, 'matriculas')} crescimento={crescimento} inscricoesPorCurso={inscricoesPorCurso} onGeneratePDF={generateRelatorioGeral} />
     }
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f7f9fb]">
+    <div className="flex min-h-screen bg-gray-50/80">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         <TopBar setIsSidebarOpen={setIsSidebarOpen} onLogout={handleLogout} onSearch={handleGlobalSearch} />
-        <main className="flex-1 p-2 sm:p-3 lg:p-6">
-          <div className="mx-auto max-w-[1440px] space-y-3 sm:space-y-4 lg:space-y-6">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+          <div className="mx-auto max-w-[1400px] space-y-6">
             {renderContent()}
           </div>
         </main>
