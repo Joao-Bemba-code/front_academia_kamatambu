@@ -2953,7 +2953,6 @@ export default function DashboardHome() {
       })
       if (response.status === 401) {
         localStorage.removeItem('token')
-        localStorage.removeItem('user')
         window.location.href = '/auth/login'
         return { success: false, message: 'Sessão expirada' }
       }
@@ -3571,7 +3570,6 @@ export default function DashboardHome() {
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token')
-      localStorage.removeItem('user')
     }
     router.push('/auth/login')
   }
@@ -3582,26 +3580,21 @@ export default function DashboardHome() {
       try {
         const token = localStorage.getItem('token')
         if (!token) { router.push('/auth/login'); setIsChecking(false); return }
-        const userData = localStorage.getItem('user')
-        if (userData) {
-          const user = JSON.parse(userData)
-          if (user.eAdmin === true) { setIsAdmin(true); await loadData() }
-          else { setIsAdmin(false) }
-        } else {
-          const response = await fetch(`${API_BASE_URL}/auth/validar_token`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          })
-          if (response.ok) {
-            const data = await response.json()
-            if (data.user && data.user.eAdmin === true) {
-              setIsAdmin(true)
-              localStorage.setItem('user', JSON.stringify(data.user))
-              await loadData()
-            } else { setIsAdmin(false) }
+
+        const response = await fetch(`${API_BASE_URL}/auth/validar_token`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (response.ok) {
+          const data = await response.json()
+          if (data.user && data.user.eAdmin === true) {
+            setIsAdmin(true)
+            await loadData()
           } else {
-            localStorage.removeItem('token'); localStorage.removeItem('user')
-            router.push('/auth/login')
+            setIsAdmin(false)
           }
+        } else {
+          localStorage.removeItem('token')
+          router.push('/auth/login')
         }
         setIsChecking(false)
       } catch (error) {
