@@ -98,9 +98,6 @@ function Toast({ message, type, onClose }) {
 function ViewModal({ isOpen, onClose, data, type }) {
   if (!isOpen || !data) return null
 
-  // Determinar o tipo real para renderização
-  const realType = type === 'view' ? 'matriculas' : type
-
   const getStatusColor = (status) => {
     const colors = {
       'Ativo': 'bg-[#006c49]/10 text-[#006c49]',
@@ -516,7 +513,7 @@ function ViewModal({ isOpen, onClose, data, type }) {
   )
 
   const renderDetails = () => {
-    switch (realType) {
+    switch (type) {
       case 'matriculas':
         return renderMatriculaDetails()
       case 'turmas':
@@ -536,7 +533,7 @@ function ViewModal({ isOpen, onClose, data, type }) {
   }
 
   const getTitle = () => {
-    switch (realType) {
+    switch (type) {
       case 'matriculas': return 'Detalhes da Matrícula'
       case 'turmas': return 'Detalhes da Turma'
       case 'cursos': return 'Detalhes do Curso'
@@ -2200,6 +2197,8 @@ export default function DashboardHome() {
   const [modalLoading, setModalLoading] = useState(false)
   const [confirmModal, setConfirmModal] = useState({ open: false, id: null, type: '' })
   const [toast, setToast] = useState(null)
+  // Estado para armazenar o tipo real da visualização
+  const [viewRealType, setViewRealType] = useState('matriculas')
 
   const uploadToImgBB = async (base64Image) => {
     try {
@@ -2345,7 +2344,7 @@ export default function DashboardHome() {
         else if (tab === 'formadores') { item = formadores.find(f => f.id === id); type = 'formadores' }
         else if (tab === 'tesouraria') { item = pagamentos.find(p => p.id === id); type = 'pagamentos' }
         else if (tab === 'academico') { item = notas.find(n => n.id === id); type = 'notas' }
-        if (item) { handleOpenModal('view', item) }
+        if (item) { handleOpenModal('view', item, type) }
       }
     }
     window.addEventListener('navigateTo', handleNavigateTo)
@@ -2852,6 +2851,34 @@ export default function DashboardHome() {
     }
   }
 
+  // ========== HANDLE OPEN MODAL - CORRIGIDO ==========
+  const handleOpenModal = (type, data = null, realType = null) => {
+    // Se for 'view', abre o modal de visualização
+    if (type === 'view') {
+      setModalType('view')
+      setModalData(data)
+      setViewRealType(realType || 'matriculas') // Armazena o tipo real
+      setFotoUrl(null)
+      setFotoPreview(null)
+      setModalOpen(true)
+      return
+    }
+    
+    // Para criação ou edição
+    setModalType(type)
+    setModalData(data)
+    setFotoUrl(null)
+    setFotoPreview(null)
+    setModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setModalOpen(false)
+    setModalData(null)
+    setFotoUrl(null)
+    setFotoPreview(null)
+  }
+
   // ========== HANDLE CREATE ==========
   const handleCreate = async (data, type) => {
     setModalLoading(true)
@@ -2964,6 +2991,10 @@ export default function DashboardHome() {
     } finally { setModalLoading(false) }
   }
 
+  const handleConfirmDelete = (id, type) => {
+    setConfirmModal({ open: true, id, type })
+  }
+
   // ========== LOGOUT ==========
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
@@ -2971,37 +3002,6 @@ export default function DashboardHome() {
       localStorage.removeItem('user')
     }
     router.push('/auth/login')
-  }
-
-  // ========== HANDLE OPEN MODAL - CORRIGIDO ==========
-  const handleOpenModal = (type, data = null) => {
-    // Se for 'view', abre o modal de visualização
-    if (type === 'view') {
-      setModalType('view')
-      setModalData(data)
-      setFotoUrl(null)
-      setFotoPreview(null)
-      setModalOpen(true)
-      return
-    }
-    
-    // Para criação ou edição
-    setModalType(type)
-    setModalData(data)
-    setFotoUrl(null)
-    setFotoPreview(null)
-    setModalOpen(true)
-  }
-
-  const handleCloseModal = () => {
-    setModalOpen(false)
-    setModalData(null)
-    setFotoUrl(null)
-    setFotoPreview(null)
-  }
-
-  const handleConfirmDelete = (id, type) => {
-    setConfirmModal({ open: true, id, type })
   }
 
   // ========== CHECK ADMIN ACCESS ==========
@@ -3054,21 +3054,21 @@ export default function DashboardHome() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardTab stats={stats} matriculas={matriculas} onEdit={(data) => handleOpenModal('matriculas', data)} onDelete={(id) => handleConfirmDelete(id, 'matriculas')} onView={(data) => handleOpenModal('view', data)} crescimento={crescimento} inscricoesPorCurso={inscricoesPorCurso} onGeneratePDF={generateRelatorioGeral} />
+        return <DashboardTab stats={stats} matriculas={matriculas} onEdit={(data) => handleOpenModal('matriculas', data)} onDelete={(id) => handleConfirmDelete(id, 'matriculas')} onView={(data) => handleOpenModal('view', data, 'matriculas')} crescimento={crescimento} inscricoesPorCurso={inscricoesPorCurso} onGeneratePDF={generateRelatorioGeral} />
       case 'matriculas':
-        return <MatriculasTab matriculas={matriculas} loading={loading.matriculas} onEdit={(data) => handleOpenModal('matriculas', data)} onDelete={(id) => handleConfirmDelete(id, 'matriculas')} onView={(data) => handleOpenModal('view', data)} onCreate={() => handleOpenModal('matriculas')} cursosList={cursosList} turmasList={turmasList} onGeneratePDF={generateMatriculasPDF} />
+        return <MatriculasTab matriculas={matriculas} loading={loading.matriculas} onEdit={(data) => handleOpenModal('matriculas', data)} onDelete={(id) => handleConfirmDelete(id, 'matriculas')} onView={(data) => handleOpenModal('view', data, 'matriculas')} onCreate={() => handleOpenModal('matriculas')} cursosList={cursosList} turmasList={turmasList} onGeneratePDF={generateMatriculasPDF} />
       case 'turmas':
-        return <TurmasTab turmas={turmas} loading={loading.turmas} onEdit={(data) => handleOpenModal('turmas', data)} onDelete={(id) => handleConfirmDelete(id, 'turmas')} onView={(data) => handleOpenModal('view', data)} onCreate={() => handleOpenModal('turmas')} cursosList={cursosList} formadoresList={formadoresList} onGeneratePDF={generateTurmasPDF} matriculas={matriculas} />
+        return <TurmasTab turmas={turmas} loading={loading.turmas} onEdit={(data) => handleOpenModal('turmas', data)} onDelete={(id) => handleConfirmDelete(id, 'turmas')} onView={(data) => handleOpenModal('view', data, 'turmas')} onCreate={() => handleOpenModal('turmas')} cursosList={cursosList} formadoresList={formadoresList} onGeneratePDF={generateTurmasPDF} matriculas={matriculas} />
       case 'cursos':
-        return <CursosTab cursos={cursos} loading={loading.cursos} onEdit={(data) => handleOpenModal('cursos', data)} onDelete={(id) => handleConfirmDelete(id, 'cursos')} onView={(data) => handleOpenModal('view', data)} onCreate={() => handleOpenModal('cursos')} onGeneratePDF={generateCursosPDF} />
+        return <CursosTab cursos={cursos} loading={loading.cursos} onEdit={(data) => handleOpenModal('cursos', data)} onDelete={(id) => handleConfirmDelete(id, 'cursos')} onView={(data) => handleOpenModal('view', data, 'cursos')} onCreate={() => handleOpenModal('cursos')} onGeneratePDF={generateCursosPDF} />
       case 'formadores':
-        return <FormadoresTab formadores={formadores} loading={loading.formadores} onEdit={(data) => handleOpenModal('formadores', data)} onDelete={(id) => handleConfirmDelete(id, 'formadores')} onView={(data) => handleOpenModal('view', data)} onCreate={() => handleOpenModal('formadores')} onGeneratePDF={generateFormadoresPDF} />
+        return <FormadoresTab formadores={formadores} loading={loading.formadores} onEdit={(data) => handleOpenModal('formadores', data)} onDelete={(id) => handleConfirmDelete(id, 'formadores')} onView={(data) => handleOpenModal('view', data, 'formadores')} onCreate={() => handleOpenModal('formadores')} onGeneratePDF={generateFormadoresPDF} />
       case 'tesouraria':
-        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} stats={statsFinanceiro} inadimplentes={inadimplentes} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data)} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} />
+        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} stats={statsFinanceiro} inadimplentes={inadimplentes} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} />
       case 'academico':
-        return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data)} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} />
+        return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} />
       default:
-        return <DashboardTab stats={stats} matriculas={matriculas} onEdit={(data) => handleOpenModal('matriculas', data)} onDelete={(id) => handleConfirmDelete(id, 'matriculas')} onView={(data) => handleOpenModal('view', data)} crescimento={crescimento} inscricoesPorCurso={inscricoesPorCurso} onGeneratePDF={generateRelatorioGeral} />
+        return <DashboardTab stats={stats} matriculas={matriculas} onEdit={(data) => handleOpenModal('matriculas', data)} onDelete={(id) => handleConfirmDelete(id, 'matriculas')} onView={(data) => handleOpenModal('view', data, 'matriculas')} crescimento={crescimento} inscricoesPorCurso={inscricoesPorCurso} onGeneratePDF={generateRelatorioGeral} />
     }
   }
 
@@ -3186,7 +3186,7 @@ export default function DashboardHome() {
         )}
       </FormModal>
 
-      <ViewModal isOpen={modalOpen && modalType === 'view'} onClose={handleCloseModal} data={modalData} type={modalType} />
+      <ViewModal isOpen={modalOpen && modalType === 'view'} onClose={handleCloseModal} data={modalData} type={viewRealType} />
     </div>
   )
 }
