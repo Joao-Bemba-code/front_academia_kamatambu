@@ -3436,7 +3436,7 @@ export default function DashboardHome() {
               turma: aluno.Turma,
               disciplina: criterio.nome,
               modulo: parseInt(data.modulo) || 1,
-              tipo_avaliacao: 'avaliacao',
+              tipo_avaliacao: 'outro',
               nota: notaVal,
               peso: parseFloat(criterio.peso) / 20,
               data_avaliacao: data.data_avaliacao || null,
