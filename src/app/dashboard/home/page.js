@@ -3205,30 +3205,44 @@ export default function DashboardHome() {
         return
       }
 
-      const notasAluno = data.data
+      const notasAvaliacao = data.data.filter(n => n.tipo_avaliacao === 'outro')
+      if (notasAvaliacao.length === 0) {
+        showToast('Este aluno não possui avaliação por critérios registada', 'warning')
+        return
+      }
+
       const criterios = criteriosAvaliacao
       if (!criterios || criterios.length === 0) {
         showToast('Critérios de avaliação não configurados', 'warning')
         return
       }
 
-      const totalPesoCriterios = criterios.reduce((sum, c) => sum + parseFloat(c.peso), 0)
+      const notasPorDisciplina = {}
+      notasAvaliacao.forEach(n => { notasPorDisciplina[n.disciplina] = parseFloat(n.nota) })
 
-      const mediaFinal = notasAluno.length > 0
-        ? (notasAluno.reduce((sum, n) => sum + parseFloat(n.nota), 0) / notasAluno.length).toFixed(1)
-        : 0
+      const totalPeso = criterios.reduce((sum, c) => sum + parseFloat(c.peso), 0)
+      let somaPonderada = 0
+      const linhasTabela = criterios.map(c => {
+        const nota = notasPorDisciplina[c.nome] ?? null
+        const peso = parseFloat(c.peso)
+        const valorPonderado = nota !== null ? (nota * peso / 20) : 0
+        somaPonderada += valorPonderado
+        return [c.nome, c.indicador, nota !== null ? nota.toFixed(1) : '-', `${peso.toFixed(0)}%`, valorPonderada.toFixed(2)]
+      })
+
+      const mediaFinal = totalPeso > 0 ? (somaPonderada / totalPeso * 20).toFixed(1) : '0.0'
 
       let classificacao = 'Insuficiente'
+      let resultado = 'Nao Apto'
       let corClassificacao = [200, 0, 0]
-      if (mediaFinal >= 90) { classificacao = 'Excelente'; corClassificacao = [0, 120, 60] }
-      else if (mediaFinal >= 75) { classificacao = 'Muito Bom'; corClassificacao = [0, 100, 180] }
-      else if (mediaFinal >= 60) { classificacao = 'Bom'; corClassificacao = [0, 108, 73] }
-      else if (mediaFinal >= 50) { classificacao = 'Suficiente'; corClassificacao = [200, 150, 0] }
+      if (mediaFinal >= 90) { classificacao = 'Excelente'; resultado = 'Apto'; corClassificacao = [0, 120, 60] }
+      else if (mediaFinal >= 75) { classificacao = 'Muito Bom'; resultado = 'Apto'; corClassificacao = [0, 100, 180] }
+      else if (mediaFinal >= 60) { classificacao = 'Bom'; resultado = 'Apto'; corClassificacao = [0, 108, 73] }
+      else if (mediaFinal >= 50) { classificacao = 'Suficiente'; resultado = 'Apto'; corClassificacao = [200, 150, 0] }
 
       const doc = new jsPDF('portrait', 'mm', 'a4')
       const lm = 14
       const rm = doc.internal.pageSize.getWidth() - 14
-      const pageWidth = doc.internal.pageSize.getWidth()
 
       await addPDFHeader(doc, 'CRITERIO DE AVALIACAO', [
         { label: 'Aluno', value: aluno.Nome },
@@ -3248,24 +3262,20 @@ export default function DashboardHome() {
       doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(PDF_COLORS.dark[0], PDF_COLORS.dark[1], PDF_COLORS.dark[2])
-      doc.text('Criterios de Avaliacao', lm, y)
+      doc.text('Avaliacao por Criterios', lm, y)
       y += 2
 
       autoTable(doc, {
         startY: y,
-        head: [['Criterio', 'Indicador', 'Peso (%)', 'Instrumento']],
-        body: criterios.map(c => [
-          c.nome,
-          c.indicador,
-          `${parseFloat(c.peso).toFixed(0)}%`,
-          c.instrumento
-        ]),
+        head: [['Criterio', 'Indicador', 'Nota', 'Peso', 'Valor Ponderado']],
+        body: linhasTabela,
         ...TABLE_BASE,
         columnStyles: {
-          0: { cellWidth: 35, halign: 'left', fontStyle: 'bold' },
-          1: { cellWidth: 60, halign: 'left' },
-          2: { cellWidth: 20, halign: 'center' },
-          3: { cellWidth: 55, halign: 'left' }
+          0: { cellWidth: 32, halign: 'left', fontStyle: 'bold' },
+          1: { cellWidth: 55, halign: 'left' },
+          2: { cellWidth: 18, halign: 'center', fontStyle: 'bold' },
+          3: { cellWidth: 18, halign: 'center' },
+          4: { cellWidth: 25, halign: 'center' }
         },
         margin: { left: lm, right: 14 }
       })
@@ -3281,11 +3291,7 @@ export default function DashboardHome() {
       autoTable(doc, {
         startY: y,
         head: [['Nota Final', 'Classificacao', 'Resultado']],
-        body: [[
-          `${mediaFinal}`,
-          classificacao,
-          mediaFinal >= 50 ? 'Apto' : 'Nao Apto'
-        ]],
+        body: [[mediaFinal, classificacao, resultado]],
         ...TABLE_BASE,
         headStyles: {
           ...TABLE_BASE.headStyles,
