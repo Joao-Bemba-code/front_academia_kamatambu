@@ -3401,6 +3401,62 @@ export default function DashboardHome() {
       }
 
       if (type === 'notas' || type === 'academico') {
+        const hasCriterios = Object.keys(data).some(k => k.startsWith('nota_'))
+        if (hasCriterios) {
+          if (!data.aluno_id) {
+            showToast('Selecione um aluno', 'error')
+            setModalLoading(false)
+            return
+          }
+          const aluno = matriculas.find(m => m.id === parseInt(data.aluno_id))
+          if (!aluno) {
+            showToast('Aluno não encontrado', 'error')
+            setModalLoading(false)
+            return
+          }
+          const criterioFields = Object.keys(data).filter(k => k.startsWith('nota_'))
+          let erros = 0
+          let criados = 0
+          for (const campo of criterioFields) {
+            const criterioId = parseInt(campo.replace('nota_', ''))
+            const criterio = criteriosAvaliacao.find(c => c.id === criterioId)
+            const notaVal = parseFloat(data[campo])
+            if (!criterio || isNaN(notaVal) || notaVal < 0 || notaVal > 20) {
+              erros++
+              continue
+            }
+            let statusNota = 'pendente'
+            if (notaVal >= 10) statusNota = 'aprovado'
+            else if (notaVal >= 7) statusNota = 'recuperacao'
+            else statusNota = 'reprovado'
+            const notaData = {
+              aluno_id: parseInt(data.aluno_id),
+              aluno: aluno.Nome,
+              curso: aluno.Curso,
+              turma: aluno.Turma,
+              disciplina: criterio.nome,
+              modulo: parseInt(data.modulo) || 1,
+              tipo_avaliacao: 'avaliacao',
+              nota: notaVal,
+              peso: parseFloat(criterio.peso) / 20,
+              data_avaliacao: data.data_avaliacao || null,
+              observacao: data.observacao_geral || null,
+              formador: data.formador || null,
+              status: statusNota
+            }
+            const res = await apiFetch('/academico/notas', { method: 'POST', body: JSON.stringify(notaData) })
+            if (res.success) criados++
+          }
+          if (erros > 0) {
+            showToast(`${erros} criterio(s) com nota invalida.`, 'warning')
+          }
+          if (criados > 0) {
+            showToast(`${criados} avaliacao(oes) registada(s) com sucesso!`, 'success')
+            setModalOpen(false); setFotoUrl(null); setFotoPreview(null); loadData()
+          }
+          setModalLoading(false)
+          return
+        }
         if (!data.aluno_id || !data.disciplina || !data.nota) {
           showToast('Aluno, disciplina e nota são obrigatórios', 'error')
           setModalLoading(false)
@@ -3674,7 +3730,34 @@ export default function DashboardHome() {
           </div>
         )}
 
-        {modalType === 'notas' && (
+        {modalType === 'notas' && !modalData && criteriosAvaliacao && criteriosAvaliacao.length > 0 && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Aluno *</label><select name="aluno_id" defaultValue="" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="">Selecione um aluno</option>{matriculas && matriculas.length > 0 ? matriculas.map(m => <option key={m.id} value={m.id}>{m.Nome} - {m.Curso} ({m.Turma})</option>) : <option value="" disabled>Nenhum aluno cadastrado</option>}</select></div>
+              <div><label className="text-xs sm:text-sm font-medium text-gray-700">Módulo</label><input type="number" name="modulo" defaultValue="1" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+              <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data</label><input type="date" name="data_avaliacao" defaultValue={new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+              <div><label className="text-xs sm:text-sm font-medium text-gray-700">Formador</label><select name="formador" defaultValue="" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione um formador</option>{formadoresList && formadoresList.length > 0 ? formadoresList.map(f => <option key={f.id} value={f.Nome}>{f.Nome}</option>) : <option value="" disabled>Nenhum formador cadastrado</option>}</select></div>
+            </div>
+            <div className="border-t border-gray-200 pt-4">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Criterios de Avaliacao</h4>
+              <p className="text-[11px] text-gray-500 mb-4">Insira a nota (0-20) para cada criterio. O peso de cada criterio e definido automaticamente.</p>
+              <div className="space-y-3">
+                {criteriosAvaliacao.map((criterio) => (
+                  <div key={criterio.id} className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/50 p-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-900">{criterio.nome}</p>
+                      <p className="text-[10px] text-gray-500 truncate">{criterio.indicador}</p>
+                    </div>
+                    <span className="text-[10px] font-bold text-[#006c49] bg-[#006c49]/10 px-2 py-0.5 rounded-full shrink-0">{parseFloat(criterio.peso).toFixed(0)}%</span>
+                    <input type="number" step="0.1" min="0" max="20" name={`nota_${criterio.id}`} placeholder="0.0" className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-xs text-center text-gray-900 focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" required />
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3"><label className="text-xs sm:text-sm font-medium text-gray-700">Observacao</label><textarea name="observacao_geral" rows="2" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" placeholder="Observacoes gerais sobre a avaliacao..." /></div>
+            </div>
+          </div>
+        )}
+        {modalType === 'notas' && (modalData || !criteriosAvaliacao || criteriosAvaliacao.length === 0) && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Aluno *</label><select name="aluno_id" defaultValue={modalData?.aluno_id} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="">Selecione um aluno</option>{matriculas && matriculas.length > 0 ? matriculas.map(m => <option key={m.id} value={m.id}>{m.Nome}</option>) : <option value="" disabled>Nenhum aluno cadastrado</option>}</select></div>
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Curso</label><input type="text" name="curso" defaultValue={modalData?.curso} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900 bg-gray-100" disabled placeholder="Será preenchido automaticamente" /></div>
