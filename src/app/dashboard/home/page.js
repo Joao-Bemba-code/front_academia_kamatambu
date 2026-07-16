@@ -249,7 +249,7 @@ function ViewModal({ isOpen, onClose, data, type }) {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="space-y-0.5 sm:space-y-1">
-          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Aluno</p>
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Formando</p>
           <p className="text-sm sm:text-base text-gray-900 break-words">{data.aluno}</p>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
@@ -306,7 +306,7 @@ function ViewModal({ isOpen, onClose, data, type }) {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="space-y-0.5 sm:space-y-1">
-          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Aluno</p>
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Formando</p>
           <p className="text-sm sm:text-base text-gray-900 break-words">{data.aluno}</p>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
@@ -2018,7 +2018,7 @@ function TesourariaTab({
           <table className="w-full text-left text-[10px] sm:text-xs lg:text-sm">
             <thead className="bg-[#eceef0]">
               <tr>
-                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Aluno</th>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Formando</th>
                 <th className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Curso</th>
                 <th className="hidden lg:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Tipo</th>
                 <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Valor</th>
@@ -2217,7 +2217,7 @@ function AcademicoTab({
               <table className="w-full text-left text-[10px] sm:text-xs lg:text-sm">
                 <thead className="bg-[#eceef0]">
                   <tr>
-                    <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Aluno</th>
+                    <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Formando</th>
                     <th className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Disciplina</th>
                     <th className="hidden lg:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Tipo</th>
                     <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Nota</th>
@@ -2504,7 +2504,7 @@ export default function DashboardHome() {
         )
         matchedPagamentos.forEach(p => {
           results.push({
-            id: p.id, type: 'pagamento', title: p.aluno || 'Aluno não definido',
+            id: p.id, type: 'pagamento', title: p.aluno || 'Formando não definido',
             subtitle: `${p.curso || 'Curso não definido'} • ${p.tipo || 'Tipo não definido'}`,
             status: p.status || 'pendente', avatar: null
           })
@@ -2520,7 +2520,7 @@ export default function DashboardHome() {
         )
         matchedNotas.forEach(n => {
           results.push({
-            id: n.id, type: 'nota', title: n.aluno || 'Aluno não definido',
+            id: n.id, type: 'nota', title: n.aluno || 'Formando não definido',
             subtitle: `${n.disciplina || 'Disciplina não definida'} • Nota: ${n.nota}`,
             status: n.status || 'pendente', avatar: null
           })
@@ -2794,7 +2794,7 @@ export default function DashboardHome() {
       const capacidadeTotal = turmas.reduce((s, t) => s + parseInt(t.Capacidade_Maxima || 30), 0)
       const startY = await addPDFHeader(doc, 'RELATORIO DE TURMAS', [
         { label: 'Total Turmas', value: turmas.length },
-        { label: 'Total Alunos', value: totalAlunos },
+        { label: 'Total Formandos', value: totalAlunos },
         { label: 'Ocupacao', value: capacidadeTotal > 0 ? `${Math.round((totalAlunos / capacidadeTotal) * 100)}%` : '0%' },
       ])
       const tableData = turmas.map((t, index) => [
@@ -2804,7 +2804,7 @@ export default function DashboardHome() {
       ])
       autoTable(doc, {
         startY,
-        head: [['No', 'Turma', 'Curso', 'Modulo', 'Periodo', 'Formador', 'Alunos', 'Capacidade', 'Status']],
+        head: [['No', 'Turma', 'Curso', 'Modulo', 'Periodo', 'Formador', 'Formandos', 'Capacidade', 'Status']],
         body: tableData, theme: 'striped',
         ...TABLE_BASE,
         columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 28 }, 2: { cellWidth: 30 }, 3: { cellWidth: 14 }, 4: { cellWidth: 18 }, 5: { cellWidth: 28 }, 6: { cellWidth: 14 }, 7: { cellWidth: 18 }, 8: { cellWidth: 18 } },
@@ -2892,7 +2892,7 @@ export default function DashboardHome() {
         )
       }
       if (turmas?.length > 0) {
-        drawSection('TURMAS', ['No', 'Turma', 'Curso', 'Formador', 'Alunos', 'Status'],
+        drawSection('TURMAS', ['No', 'Turma', 'Curso', 'Formador', 'Formandos', 'Status'],
           turmas.slice(0, 15).map((t, i) => [i + 1, t.Turma || '-', t.Curso || '-', t.Formador || '-', `${t.Numero_Alunos || 0}/${t.Capacidade_Maxima || 30}`, t.Status || '-']),
           { 0: { cellWidth: 10 }, 1: { cellWidth: 28 }, 2: { cellWidth: 32 }, 3: { cellWidth: 30 }, 4: { cellWidth: 20 }, 5: { cellWidth: 18 } }
         )
@@ -2928,7 +2928,7 @@ export default function DashboardHome() {
       ])
       autoTable(doc, {
         startY,
-        head: [['No', 'Aluno', 'Curso', 'Tipo', 'Forma Pagamento', 'Valor (Kz)', 'Status', 'Data']],
+        head: [['No', 'Formando', 'Curso', 'Tipo', 'Forma Pagamento', 'Valor (Kz)', 'Status', 'Data']],
         body: tableData, theme: 'striped',
         ...TABLE_BASE,
         columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 32 }, 2: { cellWidth: 28 }, 3: { cellWidth: 20 }, 4: { cellWidth: 22 }, 5: { cellWidth: 24 }, 6: { cellWidth: 18 }, 7: { cellWidth: 22 } },
@@ -2991,7 +2991,7 @@ export default function DashboardHome() {
       } catch (statsError) {
         console.error('Erro ao buscar estatísticas:', statsError)
         setStats([
-          { label: 'Total Alunos', value: 0, icon: 'UsersIcon', color: 'bg-blue-100 text-blue-600', change: '+0%' },
+          { label: 'Total Formandos', value: 0, icon: 'UsersIcon', color: 'bg-blue-100 text-blue-600', change: '+0%' },
           { label: 'Cursos Ativos', value: 0, icon: 'BookOpen', color: 'bg-green-100 text-green-600', change: '+0%' },
           { label: 'Turmas', value: 0, icon: 'GraduationCap', color: 'bg-purple-100 text-purple-600', change: '+0%' },
           { label: 'Formadores', value: 0, icon: 'User', color: 'bg-orange-100 text-orange-600', change: '+0%' }
@@ -3065,7 +3065,7 @@ export default function DashboardHome() {
     try {
       const aluno = matriculas.find(m => m.id === alunoId)
       if (!aluno) {
-        showToast('Aluno não encontrado', 'error')
+        showToast('Formando não encontrado', 'error')
         return
       }
 
@@ -3076,7 +3076,7 @@ export default function DashboardHome() {
       const data = await response.json()
 
       if (!data.success || !data.data || data.data.length === 0) {
-        showToast('Este aluno não possui notas para gerar boletim', 'warning')
+        showToast('Este formando não possui notas para gerar boletim', 'warning')
         return
       }
 
@@ -3097,41 +3097,29 @@ export default function DashboardHome() {
       else if (mediaFinal >= 7) situacao = 'recuperacao'
       else if (mediaFinal < 7) situacao = 'reprovado'
 
-      const situacaoText = situacao === 'aprovado' ? 'APROVADO' : 
+      const situacaoText = situacao === 'aprovado' ? 'APROVADO' :
                            situacao === 'recuperacao' ? 'RECUPERAÇÃO' : 'REPROVADO'
-      const corSituacao = situacao === 'aprovado' ? [0, 150, 0] : 
+      const corSituacao = situacao === 'aprovado' ? [0, 150, 0] :
                           situacao === 'recuperacao' ? [200, 150, 0] : [200, 0, 0]
 
       const doc = new jsPDF('portrait', 'mm', 'a4')
-      const pageWidth = doc.internal.pageSize.getWidth()
+      const lm = 14
+      const rm = doc.internal.pageSize.getWidth() - 14
 
-      doc.setFontSize(22)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(10, 20, 40)
-      doc.text('Academia Kamatambu', pageWidth / 2, 20, { align: 'center' })
+      await addPDFHeader(doc, 'BOLETIM ESCOLAR', [
+        { label: 'Formando', value: aluno.Nome },
+        { label: 'Curso', value: aluno.Curso },
+        { label: 'Turma', value: aluno.Turma }
+      ])
 
-      doc.setFontSize(12)
+      let y = 68
+
+      doc.setFontSize(8)
       doc.setFont('helvetica', 'normal')
-      doc.setTextColor(100, 100, 100)
-      doc.text('Centro de Formação Profissional', pageWidth / 2, 28, { align: 'center' })
-
-      doc.setDrawColor(10, 20, 40)
-      doc.setLineWidth(0.5)
-      doc.line(14, 35, pageWidth - 14, 35)
-
-      doc.setFontSize(16)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(10, 20, 40)
-      doc.text('BOLETIM ESCOLAR', pageWidth / 2, 45, { align: 'center' })
-
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(60, 60, 60)
-      doc.text(`Aluno: ${aluno.Nome}`, 20, 60)
-      doc.text(`Curso: ${aluno.Curso}`, 20, 67)
-      doc.text(`Turma: ${aluno.Turma}`, 20, 74)
-      doc.text(`Módulo: ${modulo}`, 20, 81)
-      doc.text(`Data: ${new Date().toLocaleDateString('pt-PT')}`, 20, 88)
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text(`Modulo: ${modulo}`, lm, y)
+      doc.text(`Data: ${new Date().toLocaleDateString('pt-PT')}`, rm, y, { align: 'right' })
+      y += 8
 
       const tableData = notas.map((n, index) => [
         index + 1,
@@ -3142,23 +3130,17 @@ export default function DashboardHome() {
         n.status || 'pendente'
       ])
 
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...PDF_COLORS.dark)
+      doc.text('Notas do Formando', lm, y)
+      y += 2
+
       autoTable(doc, {
-        startY: 95,
+        startY: y,
         head: [['Nº', 'Disciplina', 'Tipo', 'Nota', 'Peso', 'Status']],
         body: tableData,
-        theme: 'striped',
-        headStyles: {
-          fillColor: [10, 20, 40],
-          textColor: [255, 255, 255],
-          fontSize: 8,
-          fontStyle: 'bold',
-          halign: 'center'
-        },
-        styles: {
-          fontSize: 8,
-          cellPadding: 2,
-          halign: 'center'
-        },
+        ...TABLE_BASE,
         columnStyles: {
           0: { cellWidth: 10 },
           1: { cellWidth: 50 },
@@ -3166,21 +3148,79 @@ export default function DashboardHome() {
           3: { cellWidth: 20 },
           4: { cellWidth: 15 },
           5: { cellWidth: 30 }
-        }
+        },
+        margin: { left: lm, right: 14 }
       })
 
-      const finalY = doc.lastAutoTable.finalY + 10
+      y = doc.lastAutoTable.finalY + 10
+
       doc.setFontSize(12)
       doc.setFont('helvetica', 'bold')
-      doc.setTextColor(10, 20, 40)
-      doc.text(`Média Final: ${mediaFinal}`, 20, finalY)
-      
-      doc.setTextColor(corSituacao[0], corSituacao[1], corSituacao[2])
-      doc.text(`Situação: ${situacaoText}`, 20, finalY + 10)
+      doc.setTextColor(...PDF_COLORS.dark)
+      doc.text(`Media Final: ${mediaFinal}`, lm, y)
+      y += 8
 
-      doc.setFontSize(8)
-      doc.setTextColor(150, 150, 150)
-      doc.text('Documento gerado automaticamente pela plataforma Academia Kamatambu', pageWidth / 2, finalY + 25, { align: 'center' })
+      doc.setFillColor(...corSituacao)
+      doc.roundedRect(lm, y, 60, 10, 2, 2, 'F')
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(255, 255, 255)
+      doc.text(situacaoText, lm + 30, y + 7, { align: 'center' })
+      y += 18
+
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...PDF_COLORS.dark)
+      doc.text('Criterios de Avaliacao', lm, y)
+      y += 2
+
+      autoTable(doc, {
+        startY: y,
+        head: [['Criterio', 'Indicador', 'Peso (%)', 'Instrumento']],
+        body: criteriosAvaliacao.map(c => [
+          c.nome,
+          c.indicador,
+          `${parseFloat(c.peso).toFixed(0)}%`,
+          c.instrumento
+        ]),
+        ...TABLE_BASE,
+        columnStyles: {
+          0: { cellWidth: 35, halign: 'left', fontStyle: 'bold' },
+          1: { cellWidth: 60, halign: 'left' },
+          2: { cellWidth: 20, halign: 'center' },
+          3: { cellWidth: 55, halign: 'left' }
+        },
+        margin: { left: lm, right: 14 }
+      })
+
+      y = doc.lastAutoTable.finalY + 10
+
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...PDF_COLORS.dark)
+      doc.text('Escala de Classificacao', lm, y)
+      y += 2
+
+      autoTable(doc, {
+        startY: y,
+        head: [['Percentagem', 'Classificacao', 'Resultado']],
+        body: [
+          ['90% - 100%', 'Excelente', 'Apto'],
+          ['75% - 89%', 'Muito Bom', 'Apto'],
+          ['60% - 74%', 'Bom', 'Apto'],
+          ['50% - 59%', 'Suficiente', 'Apto'],
+          ['Abaixo de 50%', 'Insuficiente', 'Nao Apto']
+        ],
+        ...TABLE_BASE,
+        columnStyles: {
+          0: { cellWidth: 50 },
+          1: { cellWidth: 60, fontStyle: 'bold' },
+          2: { cellWidth: 40 }
+        },
+        margin: { left: lm, right: 14 }
+      })
+
+      addPDFFooter(doc, 1)
 
       doc.save(`Boletim_${aluno.Nome.replace(/\s/g, '_')}.pdf`)
       showToast('Boletim gerado com sucesso!', 'success')
@@ -3195,7 +3235,7 @@ export default function DashboardHome() {
     try {
       const aluno = matriculas.find(m => m.id === alunoId)
       if (!aluno) {
-        showToast('Aluno não encontrado', 'error')
+        showToast('Formando não encontrado', 'error')
         return
       }
 
@@ -3206,13 +3246,13 @@ export default function DashboardHome() {
       const data = await response.json()
 
       if (!data.success || !data.data || data.data.length === 0) {
-        showToast('Este aluno não possui notas para gerar avaliação', 'warning')
+        showToast('Este formando não possui notas para gerar avaliação', 'warning')
         return
       }
 
       const notasAvaliacao = data.data.filter(n => n.tipo_avaliacao === 'outro')
       if (notasAvaliacao.length === 0) {
-        showToast('Este aluno não possui avaliação por critérios registada', 'warning')
+        showToast('Este formando não possui avaliação por critérios registada', 'warning')
         return
       }
 
@@ -3250,7 +3290,7 @@ export default function DashboardHome() {
       const rm = doc.internal.pageSize.getWidth() - 14
 
       await addPDFHeader(doc, 'CRITERIO DE AVALIACAO', [
-        { label: 'Aluno', value: aluno.Nome },
+        { label: 'Formando', value: aluno.Nome },
         { label: 'Curso', value: aluno.Curso },
         { label: 'Turma', value: aluno.Turma }
       ])
@@ -3421,7 +3461,7 @@ export default function DashboardHome() {
           }
           const aluno = matriculas.find(m => m.id === parseInt(data.aluno_id))
           if (!aluno) {
-            showToast('Aluno não encontrado', 'error')
+            showToast('Formando não encontrado', 'error')
             setModalLoading(false)
             return
           }
@@ -3469,7 +3509,7 @@ export default function DashboardHome() {
           return
         }
         if (!data.aluno_id || !data.disciplina || !data.nota) {
-          showToast('Aluno, disciplina e nota são obrigatórios', 'error')
+          showToast('Formando, disciplina e nota são obrigatórios', 'error')
           setModalLoading(false)
           return
         }
@@ -3723,7 +3763,7 @@ export default function DashboardHome() {
 
         {modalType === 'pagamentos' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Aluno *</label><select name="aluno" defaultValue={modalData?.aluno} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="">Selecione um aluno</option>{matriculas && matriculas.length > 0 ? matriculas.map(m => <option key={m.id} value={m.Nome}>{m.Nome}</option>) : <option value="" disabled>Nenhum aluno cadastrado</option>}</select></div>
+            <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Formando *</label><select name="aluno" defaultValue={modalData?.aluno} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="">Selecione um formando</option>{matriculas && matriculas.length > 0 ? matriculas.map(m => <option key={m.id} value={m.Nome}>{m.Nome}</option>) : <option value="" disabled>Nenhum formando cadastrado</option>}</select></div>
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Curso</label><select name="curso" defaultValue={modalData?.curso} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione um curso</option>{cursosList && cursosList.length > 0 ? cursosList.map(c => <option key={c.id} value={c.Nome}>{c.Nome}</option>) : <option value="" disabled>Nenhum curso cadastrado</option>}</select></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Tipo *</label><select name="tipo" defaultValue={modalData?.tipo || 'mensalidade'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="matricula">Matrícula</option><option value="mensalidade">Mensalidade</option><option value="certificado">Certificado</option><option value="taxa">Taxa</option><option value="outro">Outro</option></select></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Forma de Pagamento *</label><select name="forma_pagamento" defaultValue={modalData?.forma_pagamento || 'dinheiro'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="dinheiro">Dinheiro</option><option value="transferencia">Transferência</option><option value="deposito">Depósito</option><option value="multicaixa">Multicaixa</option></select></div>
@@ -3738,7 +3778,7 @@ export default function DashboardHome() {
         {modalType === 'notas' && !modalData && criteriosAvaliacao && criteriosAvaliacao.length > 0 && (
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Aluno *</label><select name="aluno_id" defaultValue="" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="">Selecione um aluno</option>{matriculas && matriculas.length > 0 ? matriculas.map(m => <option key={m.id} value={m.id}>{m.Nome} - {m.Curso} ({m.Turma})</option>) : <option value="" disabled>Nenhum aluno cadastrado</option>}</select></div>
+              <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Formando *</label><select name="aluno_id" defaultValue="" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="">Selecione um formando</option>{matriculas && matriculas.length > 0 ? matriculas.map(m => <option key={m.id} value={m.id}>{m.Nome} - {m.Curso} ({m.Turma})</option>) : <option value="" disabled>Nenhum formando cadastrado</option>}</select></div>
               <div><label className="text-xs sm:text-sm font-medium text-gray-700">Módulo</label><input type="number" name="modulo" defaultValue="1" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
               <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data</label><input type="date" name="data_avaliacao" defaultValue={new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
               <div><label className="text-xs sm:text-sm font-medium text-gray-700">Formador</label><select name="formador" defaultValue="" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione um formador</option>{formadoresList && formadoresList.length > 0 ? formadoresList.map(f => <option key={f.id} value={f.Nome}>{f.Nome}</option>) : <option value="" disabled>Nenhum formador cadastrado</option>}</select></div>
@@ -3764,7 +3804,7 @@ export default function DashboardHome() {
         )}
         {modalType === 'notas' && (modalData || !criteriosAvaliacao || criteriosAvaliacao.length === 0) && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Aluno *</label><select name="aluno_id" defaultValue={modalData?.aluno_id} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="">Selecione um aluno</option>{matriculas && matriculas.length > 0 ? matriculas.map(m => <option key={m.id} value={m.id}>{m.Nome}</option>) : <option value="" disabled>Nenhum aluno cadastrado</option>}</select></div>
+            <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Formando *</label><select name="aluno_id" defaultValue={modalData?.aluno_id} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="">Selecione um formando</option>{matriculas && matriculas.length > 0 ? matriculas.map(m => <option key={m.id} value={m.id}>{m.Nome}</option>) : <option value="" disabled>Nenhum formando cadastrado</option>}</select></div>
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Curso</label><input type="text" name="curso" defaultValue={modalData?.curso} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900 bg-gray-100" disabled placeholder="Será preenchido automaticamente" /></div>
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Disciplina *</label><input name="disciplina" defaultValue={modalData?.disciplina} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Módulo</label><input type="number" name="modulo" defaultValue={modalData?.modulo || 1} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
