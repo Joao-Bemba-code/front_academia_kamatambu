@@ -1925,6 +1925,7 @@ function TesourariaTab({
   onView, 
   onCreate,
   onGeneratePDF,
+  onGerarComprovativo,
   stats,
   inadimplentes
 }) {
@@ -2053,6 +2054,7 @@ function TesourariaTab({
                     </td>
                     <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right">
                       <div className="flex items-center justify-end gap-0.5 sm:gap-1">
+                        <button onClick={() => onGerarComprovativo(pagamento)} className="rounded p-0.5 sm:p-1 text-purple-600 hover:bg-purple-50" title="Comprovativo"><FileDown className="size-3 sm:size-3.5 lg:size-4" /></button>
                         <button onClick={() => onView(pagamento)} className="rounded p-0.5 sm:p-1 text-blue-600 hover:bg-blue-50" title="Visualizar"><Eye className="size-3 sm:size-3.5 lg:size-4" /></button>
                         <button onClick={() => onEdit(pagamento)} className="rounded p-0.5 sm:p-1 text-green-600 hover:bg-green-50" title="Editar"><Edit className="size-3 sm:size-3.5 lg:size-4" /></button>
                         <button onClick={() => onDelete(pagamento.id)} className="rounded p-0.5 sm:p-1 text-red-600 hover:bg-red-50" title="Excluir"><Trash2 className="size-3 sm:size-3.5 lg:size-4" /></button>
@@ -2906,6 +2908,126 @@ export default function DashboardHome() {
     }
   }
 
+  const generateComprovativoPDF = async (pagamento) => {
+    try {
+      const nomeFormando = getNomeFormando(pagamento.aluno)
+      const tipoLabel = { matricula: 'Matricula', mensalidade: 'Mensalidade', certificado: 'Certificado', taxa: 'Taxa', outro: 'Outro' }[pagamento.tipo] || pagamento.tipo
+      const valor = parseFloat(pagamento.valor || 0)
+      const statusLabel = { pago: 'PAGO', pendente: 'PENDENTE', parcial: 'PAGO PARCIAL', cancelado: 'CANCELADO' }[pagamento.status] || pagamento.status
+      const corStatus = { pago: [0, 150, 0], pendente: [200, 150, 0], parcial: [0, 108, 73], cancelado: [200, 0, 0] }[pagamento.status] || [100, 100, 100]
+
+      const doc = new jsPDF('portrait', 'mm', 'a4')
+      const lm = 14
+      const rm = doc.internal.pageSize.getWidth() - 14
+      const pageWidth = doc.internal.pageSize.getWidth()
+
+      await addPDFHeader(doc, 'COMPROVATIVO DE PAGAMENTO', [
+        { label: 'Formando', value: nomeFormando },
+        { label: 'Curso', value: pagamento.curso || '-' }
+      ])
+
+      let y = 68
+
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text(`Ref: AK-PAG-${String(pagamento.id).padStart(4, '0')}`, lm, y)
+      doc.text(`Data: ${pagamento.data_pagamento ? new Date(pagamento.data_pagamento).toLocaleDateString('pt-PT') : new Date().toLocaleDateString('pt-PT')}`, rm, y, { align: 'right' })
+      y += 12
+
+      doc.setFillColor(...PDF_COLORS.primaryLight)
+      doc.roundedRect(lm, y, rm - lm, 50, 2, 2, 'F')
+      doc.setDrawColor(...PDF_COLORS.primary)
+      doc.setLineWidth(0.3)
+      doc.roundedRect(lm, y, rm - lm, 50, 2, 2, 'S')
+      y += 8
+
+      const drawField = (label, value, fx, fy) => {
+        doc.setFontSize(7)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(...PDF_COLORS.gray)
+        doc.text(label.toUpperCase(), fx, fy)
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...PDF_COLORS.dark)
+        doc.text(String(value || '-'), fx, fy + 5)
+      }
+
+      drawField('Formando', nomeFormando, lm + 5, y)
+      drawField('Curso', pagamento.curso || '-', lm + 90, y)
+      y += 14
+
+      drawField('Tipo de Pagamento', tipoLabel, lm + 5, y)
+      drawField('Forma de Pagamento', pagamento.forma_pagamento || '-', lm + 90, y)
+      y += 14
+
+      drawField('Valor Total', `Kz ${valor.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`, lm + 5, y)
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text('ESTADO', lm + 90, y)
+      y += 2
+
+      doc.setFillColor(...corStatus)
+      doc.roundedRect(lm + 90, y, 40, 8, 2, 2, 'F')
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(255, 255, 255)
+      doc.text(statusLabel, lm + 110, y + 5.5, { align: 'center' })
+
+      y += 22
+
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...PDF_COLORS.dark)
+      doc.text('Detalhes do Pagamento', lm, y)
+      y += 2
+
+      autoTable(doc, {
+        startY: y,
+        head: [['Campo', 'Valor']],
+        body: [
+          ['Formando', nomeFormando],
+          ['Curso', pagamento.curso || '-'],
+          ['Tipo', tipoLabel],
+          ['Valor', `Kz ${valor.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`],
+          ['Forma de Pagamento', pagamento.forma_pagamento || '-'],
+          ['Estado', statusLabel],
+          ['Data', pagamento.data_pagamento ? new Date(pagamento.data_pagamento).toLocaleDateString('pt-PT') : '-'],
+          ['Observacao', pagamento.observacao || '-']
+        ],
+        ...TABLE_BASE,
+        columnStyles: {
+          0: { cellWidth: 50, fontStyle: 'bold', halign: 'left' },
+          1: { cellWidth: 120, halign: 'left' }
+        },
+        margin: { left: lm, right: 14 }
+      })
+
+      y = doc.lastAutoTable.finalY + 15
+
+      doc.setDrawColor(...PDF_COLORS.grayLighter)
+      doc.setLineWidth(0.3)
+      doc.line(lm, y, lm + 50, y)
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text('Assinatura do Responsavel', lm + 25, y + 5, { align: 'center' })
+
+      doc.line(rm - 50, y, rm, y)
+      doc.text('Assinatura do Formando', rm - 25, y + 5, { align: 'center' })
+
+      addPDFFooter(doc, 1)
+
+      doc.save(`Comprovativo_${nomeFormando.replace(/\s/g, '_')}_${tipoLabel}.pdf`)
+      showToast('Comprovativo gerado com sucesso!', 'success')
+
+    } catch (error) {
+      console.error('Erro ao gerar comprovativo:', error)
+      showToast('Erro ao gerar comprovativo', 'error')
+    }
+  }
+
   const generateRelatorioFinanceiro = async () => {
     if (!pagamentos || pagamentos.length === 0) { showToast('Nenhum pagamento encontrado para gerar relatorio', 'warning'); return }
     try {
@@ -3652,7 +3774,7 @@ export default function DashboardHome() {
       case 'formadores':
         return <FormadoresTab formadores={formadores} loading={loading.formadores} onEdit={(data) => handleOpenModal('formadores', data)} onDelete={(id) => handleConfirmDelete(id, 'formadores')} onView={(data) => handleOpenModal('view', data, 'formadores')} onCreate={() => handleOpenModal('formadores')} onGeneratePDF={generateFormadoresPDF} />
       case 'tesouraria':
-        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} stats={statsFinanceiro} inadimplentes={inadimplentes} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} />
+        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} stats={statsFinanceiro} inadimplentes={inadimplentes} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} />
       case 'academico':
         return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} />
       default:
