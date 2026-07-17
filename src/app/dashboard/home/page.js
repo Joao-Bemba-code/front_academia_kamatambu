@@ -3094,7 +3094,7 @@ export default function DashboardHome() {
       }
 
       const notasPorDisciplina = {}
-      notasAvaliacao.forEach(n => { notasPorDisciplina[n.disciplina] = parseFloat(n.nota) })
+      notasAvaliacao.forEach(n => { notasPorDisciplina[n.disciplina] = n })
 
       const modulo = aluno.Modulo || 1
       const nomeFormando = getNomeFormando(aluno.Nome)
@@ -3153,19 +3153,25 @@ export default function DashboardHome() {
 
       autoTable(doc, {
         startY: y,
-        head: [['Criterio', 'Indicador', 'Peso (%)', 'Instrumento']],
-        body: criteriosAvaliacao.map(c => [
-          c.nome,
-          c.indicador,
-          `${parseFloat(c.peso).toFixed(0)}%`,
-          c.instrumento
-        ]),
+        head: [['Criterio', 'Indicador', 'Nota', 'Peso (%)', 'Instrumento']],
+        body: notasAvaliacao.map(n => {
+          const criterio = criteriosAvaliacao.find(c => c.nome === n.disciplina)
+          const pesoNota = parseFloat(n.peso) * 20
+          return [
+            n.disciplina || '-',
+            criterio ? criterio.indicador : '-',
+            parseFloat(n.nota).toFixed(1),
+            `${pesoNota.toFixed(0)}%`,
+            criterio ? criterio.instrumento : '-'
+          ]
+        }),
         ...TABLE_BASE,
         columnStyles: {
-          0: { cellWidth: 35, halign: 'left', fontStyle: 'bold' },
-          1: { cellWidth: 60, halign: 'left' },
-          2: { cellWidth: 20, halign: 'center' },
-          3: { cellWidth: 55, halign: 'left' }
+          0: { cellWidth: 30, halign: 'left', fontStyle: 'bold' },
+          1: { cellWidth: 45, halign: 'left' },
+          2: { cellWidth: 15, halign: 'center', fontStyle: 'bold' },
+          3: { cellWidth: 18, halign: 'center' },
+          4: { cellWidth: 50, halign: 'left' }
         },
         margin: { left: lm, right: 14 }
       })
