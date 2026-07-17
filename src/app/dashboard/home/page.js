@@ -3061,6 +3061,13 @@ export default function DashboardHome() {
   }
 
   // ========== GERAR BOLETIM (PDF DIRETO NO FRONT) ==========
+  const getNomeFormando = (nome) => {
+    if (!nome) return ''
+    const partes = nome.trim().split(/\s+/)
+    if (partes.length <= 2) return nome
+    return `${partes[0]} ${partes[partes.length - 1]}`
+  }
+
   const handleGerarBoletim = async (alunoId) => {
     try {
       const aluno = matriculas.find(m => m.id === alunoId)
@@ -3090,21 +3097,10 @@ export default function DashboardHome() {
       notasAvaliacao.forEach(n => { notasPorDisciplina[n.disciplina] = parseFloat(n.nota) })
 
       const modulo = aluno.Modulo || 1
+      const nomeFormando = getNomeFormando(aluno.Nome)
 
-      let somaPonderada = 0
-      let somaPesos = 0
-      const linhasTabela = criteriosAvaliacao.map(c => {
-        const nota = notasPorDisciplina[c.nome] ?? null
-        const peso = parseFloat(c.peso)
-        const pesoNormalizado = peso / 20
-        if (nota !== null) {
-          somaPonderada += nota * pesoNormalizado
-          somaPesos += pesoNormalizado
-        }
-        return [c.nome, c.indicador, nota !== null ? nota.toFixed(1) : '-', `${peso.toFixed(0)}%`, c.instrumento]
-      })
-
-      const mediaFinal = somaPesos > 0 ? (somaPonderada / somaPesos).toFixed(2) : '0.0'
+      const somaNotas = notasAvaliacao.reduce((sum, n) => sum + parseFloat(n.nota), 0)
+      const mediaFinal = (somaNotas / notasAvaliacao.length).toFixed(2)
 
       let situacao = 'aprovado'
       if (mediaFinal >= 10) situacao = 'aprovado'
@@ -3121,7 +3117,7 @@ export default function DashboardHome() {
       const rm = doc.internal.pageSize.getWidth() - 14
 
       await addPDFHeader(doc, 'BOLETIM DO FORMANDO', [
-        { label: 'Formando', value: aluno.Nome },
+        { label: 'Formando', value: nomeFormando },
         { label: 'Curso', value: aluno.Curso },
         { label: 'Turma', value: aluno.Turma }
       ])
@@ -3157,15 +3153,19 @@ export default function DashboardHome() {
 
       autoTable(doc, {
         startY: y,
-        head: [['Criterio', 'Indicador', 'Nota', 'Peso (%)', 'Instrumento']],
-        body: linhasTabela,
+        head: [['Criterio', 'Indicador', 'Peso (%)', 'Instrumento']],
+        body: criteriosAvaliacao.map(c => [
+          c.nome,
+          c.indicador,
+          `${parseFloat(c.peso).toFixed(0)}%`,
+          c.instrumento
+        ]),
         ...TABLE_BASE,
         columnStyles: {
-          0: { cellWidth: 30, halign: 'left', fontStyle: 'bold' },
-          1: { cellWidth: 50, halign: 'left' },
-          2: { cellWidth: 15, halign: 'center', fontStyle: 'bold' },
-          3: { cellWidth: 18, halign: 'center' },
-          4: { cellWidth: 45, halign: 'left' }
+          0: { cellWidth: 35, halign: 'left', fontStyle: 'bold' },
+          1: { cellWidth: 60, halign: 'left' },
+          2: { cellWidth: 20, halign: 'center' },
+          3: { cellWidth: 55, halign: 'left' }
         },
         margin: { left: lm, right: 14 }
       })
@@ -3267,7 +3267,7 @@ export default function DashboardHome() {
       const rm = doc.internal.pageSize.getWidth() - 14
 
       await addPDFHeader(doc, 'AVALIACAO POR CRITERIOS', [
-        { label: 'Formando', value: aluno.Nome },
+        { label: 'Formando', value: getNomeFormando(aluno.Nome) },
         { label: 'Curso', value: aluno.Curso },
         { label: 'Turma', value: aluno.Turma }
       ])
