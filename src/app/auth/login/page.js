@@ -40,6 +40,11 @@ function LoginForm() {
         body: JSON.stringify({ Email: email, Senha: password }),
       })
 
+      const contentType = response.headers.get('content-type') || ''
+      if (!contentType.includes('application/json')) {
+        throw new Error('Servidor temporariamente indisponível. Tente novamente.')
+      }
+
       const data = await response.json()
 
       if (!response.ok) {
