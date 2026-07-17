@@ -3080,25 +3080,39 @@ export default function DashboardHome() {
         return
       }
 
-      const notas = data.data
+      const notasAvaliacao = data.data.filter(n => n.tipo_avaliacao === 'outro')
+      if (notasAvaliacao.length === 0) {
+        showToast('Este formando não possui avaliação por critérios registada', 'warning')
+        return
+      }
+
+      const notasPorDisciplina = {}
+      notasAvaliacao.forEach(n => { notasPorDisciplina[n.disciplina] = parseFloat(n.nota) })
+
       const modulo = aluno.Modulo || 1
 
-      let somaNotas = 0
+      let somaPonderada = 0
       let somaPesos = 0
-      notas.forEach(n => {
-        const peso = parseFloat(n.peso) || 1
-        somaNotas += parseFloat(n.nota) * peso
-        somaPesos += peso
+      const linhasTabela = criteriosAvaliacao.map(c => {
+        const nota = notasPorDisciplina[c.nome] ?? null
+        const peso = parseFloat(c.peso)
+        const pesoNormalizado = peso / 20
+        if (nota !== null) {
+          somaPonderada += nota * pesoNormalizado
+          somaPesos += pesoNormalizado
+        }
+        return [c.nome, c.indicador, nota !== null ? nota.toFixed(1) : '-', `${peso.toFixed(0)}%`, c.instrumento]
       })
-      const mediaFinal = somaPesos > 0 ? (somaNotas / somaPesos).toFixed(2) : 0
+
+      const mediaFinal = somaPesos > 0 ? (somaPonderada / somaPesos).toFixed(2) : '0.0'
 
       let situacao = 'aprovado'
       if (mediaFinal >= 10) situacao = 'aprovado'
       else if (mediaFinal >= 7) situacao = 'recuperacao'
-      else if (mediaFinal < 7) situacao = 'reprovado'
+      else situacao = 'reprovado'
 
       const situacaoText = situacao === 'aprovado' ? 'APROVADO' :
-                           situacao === 'recuperacao' ? 'RECUPERAÇÃO' : 'REPROVADO'
+                           situacao === 'recuperacao' ? 'RECUPERACAO' : 'REPROVADO'
       const corSituacao = situacao === 'aprovado' ? [0, 150, 0] :
                           situacao === 'recuperacao' ? [200, 150, 0] : [200, 0, 0]
 
@@ -3106,7 +3120,7 @@ export default function DashboardHome() {
       const lm = 14
       const rm = doc.internal.pageSize.getWidth() - 14
 
-      await addPDFHeader(doc, 'BOLETIM ESCOLAR', [
+      await addPDFHeader(doc, 'BOLETIM DO FORMANDO', [
         { label: 'Formando', value: aluno.Nome },
         { label: 'Curso', value: aluno.Curso },
         { label: 'Turma', value: aluno.Turma }
@@ -3120,39 +3134,6 @@ export default function DashboardHome() {
       doc.text(`Modulo: ${modulo}`, lm, y)
       doc.text(`Data: ${new Date().toLocaleDateString('pt-PT')}`, rm, y, { align: 'right' })
       y += 8
-
-      const tableData = notas.map((n, index) => [
-        index + 1,
-        n.disciplina || '-',
-        n.tipo_avaliacao || '-',
-        parseFloat(n.nota).toFixed(1),
-        n.peso || 1,
-        n.status || 'pendente'
-      ])
-
-      doc.setFontSize(11)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(...PDF_COLORS.dark)
-      doc.text('Notas do Formando', lm, y)
-      y += 2
-
-      autoTable(doc, {
-        startY: y,
-        head: [['Nº', 'Disciplina', 'Tipo', 'Nota', 'Peso', 'Status']],
-        body: tableData,
-        ...TABLE_BASE,
-        columnStyles: {
-          0: { cellWidth: 10 },
-          1: { cellWidth: 50 },
-          2: { cellWidth: 30 },
-          3: { cellWidth: 20 },
-          4: { cellWidth: 15 },
-          5: { cellWidth: 30 }
-        },
-        margin: { left: lm, right: 14 }
-      })
-
-      y = doc.lastAutoTable.finalY + 10
 
       doc.setFontSize(12)
       doc.setFont('helvetica', 'bold')
@@ -3176,19 +3157,15 @@ export default function DashboardHome() {
 
       autoTable(doc, {
         startY: y,
-        head: [['Criterio', 'Indicador', 'Peso (%)', 'Instrumento']],
-        body: criteriosAvaliacao.map(c => [
-          c.nome,
-          c.indicador,
-          `${parseFloat(c.peso).toFixed(0)}%`,
-          c.instrumento
-        ]),
+        head: [['Criterio', 'Indicador', 'Nota', 'Peso (%)', 'Instrumento']],
+        body: linhasTabela,
         ...TABLE_BASE,
         columnStyles: {
-          0: { cellWidth: 35, halign: 'left', fontStyle: 'bold' },
-          1: { cellWidth: 60, halign: 'left' },
-          2: { cellWidth: 20, halign: 'center' },
-          3: { cellWidth: 55, halign: 'left' }
+          0: { cellWidth: 30, halign: 'left', fontStyle: 'bold' },
+          1: { cellWidth: 50, halign: 'left' },
+          2: { cellWidth: 15, halign: 'center', fontStyle: 'bold' },
+          3: { cellWidth: 18, halign: 'center' },
+          4: { cellWidth: 45, halign: 'left' }
         },
         margin: { left: lm, right: 14 }
       })
@@ -3289,7 +3266,7 @@ export default function DashboardHome() {
       const lm = 14
       const rm = doc.internal.pageSize.getWidth() - 14
 
-      await addPDFHeader(doc, 'CRITERIO DE AVALIACAO', [
+      await addPDFHeader(doc, 'AVALIACAO POR CRITERIOS', [
         { label: 'Formando', value: aluno.Nome },
         { label: 'Curso', value: aluno.Curso },
         { label: 'Turma', value: aluno.Turma }
