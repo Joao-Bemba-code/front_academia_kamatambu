@@ -2528,17 +2528,22 @@ export default function DashboardHome() {
   // Estado para armazenar o tipo real da visualização
   const [viewRealType, setViewRealType] = useState('matriculas')
 
-  const uploadToImgBB = async (base64Image) => {
+  const uploadToBackend = async (base64Image) => {
     try {
-      const apiKey = '232f3c0e8a3eb4b401113f5fdcd3be64'
-      const formData = new FormData()
-      formData.append('image', base64Image)
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: 'POST', body: formData })
+      const token = localStorage.getItem('token')
+      var formData = new FormData()
+      var blob = await (await fetch(base64Image)).blob()
+      formData.append('image', blob, 'upload.jpg')
+      const response = await fetch(`${API_BASE_URL}/api/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      })
       const data = await response.json()
-      if (data && data.data && data.data.url) return data.data.url
+      if (data.success && data.url) return data.url
       return null
     } catch (error) {
-      console.error('Erro ao fazer upload para ImgBB:', error)
+      console.error('Erro ao fazer upload:', error)
       return null
     }
   }
@@ -3301,8 +3306,7 @@ export default function DashboardHome() {
       const reader = new FileReader()
       reader.onloadend = async () => {
         try {
-          const base64String = reader.result.split(',')[1]
-          const imageUrl = await uploadToImgBB(base64String)
+          const imageUrl = await uploadToBackend(reader.result)
           if (imageUrl) {
             if (field === 'Foto_User') { setFotoUrl(imageUrl); setFotoPreview(reader.result) }
             else { setFotoCertificadoUrl(imageUrl); setFotoCertificadoPreview(reader.result) }
