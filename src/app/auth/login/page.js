@@ -53,6 +53,9 @@ function LoginForm() {
 
       if (data.token) {
         localStorage.setItem('token', data.token)
+        if (data.user) {
+          localStorage.setItem('userTipo', data.user.tipo || 'admin')
+        }
       }
 
       router.push('/dashboard/home')

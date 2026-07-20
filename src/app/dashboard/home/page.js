@@ -621,7 +621,7 @@ function FormModal({ isOpen, onClose, title, children, onSubmit, isLoading }) {
 }
 
 // ========== SIDEBAR ==========
-function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout }) {
+function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout, userTipo }) {
   const menuItems = [
     { id: 'dashboard', icon: Home, label: 'Dashboard' },
     { id: 'matriculas', icon: UserPlus, label: 'Matrículas' },
@@ -630,7 +630,17 @@ function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout }) {
     { id: 'formadores', icon: GraduationCap, label: 'Formadores' },
     { id: 'tesouraria', icon: CreditCard, label: 'Tesouraria' },
     { id: 'academico', icon: Award, label: 'Gestão Acadêmica' },
+    ...(userTipo === 'admin' ? [{ id: 'usuarios', icon: Shield, label: 'Utilizadores' }] : [])
   ]
+
+  const allowedTabs = {
+    admin: ['dashboard', 'matriculas', 'turmas', 'cursos', 'formadores', 'tesouraria', 'academico', 'usuarios'],
+    pedagogico: ['dashboard', 'matriculas', 'turmas', 'cursos', 'formadores', 'academico'],
+    tesouraria: ['dashboard', 'tesouraria']
+  }
+
+  const visibleTabs = allowedTabs[userTipo] || allowedTabs.admin
+  const filteredMenuItems = menuItems.filter(item => visibleTabs.includes(item.id))
 
   const handleLogout = () => {
     onLogout()
@@ -667,7 +677,7 @@ function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout }) {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             const Icon = item.icon
             const isActive = activeTab === item.id
             return (
@@ -2368,6 +2378,113 @@ function AccessDenied() {
   )
 }
 
+// ========== UTILIZADORES TAB ==========
+function UsuariosTab() {
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(null)
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
+
+  const loadUsers = async () => {
+    setLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${API_BASE_URL}/auth/users`, { headers: { 'Authorization': `Bearer ${token}` } })
+      const data = await res.json()
+      if (data.success) setUsers(data.data)
+    } catch (e) { console.error(e) }
+    setLoading(false)
+  }
+
+  useEffect(() => { loadUsers() }, [])
+
+  const updateTipo = async (userId, tipo) => {
+    setSaving(userId)
+    try {
+      const token = localStorage.getItem('token')
+      await fetch(`${API_BASE_URL}/auth/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ tipo })
+      })
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, tipo } : u))
+    } catch (e) { console.error(e) }
+    setSaving(null)
+  }
+
+  const toggleAdmin = async (userId, current) => {
+    setSaving(userId)
+    try {
+      const token = localStorage.getItem('token')
+      await fetch(`${API_BASE_URL}/auth/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ eAdmin: !current })
+      })
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, eAdmin: !current } : u))
+    } catch (e) { console.error(e) }
+    setSaving(null)
+  }
+
+  const tipoLabel = { admin: 'Administrador', pedagogico: 'Pedagógico', tesouraria: 'Tesouraria' }
+  const tipoColor = { admin: 'bg-purple-100 text-purple-800', pedagogico: 'bg-blue-100 text-blue-800', tesouraria: 'bg-orange-100 text-orange-800' }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#091426]">Utilizadores</h2>
+        <p className="text-[10px] sm:text-xs lg:text-sm text-[#45474c] mt-0.5">Gerir permissões e tipos de acesso</p>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-[#eceef0] bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-[10px] sm:text-xs lg:text-sm">
+            <thead className="bg-[#eceef0]">
+              <tr>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Nome</th>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Email</th>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Tipo</th>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Admin</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#c5c6cd]/50">
+              {loading ? (
+                <tr><td colSpan="4" className="px-6 py-8 text-center"><Loader2 className="size-5 animate-spin mx-auto" /></td></tr>
+              ) : users.map(user => (
+                <tr key={user.id} className="transition-colors hover:bg-[#f7f9fb]">
+                  <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 font-semibold text-[#091426]">{user.Nome}</td>
+                  <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c]">{user.Email}</td>
+                  <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
+                    <select
+                      value={user.tipo || 'admin'}
+                      onChange={(e) => updateTipo(user.id, e.target.value)}
+                      disabled={saving === user.id}
+                      className="rounded-lg border border-[#c5c6cd] bg-white px-2 py-1 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20"
+                    >
+                      <option value="admin">Administrador</option>
+                      <option value="pedagogico">Pedagógico</option>
+                      <option value="tesouraria">Tesouraria</option>
+                    </select>
+                  </td>
+                  <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
+                    <button
+                      onClick={() => toggleAdmin(user.id, user.eAdmin)}
+                      disabled={saving === user.id}
+                      className={`rounded-full px-3 py-1 text-xs font-bold transition-colors ${user.eAdmin ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                    >
+                      {user.eAdmin ? 'Sim' : 'Não'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ========== PÁGINA PRINCIPAL ==========
 export default function DashboardHome() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -2375,6 +2492,7 @@ export default function DashboardHome() {
   const [isLoading, setIsLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isChecking, setIsChecking] = useState(true)
+  const [userTipo, setUserTipo] = useState('admin')
   const router = useRouter()
   const fileInputRef = useRef(null)
 
@@ -3731,8 +3849,13 @@ export default function DashboardHome() {
         })
         if (response.ok) {
           const data = await response.json()
-          if (data.user && data.user.eAdmin === true) {
+          if (data.user) {
             setIsAdmin(true)
+            const tipo = data.user.tipo || 'admin'
+            setUserTipo(tipo)
+            localStorage.setItem('userTipo', tipo)
+            if (tipo === 'tesouraria') setActiveTab('tesouraria')
+            else if (tipo === 'pedagogico') setActiveTab('matriculas')
             await loadData()
           } else {
             setIsAdmin(false)
@@ -3777,6 +3900,8 @@ export default function DashboardHome() {
         return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} stats={statsFinanceiro} inadimplentes={inadimplentes} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} />
       case 'academico':
         return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} />
+      case 'usuarios':
+        return <UsuariosTab />
       default:
         return <DashboardTab stats={stats} matriculas={matriculas} onEdit={(data) => handleOpenModal('matriculas', data)} onDelete={(id) => handleConfirmDelete(id, 'matriculas')} onView={(data) => handleOpenModal('view', data, 'matriculas')} crescimento={crescimento} inscricoesPorCurso={inscricoesPorCurso} onGeneratePDF={generateRelatorioGeral} />
     }
@@ -3784,7 +3909,7 @@ export default function DashboardHome() {
 
   return (
     <div className="flex min-h-screen bg-gray-50/80">
-      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
+      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} userTipo={userTipo} />
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         <TopBar setIsSidebarOpen={setIsSidebarOpen} onLogout={handleLogout} onSearch={handleGlobalSearch} />
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
