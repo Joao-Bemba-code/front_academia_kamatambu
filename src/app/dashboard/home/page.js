@@ -2516,6 +2516,8 @@ export default function DashboardHome() {
   const [formadoresList, setFormadoresList] = useState([])
   const [fotoUrl, setFotoUrl] = useState(null)
   const [fotoPreview, setFotoPreview] = useState(null)
+  const [fotoCertificadoUrl, setFotoCertificadoUrl] = useState(null)
+  const [fotoCertificadoPreview, setFotoCertificadoPreview] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [modalType, setModalType] = useState('')
@@ -3289,7 +3291,7 @@ export default function DashboardHome() {
     }
   }
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = async (e, field = 'Foto_User') => {
     const file = e.target.files[0]
     if (!file) return
     if (!file.type.startsWith('image/')) { showToast('Por favor, selecione uma imagem válida', 'error'); return }
@@ -3301,8 +3303,11 @@ export default function DashboardHome() {
         try {
           const base64String = reader.result.split(',')[1]
           const imageUrl = await uploadToImgBB(base64String)
-          if (imageUrl) { setFotoUrl(imageUrl); setFotoPreview(reader.result); showToast('Imagem enviada com sucesso!', 'success') }
-          else { showToast('Erro ao enviar imagem', 'error') }
+          if (imageUrl) {
+            if (field === 'Foto_User') { setFotoUrl(imageUrl); setFotoPreview(reader.result) }
+            else { setFotoCertificadoUrl(imageUrl); setFotoCertificadoPreview(reader.result) }
+            showToast('Imagem enviada com sucesso!', 'success')
+          } else { showToast('Erro ao enviar imagem', 'error') }
         } catch (error) { console.error('Erro:', error); showToast('Erro ao processar imagem', 'error') }
         finally { setIsUploading(false) }
       }
@@ -3757,13 +3762,14 @@ export default function DashboardHome() {
       }
 
       if (fotoUrl) data.Foto_User = fotoUrl
+      if (fotoCertificadoUrl) data.Foto_Certificado = fotoCertificadoUrl
 
       const endpoint = type === 'notas' || type === 'academico' ? '/academico/notas' : `/${type}`
       const response = await apiFetch(endpoint, { method: 'POST', body: JSON.stringify(data) })
       
       if (response.success) {
         showToast(`${type === 'notas' || type === 'academico' ? 'Avaliação' : type.slice(0, -1)} criado com sucesso!`, 'success')
-        setModalOpen(false); setFotoUrl(null); setFotoPreview(null); loadData()
+        setModalOpen(false); setFotoUrl(null); setFotoPreview(null); setFotoCertificadoUrl(null); setFotoCertificadoPreview(null); loadData()
       } else {
         console.error('Erro do backend:', response); showToast(response.message || 'Erro ao criar', 'error')
       }
@@ -3801,13 +3807,14 @@ export default function DashboardHome() {
       }
 
       if (fotoUrl) data.Foto_User = fotoUrl
+      if (fotoCertificadoUrl) data.Foto_Certificado = fotoCertificadoUrl
 
       const endpoint = type === 'notas' || type === 'academico' ? `/academico/notas/${id}` : `/${type}/${id}`
       const response = await apiFetch(endpoint, { method: 'PUT', body: JSON.stringify(data) })
       
       if (response.success) {
         showToast(`${type === 'notas' || type === 'academico' ? 'Avaliação' : type.slice(0, -1)} atualizado com sucesso!`, 'success')
-        setModalOpen(false); setFotoUrl(null); setFotoPreview(null); loadData()
+        setModalOpen(false); setFotoUrl(null); setFotoPreview(null); setFotoCertificadoUrl(null); setFotoCertificadoPreview(null); loadData()
       } else {
         console.error('Erro do backend:', response); showToast(response.message || 'Erro ao atualizar', 'error')
       }
@@ -3972,6 +3979,8 @@ export default function DashboardHome() {
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Módulo</label><input type="number" name="Modulo" defaultValue={modalData?.Modulo || 1} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Status</label><select name="Status" defaultValue={modalData?.Status || 'Inscrito'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="Inscrito">Inscrito</option><option value="Admitido">Admitido</option><option value="Desistente">Desistente</option><option value="Concluido">Concluído</option></select></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data de Matrícula</label><input type="date" name="Data_Matricula" defaultValue={modalData?.Data_Matricula || new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Foto do Formando</label><input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'Foto_User')} className="mt-1 w-full text-xs sm:text-sm text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-[#006c49] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white hover:file:bg-[#005a3d]" />{fotoPreview && <img src={fotoPreview} alt="Preview" className="mt-2 h-20 w-20 rounded-lg object-cover border" />}</div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Foto do Certificado</label><input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'Foto_Certificado')} className="mt-1 w-full text-xs sm:text-sm text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-[#006c49] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white hover:file:bg-[#005a3d]" />{fotoCertificadoPreview && <img src={fotoCertificadoPreview} alt="Preview" className="mt-2 h-20 w-20 rounded-lg object-cover border" />}</div>
           </div>
         )}
 
