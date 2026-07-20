@@ -3197,10 +3197,14 @@ export default function DashboardHome() {
         window.location.href = '/auth/login'
         return { success: false, message: 'Sessão expirada' }
       }
+      const contentType = response.headers.get('content-type') || ''
+      if (!contentType.includes('application/json')) {
+        return { success: false, message: 'Resposta inválida do servidor' }
+      }
       return response.json()
     } catch (error) {
       console.error('Erro na requisição:', error)
-      throw error
+      return { success: false, message: 'Erro de rede' }
     }
   }
 
@@ -3218,6 +3222,10 @@ export default function DashboardHome() {
         const statsRes = await fetch(`${API_BASE_URL}/api/stats/dashboard`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
+        const statsContentType = statsRes.headers.get('content-type') || ''
+        if (!statsContentType.includes('application/json')) {
+          throw new Error('Resposta não é JSON')
+        }
         const statsData = await statsRes.json()
         if (statsData.success) {
           const processedStats = (statsData.data.stats || []).map(stat => ({
