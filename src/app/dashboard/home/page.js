@@ -2427,8 +2427,8 @@ function UsuariosTab() {
     setSaving(null)
   }
 
-  const tipoLabel = { admin: 'Administrador', pedagogico: 'Pedagógico', tesouraria: 'Tesouraria' }
-  const tipoColor = { admin: 'bg-purple-100 text-purple-800', pedagogico: 'bg-blue-100 text-blue-800', tesouraria: 'bg-orange-100 text-orange-800' }
+  const tipoLabel = { admin: 'Administrador', pedagogico: 'Pedagógico', tesouraria: 'Tesouraria', pendente: 'Pendente' }
+  const tipoColor = { admin: 'bg-purple-100 text-purple-800', pedagogico: 'bg-blue-100 text-blue-800', tesouraria: 'bg-orange-100 text-orange-800', pendente: 'bg-yellow-100 text-yellow-800' }
 
   return (
     <div className="space-y-4">
@@ -2457,14 +2457,15 @@ function UsuariosTab() {
                   <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c]">{user.Email}</td>
                   <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
                     <select
-                      value={user.tipo || 'admin'}
+                      value={user.tipo || 'pendente'}
                       onChange={(e) => updateTipo(user.id, e.target.value)}
                       disabled={saving === user.id}
                       className="rounded-lg border border-[#c5c6cd] bg-white px-2 py-1 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20"
                     >
-                      <option value="admin">Administrador</option>
+                      <option value="pendente">Pendente</option>
                       <option value="pedagogico">Pedagógico</option>
                       <option value="tesouraria">Tesouraria</option>
+                      <option value="admin">Administrador</option>
                     </select>
                   </td>
                   <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
@@ -3853,25 +3854,37 @@ export default function DashboardHome() {
         const token = localStorage.getItem('token')
         if (!token) { router.push('/auth/login'); setIsChecking(false); return }
 
-        const response = await fetch(`${API_BASE_URL}/auth/validar_token`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
-        if (response.ok) {
-          const data = await response.json()
-          if (data.user) {
-            setIsAdmin(true)
-            const tipo = data.user.tipo || 'pedagogico'
-            setUserTipo(tipo)
-            localStorage.setItem('userTipo', tipo)
-            if (tipo === 'tesouraria') setActiveTab('tesouraria')
-            else if (tipo === 'pedagogico') setActiveTab('matriculas')
-            await loadData()
-          } else {
-            setIsAdmin(false)
-          }
-        } else {
+        const contentType = response.headers.get('content-type') || ''
+        if (!contentType.includes('application/json')) {
+          throw new Error('Servidor temporariamente indisponível')
+        }
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          const msg = data.message || 'Sessão inválida'
           localStorage.removeItem('token')
+          localStorage.removeItem('userTipo')
           router.push('/auth/login')
+          return
+        }
+
+        if (data.user) {
+          if (data.user.tipo === 'pendente') {
+            localStorage.removeItem('token')
+            localStorage.removeItem('userTipo')
+            router.push('/auth/login?pendente=1')
+            return
+          }
+          setIsAdmin(true)
+          const tipo = data.user.tipo || 'pedagogico'
+          setUserTipo(tipo)
+          localStorage.setItem('userTipo', tipo)
+          if (tipo === 'tesouraria') setActiveTab('tesouraria')
+          else if (tipo === 'pedagogico') setActiveTab('matriculas')
+          await loadData()
+        } else {
+          setIsAdmin(false)
         }
         setIsChecking(false)
       } catch (error) {
