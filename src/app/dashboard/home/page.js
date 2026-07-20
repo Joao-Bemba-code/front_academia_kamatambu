@@ -3852,7 +3852,7 @@ export default function DashboardHome() {
           const data = await response.json()
           if (data.user) {
             setIsAdmin(true)
-            const tipo = data.user.tipo || 'admin'
+            const tipo = data.user.tipo || 'pedagogico'
             setUserTipo(tipo)
             localStorage.setItem('userTipo', tipo)
             if (tipo === 'tesouraria') setActiveTab('tesouraria')
