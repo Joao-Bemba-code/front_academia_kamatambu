@@ -631,13 +631,15 @@ function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout, userTip
     { id: 'formadores', icon: GraduationCap, label: 'Formadores' },
     { id: 'tesouraria', icon: CreditCard, label: 'Tesouraria' },
     { id: 'academico', icon: Award, label: 'Gestão Acadêmica' },
+    ...(userTipo === 'admin' || userTipo === 'recursos_humanos' ? [{ id: 'rh', icon: UsersIcon, label: 'Recursos Humanos' }] : []),
     ...(userTipo === 'admin' ? [{ id: 'usuarios', icon: Shield, label: 'Utilizadores' }] : [])
   ]
 
   const allowedTabs = {
-    admin: ['dashboard', 'matriculas', 'turmas', 'cursos', 'formadores', 'tesouraria', 'academico', 'usuarios'],
+    admin: ['dashboard', 'matriculas', 'turmas', 'cursos', 'formadores', 'tesouraria', 'academico', 'rh', 'usuarios'],
     pedagogico: ['dashboard', 'matriculas', 'turmas', 'cursos', 'formadores', 'academico'],
-    tesouraria: ['dashboard', 'tesouraria']
+    tesouraria: ['dashboard', 'tesouraria'],
+    recursos_humanos: ['dashboard', 'matriculas', 'formadores', 'rh']
   }
 
   const visibleTabs = allowedTabs[userTipo] || allowedTabs.admin
@@ -2379,6 +2381,55 @@ function AccessDenied() {
   )
 }
 
+// ========== RECURSOS HUMANOS TAB ==========
+function RecursosHumanosTab() {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
+  const [stats, setStats] = useState({ totalFormandos: 0, totalFormadores: 0, totalFuncionarios: 0 })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const res = await fetch(`${API_BASE_URL}/api/stats/dashboard`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        const data = await res.json()
+        if (data.success) {
+          const s = data.data.stats || []
+          setStats({
+            totalFormandos: s.find(i => i.label.includes('Formandos'))?.value || 0,
+            totalFormadores: s.find(i => i.label.includes('Formadores'))?.value || 0,
+          })
+        }
+      } catch (e) { console.error(e) }
+      setLoading(false)
+    }
+    load()
+  }, [])
+
+  if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="size-6 animate-spin" /></div>
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#091426]">Recursos Humanos</h2>
+        <p className="text-[10px] sm:text-xs lg:text-sm text-[#45474c] mt-0.5">Gestão de pessoal e recursos da academia</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="rounded-xl border border-[#eceef0] bg-white p-5 shadow-sm">
+          <p className="text-[11px] uppercase tracking-wider text-[#45474c]">Total Formandos</p>
+          <p className="mt-1 text-3xl font-bold text-[#091426]">{stats.totalFormandos}</p>
+        </div>
+        <div className="rounded-xl border border-[#eceef0] bg-white p-5 shadow-sm">
+          <p className="text-[11px] uppercase tracking-wider text-[#45474c]">Total Formadores</p>
+          <p className="mt-1 text-3xl font-bold text-[#091426]">{stats.totalFormadores}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ========== UTILIZADORES TAB ==========
 function UsuariosTab() {
   const [users, setUsers] = useState([])
@@ -2427,8 +2478,8 @@ function UsuariosTab() {
     setSaving(null)
   }
 
-  const tipoLabel = { admin: 'Administrador', pedagogico: 'Pedagógico', tesouraria: 'Tesouraria', pendente: 'Pendente' }
-  const tipoColor = { admin: 'bg-purple-100 text-purple-800', pedagogico: 'bg-blue-100 text-blue-800', tesouraria: 'bg-orange-100 text-orange-800', pendente: 'bg-yellow-100 text-yellow-800' }
+  const tipoLabel = { admin: 'Administrador', pedagogico: 'Pedagógico', tesouraria: 'Tesouraria', recursos_humanos: 'Recursos Humanos', pendente: 'Pendente' }
+  const tipoColor = { admin: 'bg-purple-100 text-purple-800', pedagogico: 'bg-blue-100 text-blue-800', tesouraria: 'bg-orange-100 text-orange-800', recursos_humanos: 'bg-teal-100 text-teal-800', pendente: 'bg-yellow-100 text-yellow-800' }
 
   return (
     <div className="space-y-4">
@@ -2462,6 +2513,7 @@ function UsuariosTab() {
                       disabled={saving === user.id}
                       className="rounded-lg border border-[#c5c6cd] bg-white px-2 py-1 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20"
                     >
+                      <option value="recursos_humanos">Recursos Humanos</option>
                       <option value="pendente">Pendente</option>
                       <option value="pedagogico">Pedagógico</option>
                       <option value="tesouraria">Tesouraria</option>
@@ -3903,6 +3955,7 @@ export default function DashboardHome() {
           localStorage.setItem('userTipo', tipo)
           if (tipo === 'tesouraria') setActiveTab('tesouraria')
           else if (tipo === 'pedagogico') setActiveTab('matriculas')
+          else if (tipo === 'recursos_humanos') setActiveTab('rh')
           await loadData()
         } else {
           setIsAdmin(false)
@@ -3943,6 +3996,8 @@ export default function DashboardHome() {
         return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} stats={statsFinanceiro} inadimplentes={inadimplentes} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} />
       case 'academico':
         return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} />
+      case 'rh':
+        return <RecursosHumanosTab />
       case 'usuarios':
         return <UsuariosTab />
       default:
