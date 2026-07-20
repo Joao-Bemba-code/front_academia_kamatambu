@@ -3650,9 +3650,11 @@ export default function DashboardHome() {
     if (type === 'view') {
       setModalType('view')
       setModalData(data)
-      setViewRealType(realType || 'matriculas') // Armazena o tipo real
+      setViewRealType(realType || 'matriculas')
       setFotoUrl(null)
       setFotoPreview(null)
+      setFotoCertificadoUrl(null)
+      setFotoCertificadoPreview(null)
       setModalOpen(true)
       return
     }
@@ -3662,6 +3664,8 @@ export default function DashboardHome() {
     setModalData(data)
     setFotoUrl(null)
     setFotoPreview(null)
+    setFotoCertificadoUrl(null)
+    setFotoCertificadoPreview(null)
     setModalOpen(true)
   }
 
@@ -3670,6 +3674,8 @@ export default function DashboardHome() {
     setModalData(null)
     setFotoUrl(null)
     setFotoPreview(null)
+    setFotoCertificadoUrl(null)
+    setFotoCertificadoPreview(null)
   }
 
   // ========== HANDLE CREATE ==========
