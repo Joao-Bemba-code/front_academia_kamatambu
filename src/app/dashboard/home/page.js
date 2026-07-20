@@ -54,7 +54,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   AlertTriangle,
-  BookOpen as BookOpenIcon
+  BookOpen as BookOpenIcon,
+  Shield
 } from 'lucide-react'
 
 // ========== URL BASE DA API ==========
