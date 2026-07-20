@@ -3854,6 +3854,10 @@ export default function DashboardHome() {
         const token = localStorage.getItem('token')
         if (!token) { router.push('/auth/login'); setIsChecking(false); return }
 
+        const response = await fetch(`${API_BASE_URL}/auth/validar_token`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+
         const contentType = response.headers.get('content-type') || ''
         if (!contentType.includes('application/json')) {
           throw new Error('Servidor temporariamente indisponível')
