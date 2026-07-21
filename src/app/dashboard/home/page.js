@@ -2579,6 +2579,8 @@ export default function DashboardHome() {
   const [toast, setToast] = useState(null)
   // Estado para armazenar o tipo real da visualização
   const [viewRealType, setViewRealType] = useState('matriculas')
+  const [studentSearch, setStudentSearch] = useState('')
+  const [studentSearchNotas, setStudentSearchNotas] = useState('')
 
   const uploadToBackend = async (base64Image) => {
     try {
@@ -4093,7 +4095,19 @@ export default function DashboardHome() {
 
         {modalType === 'pagamentos' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Formando *</label><select name="aluno" defaultValue={modalData?.aluno} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="">Selecione um formando</option>{matriculas && matriculas.length > 0 ? matriculas.map(m => <option key={m.id} value={m.Nome}>{m.Nome}</option>) : <option value="" disabled>Nenhum formando cadastrado</option>}</select></div>
+            <div className="col-span-full">
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Formando *</label>
+              <div className="relative mt-1">
+                <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
+                <input type="text" placeholder="Buscar formando..." value={studentSearch} onChange={(e) => setStudentSearch(e.target.value)} className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
+              </div>
+              <select name="aluno" defaultValue={modalData?.aluno} size="5" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required>
+                <option value="">Selecione um formando</option>
+                {matriculas && matriculas.length > 0
+                  ? matriculas.filter(m => !studentSearch || m.Nome.toLowerCase().includes(studentSearch.toLowerCase())).map(m => <option key={m.id} value={m.Nome}>{m.Nome}</option>)
+                  : <option value="" disabled>Nenhum formando cadastrado</option>}
+              </select>
+            </div>
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Curso</label><select name="curso" defaultValue={modalData?.curso} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione um curso</option>{cursosList && cursosList.length > 0 ? cursosList.map(c => <option key={c.id} value={c.Nome}>{c.Nome}</option>) : <option value="" disabled>Nenhum curso cadastrado</option>}</select></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Tipo *</label><select name="tipo" defaultValue={modalData?.tipo || 'mensalidade'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="matricula">Matrícula</option><option value="mensalidade">Mensalidade</option><option value="certificado">Certificado</option><option value="taxa">Taxa</option><option value="outro">Outro</option></select></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Forma de Pagamento *</label><select name="forma_pagamento" defaultValue={modalData?.forma_pagamento || 'dinheiro'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="dinheiro">Dinheiro</option><option value="transferencia">Transferência</option><option value="deposito">Depósito</option><option value="multicaixa">Multicaixa</option></select></div>
@@ -4108,7 +4122,19 @@ export default function DashboardHome() {
         {modalType === 'notas' && !modalData && criteriosAvaliacao && criteriosAvaliacao.length > 0 && (
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Formando *</label><select name="aluno_id" defaultValue="" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="">Selecione um formando</option>{matriculas && matriculas.length > 0 ? matriculas.map(m => <option key={m.id} value={m.id}>{m.Nome} - {m.Curso} ({m.Turma})</option>) : <option value="" disabled>Nenhum formando cadastrado</option>}</select></div>
+              <div className="col-span-full">
+                <label className="text-xs sm:text-sm font-medium text-gray-700">Formando *</label>
+                <div className="relative mt-1">
+                  <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
+                  <input type="text" placeholder="Buscar formando..." value={studentSearchNotas} onChange={(e) => setStudentSearchNotas(e.target.value)} className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
+                </div>
+                <select name="aluno_id" defaultValue="" size="5" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required>
+                  <option value="">Selecione um formando</option>
+                  {matriculas && matriculas.length > 0
+                    ? matriculas.filter(m => !studentSearchNotas || m.Nome.toLowerCase().includes(studentSearchNotas.toLowerCase())).map(m => <option key={m.id} value={m.id}>{m.Nome} - {m.Curso} ({m.Turma})</option>)
+                    : <option value="" disabled>Nenhum formando cadastrado</option>}
+                </select>
+              </div>
               <div><label className="text-xs sm:text-sm font-medium text-gray-700">Módulo</label><input type="number" name="modulo" defaultValue="1" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
               <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data</label><input type="date" name="data_avaliacao" defaultValue={new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
               <div><label className="text-xs sm:text-sm font-medium text-gray-700">Formador</label><select name="formador" defaultValue="" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione um formador</option>{formadoresList && formadoresList.length > 0 ? formadoresList.map(f => <option key={f.id} value={f.Nome}>{f.Nome}</option>) : <option value="" disabled>Nenhum formador cadastrado</option>}</select></div>
@@ -4134,7 +4160,19 @@ export default function DashboardHome() {
         )}
         {modalType === 'notas' && (modalData || !criteriosAvaliacao || criteriosAvaliacao.length === 0) && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Formando *</label><select name="aluno_id" defaultValue={modalData?.aluno_id} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="">Selecione um formando</option>{matriculas && matriculas.length > 0 ? matriculas.map(m => <option key={m.id} value={m.id}>{m.Nome}</option>) : <option value="" disabled>Nenhum formando cadastrado</option>}</select></div>
+            <div className="col-span-full">
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Formando *</label>
+              <div className="relative mt-1">
+                <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
+                <input type="text" placeholder="Buscar formando..." value={studentSearchNotas} onChange={(e) => setStudentSearchNotas(e.target.value)} className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
+              </div>
+              <select name="aluno_id" defaultValue={modalData?.aluno_id} size="5" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required>
+                <option value="">Selecione um formando</option>
+                {matriculas && matriculas.length > 0
+                  ? matriculas.filter(m => !studentSearchNotas || m.Nome.toLowerCase().includes(studentSearchNotas.toLowerCase())).map(m => <option key={m.id} value={m.id}>{m.Nome}</option>)
+                  : <option value="" disabled>Nenhum formando cadastrado</option>}
+              </select>
+            </div>
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Curso</label><input type="text" name="curso" defaultValue={modalData?.curso} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900 bg-gray-100" disabled placeholder="Será preenchido automaticamente" /></div>
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Disciplina *</label><input name="disciplina" defaultValue={modalData?.disciplina} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Módulo</label><input type="number" name="modulo" defaultValue={modalData?.modulo || 1} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
