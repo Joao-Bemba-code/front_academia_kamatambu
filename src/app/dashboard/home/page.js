@@ -631,15 +631,13 @@ function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout, userTip
     { id: 'formadores', icon: GraduationCap, label: 'Formadores' },
     { id: 'tesouraria', icon: CreditCard, label: 'Tesouraria' },
     { id: 'academico', icon: Award, label: 'Gestão Acadêmica' },
-    ...(userTipo === 'admin' || userTipo === 'recursos_humanos' ? [{ id: 'rh', icon: UsersIcon, label: 'Recursos Humanos' }] : []),
     ...(userTipo === 'admin' ? [{ id: 'usuarios', icon: Shield, label: 'Utilizadores' }] : [])
   ]
 
   const allowedTabs = {
-    admin: ['dashboard', 'matriculas', 'turmas', 'cursos', 'formadores', 'tesouraria', 'academico', 'rh', 'usuarios'],
+    admin: ['dashboard', 'matriculas', 'turmas', 'cursos', 'formadores', 'tesouraria', 'academico', 'usuarios'],
     pedagogico: ['dashboard', 'matriculas', 'turmas', 'cursos', 'formadores', 'academico'],
-    tesouraria: ['dashboard', 'tesouraria'],
-    recursos_humanos: ['dashboard', 'matriculas', 'formadores', 'rh']
+    tesouraria: ['dashboard', 'tesouraria']
   }
 
   const visibleTabs = allowedTabs[userTipo] || allowedTabs.admin
@@ -4020,13 +4018,18 @@ export default function DashboardHome() {
             router.push('/auth/login?pendente=1')
             return
           }
+          if (data.user.tipo === 'recursos_humanos') {
+            setIsAdmin(false)
+            setIsChecking(false)
+            setIsLoading(false)
+            return
+          }
           setIsAdmin(true)
           const tipo = data.user.tipo || 'pedagogico'
           setUserTipo(tipo)
           localStorage.setItem('userTipo', tipo)
           if (tipo === 'tesouraria') setActiveTab('tesouraria')
           else if (tipo === 'pedagogico') setActiveTab('matriculas')
-          else if (tipo === 'recursos_humanos') setActiveTab('rh')
           await loadData()
         } else {
           setIsAdmin(false)
@@ -4067,8 +4070,6 @@ export default function DashboardHome() {
         return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} loadingMatriculas={loading.matriculas} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} />
       case 'academico':
         return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} />
-      case 'rh':
-        return <RecursosHumanosTab />
       case 'usuarios':
         return <UsuariosTab />
       default:
@@ -4206,7 +4207,7 @@ export default function DashboardHome() {
                   <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
                   <input type="text" placeholder="Buscar formando..." value={studentSearchNotas} onChange={(e) => setStudentSearchNotas(e.target.value)} className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
                 </div>
-                <select name="aluno_id" defaultValue="" size="5" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required>
+                <select name="aluno_id" defaultValue="" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required>
                   <option value="">Selecione um formando</option>
                   {matriculas && matriculas.length > 0
                     ? matriculas.filter(m => !studentSearchNotas || m.Nome.toLowerCase().includes(studentSearchNotas.toLowerCase())).map(m => <option key={m.id} value={m.id}>{m.Nome} - {m.Curso} ({m.Turma})</option>)
@@ -4244,7 +4245,7 @@ export default function DashboardHome() {
                 <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
                 <input type="text" placeholder="Buscar formando..." value={studentSearchNotas} onChange={(e) => setStudentSearchNotas(e.target.value)} className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
               </div>
-              <select name="aluno_id" defaultValue={modalData?.aluno_id} size="5" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required>
+              <select name="aluno_id" defaultValue={modalData?.aluno_id} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required>
                 <option value="">Selecione um formando</option>
                 {matriculas && matriculas.length > 0
                   ? matriculas.filter(m => !studentSearchNotas || m.Nome.toLowerCase().includes(studentSearchNotas.toLowerCase())).map(m => <option key={m.id} value={m.id}>{m.Nome}</option>)
