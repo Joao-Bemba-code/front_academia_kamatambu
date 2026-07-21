@@ -1933,6 +1933,7 @@ function GraficoInadimplencia({ inadimplentes }) {
 function TesourariaTab({ 
   pagamentos, 
   loading, 
+  loadingMatriculas,
   onEdit, 
   onDelete, 
   onView, 
@@ -4044,7 +4045,7 @@ export default function DashboardHome() {
       case 'formadores':
         return <FormadoresTab formadores={formadores} loading={loading.formadores} onEdit={(data) => handleOpenModal('formadores', data)} onDelete={(id) => handleConfirmDelete(id, 'formadores')} onView={(data) => handleOpenModal('view', data, 'formadores')} onCreate={() => handleOpenModal('formadores')} onGeneratePDF={generateFormadoresPDF} />
       case 'tesouraria':
-        return <TesourariaTab pagamentos={pagamentos} loading={loading} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} />
+        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} loadingMatriculas={loading.matriculas} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} />
       case 'academico':
         return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} />
       case 'rh':
