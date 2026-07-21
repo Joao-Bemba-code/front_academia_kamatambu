@@ -2646,6 +2646,7 @@ export default function DashboardHome() {
   const [viewRealType, setViewRealType] = useState('matriculas')
   const [studentSearch, setStudentSearch] = useState('')
   const [studentSearchNotas, setStudentSearchNotas] = useState('')
+  const [showDropdown, setShowDropdown] = useState(false)
 
   const uploadToBackend = async (base64Image) => {
     try {
@@ -3789,8 +3790,9 @@ export default function DashboardHome() {
     setFotoPreview(null)
     setFotoCertificadoUrl(null)
     setFotoCertificadoPreview(null)
-    setStudentSearch('')
+    setStudentSearch(data?.aluno || '')
     setStudentSearchNotas('')
+    setShowDropdown(false)
     setModalOpen(true)
   }
 
@@ -4165,15 +4167,24 @@ export default function DashboardHome() {
             <div className="col-span-full">
               <label className="text-xs sm:text-sm font-medium text-gray-700">Formando *</label>
               <div className="relative mt-1">
-                <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
-                <input type="text" placeholder="Buscar formando..." value={studentSearch} onChange={(e) => setStudentSearch(e.target.value)} className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
+                <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <input type="text" placeholder="Digite para buscar formando..." value={studentSearch} onChange={(e) => { setStudentSearch(e.target.value); setShowDropdown(true) }} onFocus={() => setShowDropdown(true)} onBlur={() => setTimeout(() => setShowDropdown(false), 200)} className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
+                {showDropdown && (
+                  <div className="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg max-h-48 overflow-y-auto">
+                    {matriculas && matriculas.length > 0 ? (
+                      matriculas.filter(m => !studentSearch || m.Nome.toLowerCase().includes(studentSearch.toLowerCase())).map(m => (
+                        <div key={m.id} className="px-3 py-2 text-xs hover:bg-[#006c49]/10 cursor-pointer border-b border-gray-100 last:border-0" onMouseDown={() => { setStudentSearch(m.Nome); setShowDropdown(false); document.getElementById('hidden-aluno-select').value = m.Nome }}>
+                          <p className="font-medium text-gray-900">{m.Nome}</p>
+                          <p className="text-[10px] text-gray-500">{m.Curso} — {m.Turma}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-3 py-4 text-center text-xs text-gray-400">Nenhum formando encontrado</div>
+                    )}
+                  </div>
+                )}
               </div>
-              <select name="aluno" defaultValue={modalData?.aluno} size="5" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required>
-                <option value="">Selecione um formando</option>
-                {matriculas && matriculas.length > 0
-                  ? matriculas.filter(m => !studentSearch || m.Nome.toLowerCase().includes(studentSearch.toLowerCase())).map(m => <option key={m.id} value={m.Nome}>{m.Nome}</option>)
-                  : <option value="" disabled>Nenhum formando cadastrado</option>}
-              </select>
+              <select id="hidden-aluno-select" name="aluno" defaultValue={modalData?.aluno || ''} className="hidden" required><option value="">Selecione</option>{matriculas && matriculas.length > 0 ? matriculas.map(m => <option key={m.id} value={m.Nome}>{m.Nome}</option>) : null}</select>
             </div>
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Curso</label><select name="curso" defaultValue={modalData?.curso} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione um curso</option>{cursosList && cursosList.length > 0 ? cursosList.map(c => <option key={c.id} value={c.Nome}>{c.Nome}</option>) : <option value="" disabled>Nenhum curso cadastrado</option>}</select></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Tipo *</label><select name="tipo" defaultValue={modalData?.tipo || 'mensalidade'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="matricula">Matrícula</option><option value="mensalidade">Mensalidade</option><option value="certificado">Certificado</option><option value="taxa">Taxa</option><option value="outro">Outro</option></select></div>
