@@ -1003,6 +1003,8 @@ function StatsCards({ stats }) {
 
 // ========== MATRÍCULAS RECENTES ==========
 function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
+  const [searchRecent, setSearchRecent] = useState('')
+
   const getStatusColor = (status) => {
     const colors = {
       'Ativo': 'bg-emerald-50 text-emerald-700 ring-emerald-600/10',
@@ -1019,6 +1021,13 @@ function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
   }
 
   const safeMatriculas = Array.isArray(matriculas) ? matriculas : []
+  const filtered = searchRecent.trim()
+    ? safeMatriculas.filter(m =>
+        (m.Nome && m.Nome.toLowerCase().includes(searchRecent.toLowerCase())) ||
+        (m.Curso && m.Curso.toLowerCase().includes(searchRecent.toLowerCase())) ||
+        (m.Turma && m.Turma.toLowerCase().includes(searchRecent.toLowerCase()))
+      ).slice(0, 5)
+    : safeMatriculas.slice(0, 5)
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200/60 bg-white shadow-sm">
@@ -1030,6 +1039,12 @@ function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
         <button className="text-xs sm:text-sm font-semibold text-[#006c49] hover:text-[#004d34] transition-colors">
           Ver todas
         </button>
+      </div>
+      <div className="px-4 sm:px-6 py-2 border-b border-gray-100">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
+          <input type="text" placeholder="Buscar matriculas recentes..." value={searchRecent} onChange={(e) => setSearchRecent(e.target.value)} className="w-full rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-9 pr-3 text-xs text-gray-900 outline-none focus:border-[#006c49] focus:bg-white focus:ring-1 focus:ring-[#006c49]/20" />
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs sm:text-sm">
@@ -1043,8 +1058,8 @@ function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {safeMatriculas.length > 0 ? (
-              safeMatriculas.slice(0, 5).map((student) => (
+            {filtered.length > 0 ? (
+              filtered.map((student) => (
                 <tr key={student.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-3 sm:px-6 py-2.5 sm:py-4">
                     <div className="flex items-center gap-2 sm:gap-3">
@@ -3774,6 +3789,8 @@ export default function DashboardHome() {
     setFotoPreview(null)
     setFotoCertificadoUrl(null)
     setFotoCertificadoPreview(null)
+    setStudentSearch('')
+    setStudentSearchNotas('')
     setModalOpen(true)
   }
 
