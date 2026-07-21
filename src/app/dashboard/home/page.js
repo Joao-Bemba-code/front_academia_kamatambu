@@ -1940,12 +1940,24 @@ function TesourariaTab({
   onGeneratePDF,
   onGerarComprovativo,
   stats,
-  inadimplentes
+  inadimplentes,
+  matriculas,
+  onEditMatricula,
+  onDeleteMatricula,
+  onViewMatricula,
+  onCreateMatricula
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterTipo, setFilterTipo] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filteredPagamentos, setFilteredPagamentos] = useState([])
+
+  // Search state for matrículas
+  const [searchMatricula, setSearchMatricula] = useState('')
+  const [filterCursoMat, setFilterCursoMat] = useState('')
+  const [filterTurmaMat, setFilterTurmaMat] = useState('')
+  const [filterStatusMat, setFilterStatusMat] = useState('')
+  const [filteredMatriculas, setFilteredMatriculas] = useState([])
 
   useEffect(() => {
     let filtered = [...(pagamentos || [])]
@@ -1963,8 +1975,42 @@ function TesourariaTab({
     setFilteredPagamentos(filtered)
   }, [pagamentos, searchTerm, filterTipo, filterStatus])
 
+  useEffect(() => {
+    let filtered = [...(matriculas || [])]
+    if (searchMatricula.trim()) {
+      const term = searchMatricula.toLowerCase().trim()
+      filtered = filtered.filter(m => 
+        (m.Nome && m.Nome.toLowerCase().includes(term)) ||
+        (m.Curso && m.Curso.toLowerCase().includes(term)) ||
+        (m.Turma && m.Turma.toLowerCase().includes(term)) ||
+        (m.BI_Cedula && m.BI_Cedula.toLowerCase().includes(term)) ||
+        (m.Telefone && m.Telefone.includes(term)) ||
+        (m.id && String(m.id).includes(term))
+      )
+    }
+    if (filterCursoMat) filtered = filtered.filter(m => m.Curso === filterCursoMat)
+    if (filterTurmaMat) filtered = filtered.filter(m => m.Turma === filterTurmaMat)
+    if (filterStatusMat) filtered = filtered.filter(m => m.Status === filterStatusMat)
+    setFilteredMatriculas(filtered)
+  }, [matriculas, searchMatricula, filterCursoMat, filterTurmaMat, filterStatusMat])
+
   const getStatusBadge = (status) => {
     const colors = { 'pago': 'bg-green-100 text-green-800', 'pendente': 'bg-yellow-100 text-yellow-800', 'parcial': 'bg-orange-100 text-orange-800', 'cancelado': 'bg-red-100 text-red-800' }
+    return colors[status] || 'bg-gray-100 text-gray-700'
+  }
+
+  const getStatusColor = (status) => {
+    const colors = {
+      'Ativo': 'bg-[#006c49]/10 text-[#006c49]',
+      'Inscrito': 'bg-[#006c49]/10 text-[#006c49]',
+      'Pendente': 'bg-[#c0c1ff]/30 text-[#040057]',
+      'Admitido': 'bg-[#6cf8bb]/30 text-[#005236]',
+      'Concluído': 'bg-[#6cf8bb]/30 text-[#005236]',
+      'Concluido': 'bg-[#6cf8bb]/30 text-[#005236]',
+      'Cancelado': 'bg-[#ffdad6] text-[#93000a]',
+      'Desistente': 'bg-[#ffdad6] text-[#93000a]',
+      'Trancado': 'bg-[#c5c6cd]/30 text-[#45474c]'
+    }
     return colors[status] || 'bg-gray-100 text-gray-700'
   }
 
@@ -1979,6 +2025,9 @@ function TesourariaTab({
 
   const tiposUnicos = [...new Set(pagamentos?.map(p => p.tipo).filter(Boolean) || [])]
   const statusUnicos = [...new Set(pagamentos?.map(p => p.status).filter(Boolean) || [])]
+  const cursosUnicosMat = [...new Set(matriculas?.map(m => m.Curso).filter(Boolean) || [])]
+  const turmasUnicasMat = [...new Set(matriculas?.map(m => m.Turma).filter(Boolean) || [])]
+  const statusUnicosMat = [...new Set(matriculas?.map(m => m.Status).filter(Boolean) || [])]
 
   return (
     <div className="space-y-4">
@@ -3995,7 +4044,7 @@ export default function DashboardHome() {
       case 'formadores':
         return <FormadoresTab formadores={formadores} loading={loading.formadores} onEdit={(data) => handleOpenModal('formadores', data)} onDelete={(id) => handleConfirmDelete(id, 'formadores')} onView={(data) => handleOpenModal('view', data, 'formadores')} onCreate={() => handleOpenModal('formadores')} onGeneratePDF={generateFormadoresPDF} />
       case 'tesouraria':
-        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} stats={statsFinanceiro} inadimplentes={inadimplentes} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} />
+        return <TesourariaTab pagamentos={pagamentos} loading={loading} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} />
       case 'academico':
         return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} />
       case 'rh':
