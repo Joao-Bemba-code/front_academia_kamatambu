@@ -1943,6 +1943,147 @@ function GraficoInadimplencia({ inadimplentes }) {
 }
 
 // ========== TESOURARIA TAB ==========
+function MatriculasModal({ isOpen, onClose, matriculas, onView, onEdit, onDelete }) {
+  const [search, setSearch] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
+  const [filterCurso, setFilterCurso] = useState('')
+  const [filterTurma, setFilterTurma] = useState('')
+
+  const getStatusColor = (status) => {
+    const colors = {
+      'Ativo': 'bg-[#006c49]/10 text-[#006c49]',
+      'Inscrito': 'bg-[#006c49]/10 text-[#006c49]',
+      'Pendente': 'bg-[#c0c1ff]/30 text-[#040057]',
+      'Admitido': 'bg-[#6cf8bb]/30 text-[#005236]',
+      'Concluído': 'bg-[#6cf8bb]/30 text-[#005236]',
+      'Concluido': 'bg-[#6cf8bb]/30 text-[#005236]',
+      'Cancelado': 'bg-[#ffdad6] text-[#93000a]',
+      'Desistente': 'bg-[#ffdad6] text-[#93000a]',
+      'Trancado': 'bg-[#c5c6cd]/30 text-[#45474c]'
+    }
+    return colors[status] || 'bg-gray-100 text-gray-700'
+  }
+
+  const cursosUnicos = [...new Set(matriculas?.map(m => m.Curso).filter(Boolean) || [])]
+  const turmasUnicas = [...new Set(matriculas?.map(m => m.Turma).filter(Boolean) || [])]
+  const statusUnicos = [...new Set(matriculas?.map(m => m.Status).filter(Boolean) || [])]
+
+  const filtered = matriculas ? matriculas.filter(m => {
+    if (search.trim()) {
+      const term = search.toLowerCase().trim()
+      if (!(m.Nome && m.Nome.toLowerCase().includes(term)) &&
+          !(m.BI_Cedula && m.BI_Cedula.toLowerCase().includes(term)) &&
+          !(m.Telefone && m.Telefone.includes(term)) &&
+          !(m.id && String(m.id).includes(term))) return false
+    }
+    if (filterStatus && m.Status !== filterStatus) return false
+    if (filterCurso && m.Curso !== filterCurso) return false
+    if (filterTurma && m.Turma !== filterTurma) return false
+    return true
+  }) : []
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4">
+      <div className="flex w-full max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-[#eceef0] px-4 sm:px-6 py-3 sm:py-4">
+          <h2 className="text-base sm:text-lg font-bold text-[#091426]">Todas as Matrículas</h2>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-[#45474c] hover:bg-[#f7f9fb] transition-colors">
+            <X className="size-4 sm:size-5" />
+          </button>
+        </div>
+
+        <div className="border-b border-[#eceef0] px-4 sm:px-6 py-3">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#45474c]" />
+              <input type="text" placeholder="Buscar por nome, BI, telefone..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full rounded-lg border border-[#c5c6cd] bg-white py-1.5 sm:py-2 pl-9 pr-3 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
+            </div>
+            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded-lg border border-[#c5c6cd] bg-white px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900 outline-none">
+              <option value="">Todos Status</option>
+              {statusUnicos.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select value={filterCurso} onChange={(e) => setFilterCurso(e.target.value)} className="rounded-lg border border-[#c5c6cd] bg-white px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900 outline-none">
+              <option value="">Todos Cursos</option>
+              {cursosUnicos.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select value={filterTurma} onChange={(e) => setFilterTurma(e.target.value)} className="rounded-lg border border-[#c5c6cd] bg-white px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900 outline-none">
+              <option value="">Todas Turmas</option>
+              {turmasUnicas.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            {(search || filterStatus || filterCurso || filterTurma) && (
+              <button onClick={() => { setSearch(''); setFilterStatus(''); setFilterCurso(''); setFilterTurma('') }} className="rounded-lg border border-[#c5c6cd] px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 hover:bg-[#f7f9fb] transition-colors">
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-[#eceef0] sticky top-0">
+              <tr>
+                <th className="px-4 sm:px-6 py-2 sm:py-3 text-[10px] font-medium uppercase tracking-wider text-[#45474c]">Nome</th>
+                <th className="hidden sm:table-cell px-4 sm:px-6 py-2 sm:py-3 text-[10px] font-medium uppercase tracking-wider text-[#45474c]">Curso</th>
+                <th className="hidden lg:table-cell px-4 sm:px-6 py-2 sm:py-3 text-[10px] font-medium uppercase tracking-wider text-[#45474c]">Turma</th>
+                <th className="px-4 sm:px-6 py-2 sm:py-3 text-[10px] font-medium uppercase tracking-wider text-[#45474c]">Status</th>
+                <th className="px-4 sm:px-6 py-2 sm:py-3 text-right text-[10px] font-medium uppercase tracking-wider text-[#45474c]">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#c5c6cd]/50">
+              {filtered.length > 0 ? filtered.map(m => (
+                <tr key={m.id} className="hover:bg-[#f7f9fb] transition-colors">
+                  <td className="px-4 sm:px-6 py-2 sm:py-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#eceef0] text-[9px] sm:text-xs font-bold text-[#091426] shrink-0">
+                        {m.Nome ? m.Nome.split(' ').map(n => n[0]).join('').slice(0, 2) : '?'}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm font-semibold text-[#091426] truncate">{m.Nome}</p>
+                        <p className="text-[10px] text-[#45474c]">ID: {m.id}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="hidden sm:table-cell px-4 sm:px-6 py-2 sm:py-3 text-[#45474c] truncate max-w-[120px]">{m.Curso}</td>
+                  <td className="hidden lg:table-cell px-4 sm:px-6 py-2 sm:py-3 text-[#45474c]">{m.Turma}</td>
+                  <td className="px-4 sm:px-6 py-2 sm:py-3">
+                    <span className={`inline-block rounded-full px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-tighter ${getStatusColor(m.Status)}`}>
+                      {m.Status}
+                    </span>
+                  </td>
+                  <td className="px-4 sm:px-6 py-2 sm:py-3 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button onClick={() => { onView(m); onClose() }} className="rounded p-1 text-blue-600 hover:bg-blue-50 transition-colors" title="Visualizar"><Eye className="size-3.5 sm:size-4" /></button>
+                      <button onClick={() => { onEdit(m); onClose() }} className="rounded p-1 text-green-600 hover:bg-green-50 transition-colors" title="Editar"><Edit className="size-3.5 sm:size-4" /></button>
+                      <button onClick={() => { onDelete(m.id); onClose() }} className="rounded p-1 text-red-600 hover:bg-red-50 transition-colors" title="Excluir"><Trash2 className="size-3.5 sm:size-4" /></button>
+                    </div>
+                  </td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                    <div className="flex flex-col items-center gap-2">
+                      <UsersIcon className="size-8 text-gray-300" />
+                      <p className="text-sm">Nenhuma matrícula encontrada</p>
+                      <p className="text-[10px] text-gray-400">Tente ajustar os filtros</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="border-t border-[#eceef0] px-4 sm:px-6 py-3 flex items-center justify-between">
+          <span className="text-xs text-[#45474c]">Total: <strong>{filtered.length}</strong> matrícula{filtered.length !== 1 ? 's' : ''}</span>
+          <button onClick={onClose} className="rounded-lg border border-[#c5c6cd] px-4 py-1.5 text-xs sm:text-sm font-medium text-gray-700 hover:bg-[#f7f9fb] transition-colors">Fechar</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function TesourariaTab({ 
   pagamentos, 
   loading, 
@@ -1965,6 +2106,7 @@ function TesourariaTab({
   const [filterTipo, setFilterTipo] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filteredPagamentos, setFilteredPagamentos] = useState([])
+  const [showMatriculasModal, setShowMatriculasModal] = useState(false)
 
   // Search state for matrículas
   const [searchMatricula, setSearchMatricula] = useState('')
@@ -2066,6 +2208,21 @@ function TesourariaTab({
         <GraficoInadimplencia inadimplentes={inadimplentes} />
       </div>
 
+      <div className="flex items-center justify-between rounded-xl border border-[#eceef0] bg-white p-3 sm:p-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-[#006c49]/10">
+            <UsersIcon className="size-4 sm:size-5 text-[#006c49]" />
+          </div>
+          <div>
+            <p className="text-xs sm:text-sm font-semibold text-[#091426]">Matrículas</p>
+            <p className="text-[10px] sm:text-xs text-[#45474c]">Total de {matriculas?.length || 0} formando{(matriculas?.length || 0) !== 1 ? 's' : ''} registado{(matriculas?.length || 0) !== 1 ? 's' : ''}</p>
+          </div>
+        </div>
+        <button onClick={() => setShowMatriculasModal(true)} className="flex items-center gap-1.5 rounded-lg bg-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#006c49]/90 transition-colors">
+          <Eye className="size-3.5 sm:size-4" /> Ver todas
+        </button>
+      </div>
+
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 size-3.5 sm:size-4 -translate-y-1/2 text-[#45474c]" />
@@ -2153,6 +2310,15 @@ function TesourariaTab({
           </table>
         </div>
       </div>
+
+      <MatriculasModal
+        isOpen={showMatriculasModal}
+        onClose={() => setShowMatriculasModal(false)}
+        matriculas={matriculas}
+        onView={onViewMatricula}
+        onEdit={onEditMatricula}
+        onDelete={onDeleteMatricula}
+      />
     </div>
   )
 }
