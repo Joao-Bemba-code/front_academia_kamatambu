@@ -22,6 +22,7 @@ import {
   Bell,
   HelpCircle,
   TrendingUp,
+  TrendingDown,
   CreditCard,
   CalendarDays,
   CheckCircle,
@@ -1727,6 +1728,7 @@ function FinanceiroResumo({ stats }) {
 
   const items = [
     { label: 'Total Arrecadado', value: formatarMoeda(stats?.totalArrecadado || 0), icon: TrendingUp, accent: '#006c49' },
+    { label: 'Total Saídas', value: formatarMoeda(stats?.totalSaidas || 0), icon: TrendingDown, accent: '#dc2626' },
     { label: 'Total em Atraso', value: formatarMoeda(stats?.totalAtraso || 0), icon: AlertTriangle, accent: '#dc2626' },
     { label: 'Inadimplentes', value: stats?.inadimplentes || 0, icon: UsersIcon, accent: '#ea580c' },
     { label: 'Previsao Mes', value: formatarMoeda(stats?.previsaoMes || 0), icon: CalendarDays, accent: '#2563eb' },
@@ -1735,7 +1737,7 @@ function FinanceiroResumo({ stats }) {
   ]
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2 sm:gap-3">
       {items.map((item, index) => {
         const Icon = item.icon
         return (
@@ -2097,6 +2099,10 @@ function TesourariaTab({
   stats,
   inadimplentes,
   matriculas,
+  saidas,
+  onCreateSaida,
+  onEditSaida,
+  onDeleteSaida,
   onEditMatricula,
   onDeleteMatricula,
   onViewMatricula,
@@ -2107,6 +2113,9 @@ function TesourariaTab({
   const [filterStatus, setFilterStatus] = useState('')
   const [filteredPagamentos, setFilteredPagamentos] = useState([])
   const [showMatriculasModal, setShowMatriculasModal] = useState(false)
+  const [activeSubTab, setActiveSubTab] = useState('entradas')
+  const [searchSaida, setSearchSaida] = useState('')
+  const [filteredSaidas, setFilteredSaidas] = useState([])
 
   // Search state for matrículas
   const [searchMatricula, setSearchMatricula] = useState('')
@@ -2149,6 +2158,18 @@ function TesourariaTab({
     if (filterStatusMat) filtered = filtered.filter(m => m.Status === filterStatusMat)
     setFilteredMatriculas(filtered)
   }, [matriculas, searchMatricula, filterCursoMat, filterTurmaMat, filterStatusMat])
+
+  useEffect(() => {
+    let filtered = [...(saidas || [])]
+    if (searchSaida.trim()) {
+      const term = searchSaida.toLowerCase().trim()
+      filtered = filtered.filter(s => 
+        (s.descricao && s.descricao.toLowerCase().includes(term)) ||
+        (s.tipo && s.tipo.toLowerCase().includes(term))
+      )
+    }
+    setFilteredSaidas(filtered)
+  }, [saidas, searchSaida])
 
   const getStatusBadge = (status) => {
     const colors = { 'pago': 'bg-green-100 text-green-800', 'pendente': 'bg-yellow-100 text-yellow-800', 'parcial': 'bg-orange-100 text-orange-800', 'cancelado': 'bg-red-100 text-red-800' }
@@ -2196,9 +2217,15 @@ function TesourariaTab({
           <button onClick={onGeneratePDF} className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto">
             <FileDown className="size-3.5 sm:size-4" /> <span>Relatório</span>
           </button>
-          <button onClick={onCreate} className="flex items-center justify-center gap-2 rounded-lg bg-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#006c49]/90 w-full sm:w-auto">
-            <Plus className="size-3.5 sm:size-4" /> Novo Pagamento
-          </button>
+          {activeSubTab === 'saidas' ? (
+            <button onClick={onCreateSaida} className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-600/90 w-full sm:w-auto">
+              <Plus className="size-3.5 sm:size-4" /> Nova Saída
+            </button>
+          ) : (
+            <button onClick={onCreate} className="flex items-center justify-center gap-2 rounded-lg bg-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#006c49]/90 w-full sm:w-auto">
+              <Plus className="size-3.5 sm:size-4" /> Novo Pagamento
+            </button>
+          )}
         </div>
       </div>
 
@@ -2208,6 +2235,16 @@ function TesourariaTab({
         <GraficoInadimplencia inadimplentes={inadimplentes} />
       </div>
 
+      <div className="flex flex-wrap gap-1 sm:gap-2 border-b border-[#eceef0]">
+        <button onClick={() => setActiveSubTab('entradas')} className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors border-b-2 ${activeSubTab === 'entradas' ? 'border-[#006c49] text-[#006c49]' : 'border-transparent text-[#45474c] hover:text-[#091426]'}`}>
+          <TrendingUp className="size-4" /> Entradas
+        </button>
+        <button onClick={() => setActiveSubTab('saidas')} className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors border-b-2 ${activeSubTab === 'saidas' ? 'border-red-600 text-red-600' : 'border-transparent text-[#45474c] hover:text-[#091426]'}`}>
+          <TrendingDown className="size-4" /> Saídas
+        </button>
+      </div>
+
+      {activeSubTab === 'entradas' && (<>
       <div className="flex items-center justify-between rounded-xl border border-[#eceef0] bg-white p-3 sm:p-4 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-[#006c49]/10">
@@ -2310,6 +2347,76 @@ function TesourariaTab({
           </table>
         </div>
       </div>
+      </>)}
+
+      {activeSubTab === 'saidas' && (<>
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3 top-1/2 size-3.5 sm:size-4 -translate-y-1/2 text-[#45474c]" />
+          <input type="text" placeholder="Buscar por descrição, tipo..." value={searchSaida} onChange={(e) => setSearchSaida(e.target.value)} className="w-full rounded-lg border border-[#c5c6cd] bg-white py-1.5 sm:py-2 pl-8 sm:pl-10 pr-3 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
+        </div>
+      </div>
+
+      <div className="text-xs sm:text-sm text-[#45474c]">
+        {filteredSaidas.length > 0 ? <span>Mostrando <strong>{filteredSaidas.length}</strong> saída{filteredSaidas.length > 1 ? 's' : ''}</span> : <span>Nenhuma saída encontrada</span>}
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-[#eceef0] bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-[10px] sm:text-xs lg:text-sm">
+            <thead className="bg-[#eceef0]">
+              <tr>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Descrição</th>
+                <th className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Tipo</th>
+                <th className="hidden lg:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Data</th>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Valor</th>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Status</th>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#c5c6cd]/50">
+              {loading ? (
+                <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500"><Loader2 className="size-5 sm:size-6 animate-spin mx-auto" /></td></tr>
+              ) : filteredSaidas.length > 0 ? (
+                filteredSaidas.map((saida) => (
+                  <tr key={saida.id} className="transition-colors hover:bg-[#f7f9fb]">
+                    <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
+                      <div className="min-w-0">
+                        <p className="text-[10px] sm:text-xs lg:text-sm font-semibold text-[#091426] truncate">{saida.descricao}</p>
+                        <p className="text-[8px] sm:text-[10px] lg:text-[11px] text-[#45474c]">ID: {saida.id}</p>
+                      </div>
+                    </td>
+                    <td className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c]">{saida.tipo}</td>
+                    <td className="hidden lg:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c]">{saida.data_saida}</td>
+                    <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 font-semibold text-red-600">- {formatarMoeda(saida.valor)}</td>
+                    <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
+                      <span className={`rounded-full px-1.5 sm:px-2 lg:px-3 py-0.5 text-[7px] sm:text-[9px] lg:text-[11px] font-bold uppercase tracking-tighter ${saida.status === 'pago' ? 'bg-red-100 text-red-800' : saida.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-700'}`}>
+                        {saida.status}
+                      </span>
+                    </td>
+                    <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right">
+                      <div className="flex items-center justify-end gap-0.5 sm:gap-1">
+                        <button onClick={() => onEditSaida(saida)} className="rounded p-0.5 sm:p-1 text-green-600 hover:bg-green-50" title="Editar"><Edit className="size-3 sm:size-3.5 lg:size-4" /></button>
+                        <button onClick={() => onDeleteSaida(saida.id)} className="rounded p-0.5 sm:p-1 text-red-600 hover:bg-red-50" title="Excluir"><Trash2 className="size-3 sm:size-3.5 lg:size-4" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                    <div className="flex flex-col items-center gap-2">
+                      <Search className="size-8 text-gray-300" />
+                      <p>Nenhuma saída encontrada</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      </>)}
 
       <MatriculasModal
         isOpen={showMatriculasModal}
@@ -2786,10 +2893,11 @@ export default function DashboardHome() {
   const [pagamentos, setPagamentos] = useState([])
   const [notas, setNotas] = useState([])
   const [criteriosAvaliacao, setCriteriosAvaliacao] = useState([])
+  const [saidas, setSaidas] = useState([])
   const [stats, setStats] = useState([])
   const [statsFinanceiro, setStatsFinanceiro] = useState({})
   const [inadimplentes, setInadimplentes] = useState([])
-  const [loading, setLoading] = useState({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, notas: false, criterios: false })
+  const [loading, setLoading] = useState({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, saidas: false, notas: false, criterios: false })
   const [crescimento, setCrescimento] = useState([])
   const [inscricoesPorCurso, setInscricoesPorCurso] = useState([])
   const [cursosList, setCursosList] = useState([])
@@ -3507,7 +3615,7 @@ export default function DashboardHome() {
 
   const loadData = async () => {
     try {
-      setLoading({ matriculas: true, turmas: true, cursos: true, formadores: true, pagamentos: true, notas: true, criterios: true })
+      setLoading({ matriculas: true, turmas: true, cursos: true, formadores: true, pagamentos: true, saidas: true, notas: true, criterios: true })
       const token = localStorage.getItem('token')
 
       try {
@@ -3539,10 +3647,10 @@ export default function DashboardHome() {
         ])
       }
 
-      const [matriculasRes, turmasRes, cursosRes, formadoresRes, pagamentosRes, financeiroStatsRes, notasRes, criteriosRes] = await Promise.all([
+      const [matriculasRes, turmasRes, cursosRes, formadoresRes, pagamentosRes, financeiroStatsRes, notasRes, criteriosRes, saidasRes] = await Promise.all([
         apiFetch('/matriculas'), apiFetch('/turmas'), apiFetch('/cursos'), apiFetch('/formadores'),
         apiFetch('/pagamentos'), apiFetch('/pagamentos/financeiro/stats'), apiFetch('/academico/notas'),
-        apiFetch('/criterios-avaliacao')
+        apiFetch('/criterios-avaliacao'), apiFetch('/saidas')
       ])
 
       if (matriculasRes.success) setMatriculas(matriculasRes.data)
@@ -3556,6 +3664,7 @@ export default function DashboardHome() {
       }
       if (notasRes.success) setNotas(notasRes.data)
       if (criteriosRes.success) setCriteriosAvaliacao(criteriosRes.data)
+      if (saidasRes.success) setSaidas(saidasRes.data)
 
       try {
         const [cursosListRes, turmasListRes, formadoresListRes] = await Promise.all([
@@ -3576,7 +3685,7 @@ export default function DashboardHome() {
       console.error('Erro ao carregar dados:', error)
       showToast('Erro ao carregar dados', 'error')
     } finally {
-      setLoading({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, notas: false, criterios: false })
+      setLoading({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, saidas: false, notas: false, criterios: false })
     }
   }
 
@@ -4058,6 +4167,10 @@ export default function DashboardHome() {
         data.modulo = data.modulo || 1
       }
 
+      if (type === 'saidas') {
+        if (data.valor) data.valor = parseFloat(data.valor)
+      }
+
       if (fotoUrl) data.Foto_User = fotoUrl
       if (fotoCertificadoUrl) data.Foto_Certificado = fotoCertificadoUrl
 
@@ -4065,7 +4178,7 @@ export default function DashboardHome() {
       const response = await apiFetch(endpoint, { method: 'POST', body: JSON.stringify(data) })
       
       if (response.success) {
-        showToast(`${type === 'notas' || type === 'academico' ? 'Avaliação' : type.slice(0, -1)} criado com sucesso!`, 'success')
+        showToast(`${type === 'notas' || type === 'academico' ? 'Avaliação' : type === 'saidas' ? 'Saída' : type.slice(0, -1)} criado com sucesso!`, 'success')
         setModalOpen(false); setFotoUrl(null); setFotoPreview(null); setFotoCertificadoUrl(null); setFotoCertificadoPreview(null); loadData()
       } else {
         console.error('Erro do backend:', response); showToast(response.message || 'Erro ao criar', 'error')
@@ -4103,6 +4216,10 @@ export default function DashboardHome() {
         }
       }
 
+      if (type === 'saidas') {
+        if (data.valor) data.valor = parseFloat(data.valor)
+      }
+
       if (fotoUrl) data.Foto_User = fotoUrl
       if (fotoCertificadoUrl) data.Foto_Certificado = fotoCertificadoUrl
 
@@ -4110,7 +4227,7 @@ export default function DashboardHome() {
       const response = await apiFetch(endpoint, { method: 'PUT', body: JSON.stringify(data) })
       
       if (response.success) {
-        showToast(`${type === 'notas' || type === 'academico' ? 'Avaliação' : type.slice(0, -1)} atualizado com sucesso!`, 'success')
+        showToast(`${type === 'notas' || type === 'academico' ? 'Avaliação' : type === 'saidas' ? 'Saída' : type.slice(0, -1)} atualizado com sucesso!`, 'success')
         setModalOpen(false); setFotoUrl(null); setFotoPreview(null); setFotoCertificadoUrl(null); setFotoCertificadoPreview(null); loadData()
       } else {
         console.error('Erro do backend:', response); showToast(response.message || 'Erro ao atualizar', 'error')
@@ -4233,7 +4350,7 @@ export default function DashboardHome() {
       case 'formadores':
         return <FormadoresTab formadores={formadores} loading={loading.formadores} onEdit={(data) => handleOpenModal('formadores', data)} onDelete={(id) => handleConfirmDelete(id, 'formadores')} onView={(data) => handleOpenModal('view', data, 'formadores')} onCreate={() => handleOpenModal('formadores')} onGeneratePDF={generateFormadoresPDF} />
       case 'tesouraria':
-        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} loadingMatriculas={loading.matriculas} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} />
+        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} loadingMatriculas={loading.matriculas} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} saidas={saidas} onCreateSaida={() => handleOpenModal('saidas')} onEditSaida={(data) => handleOpenModal('saidas', data)} onDeleteSaida={(id) => handleConfirmDelete(id, 'saidas')} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} />
       case 'academico':
         return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} />
       case 'usuarios':
@@ -4360,6 +4477,18 @@ export default function DashboardHome() {
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Status</label><select name="status" defaultValue={modalData?.status || 'pendente'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="pago">Pago</option><option value="pendente">Pendente</option><option value="parcial">Parcial</option><option value="cancelado">Cancelado</option></select></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data Pagamento</label><input type="date" name="data_pagamento" defaultValue={modalData?.data_pagamento || new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data Vencimento</label><input type="date" name="data_vencimento" defaultValue={modalData?.data_vencimento} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+            <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Observação</label><textarea name="observacao" defaultValue={modalData?.observacao} rows="2" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+          </div>
+        )}
+
+        {modalType === 'saidas' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Descrição *</label><input name="descricao" defaultValue={modalData?.descricao} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required placeholder="Ex: Salário do formador, Aluguel..." /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Tipo *</label><select name="tipo" defaultValue={modalData?.tipo || 'outro'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="salario">Salário</option><option value="aluguel">Aluguel</option><option value="material">Material</option><option value="equipamento">Equipamento</option><option value="servico">Serviço</option><option value="energia">Energia</option><option value="agua">Água</option><option value="internet">Internet</option><option value="manutencao">Manutenção</option><option value="imposto">Imposto</option><option value="outro">Outro</option></select></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Valor (Kz) *</label><input type="number" step="0.01" name="valor" defaultValue={modalData?.valor} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data *</label><input type="date" name="data_saida" defaultValue={modalData?.data_saida || new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Status</label><select name="status" defaultValue={modalData?.status || 'pago'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="pago">Pago</option><option value="pendente">Pendente</option><option value="cancelado">Cancelado</option></select></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Forma de Pagamento</label><select name="forma_pagamento" defaultValue={modalData?.forma_pagamento || 'dinheiro'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="dinheiro">Dinheiro</option><option value="transferencia">Transferência</option><option value="deposito">Depósito</option><option value="multicaixa">Multicaixa</option></select></div>
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Observação</label><textarea name="observacao" defaultValue={modalData?.observacao} rows="2" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
           </div>
         )}
