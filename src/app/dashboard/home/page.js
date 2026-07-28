@@ -623,7 +623,7 @@ function FormModal({ isOpen, onClose, title, children, onSubmit, isLoading }) {
 }
 
 // ========== SIDEBAR ==========
-function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout, userTipo }) {
+function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout, userTipo, userNome }) {
   const menuItems = [
     { id: 'dashboard', icon: Home, label: 'Dashboard' },
     { id: 'matriculas', icon: UserPlus, label: 'Matrículas' },
@@ -674,7 +674,7 @@ function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout, userTip
           </div>
           <div>
             <h1 className="text-[17px] font-bold text-white">Kamatambu</h1>
-            <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400">Admin Portal</p>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400">{userNome || 'Admin Portal'}</p>
           </div>
         </div>
 
@@ -719,7 +719,7 @@ function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout, userTip
 }
 
 // ========== TOPBAR COM PESQUISA GLOBAL ==========
-function TopBar({ setIsSidebarOpen, onLogout, onSearch }) {
+function TopBar({ setIsSidebarOpen, onLogout, onSearch, userNome, userTipo, onOpenPerfil }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
@@ -914,8 +914,8 @@ function TopBar({ setIsSidebarOpen, onLogout, onSearch }) {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-gray-900">Administrador</p>
-              <p className="text-[11px] font-medium text-gray-500">Admin</p>
+              <p className="text-sm font-semibold text-gray-900">{userNome || 'Utilizador'}</p>
+              <p className="text-[11px] font-medium text-gray-500">{userTipo === 'admin' ? 'Administrador' : userTipo === 'tesouraria' ? 'Tesouraria' : userTipo === 'pedagogico' ? 'Pedagógico' : userTipo === 'recursos_humanos' ? 'Recursos Humanos' : userTipo}</p>
             </div>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#006c49] to-[#004d34] text-white shadow-md shadow-[#006c49]/20 shrink-0">
               <User className="size-4" />
@@ -925,7 +925,7 @@ function TopBar({ setIsSidebarOpen, onLogout, onSearch }) {
             <div className="absolute right-0 mt-2 w-52 rounded-xl bg-white shadow-xl shadow-black/8 border border-gray-200/80 z-50 overflow-hidden">
               <div className="p-1.5">
                 <button
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => { setIsMenuOpen(false); onOpenPerfil && onOpenPerfil() }}
                   className="flex w-full items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   <User className="size-4 text-gray-400" />
@@ -2875,6 +2875,157 @@ function UsuariosTab() {
   )
 }
 
+// ========== PERFIL MODAL ==========
+function PerfilModal({ isOpen, onClose, userNome, userEmail, userId, userTipo, onSave }) {
+  const [nome, setNome] = useState(userNome || '')
+  const [email, setEmail] = useState(userEmail || '')
+  const [senhaAtual, setSenhaAtual] = useState('')
+  const [novaSenha, setNovaSenha] = useState('')
+  const [confirmarSenha, setConfirmarSenha] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState({ type: '', text: '' })
+  const [activeSection, setActiveSection] = useState('perfil')
+
+  useEffect(() => {
+    setNome(userNome || '')
+    setEmail(userEmail || '')
+  }, [userNome, userEmail])
+
+  if (!isOpen) return null
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    setMsg({ type: '', text: '' })
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`/api/auth/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ Nome: nome, Email: email })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Erro ao atualizar perfil')
+      onSave(nome, email)
+      setMsg({ type: 'success', text: 'Perfil atualizado com sucesso!' })
+    } catch (err) {
+      setMsg({ type: 'error', text: err.message })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    setMsg({ type: '', text: '' })
+    if (novaSenha !== confirmarSenha) {
+      setMsg({ type: 'error', text: 'As senhas não coincidem!' })
+      setSaving(false)
+      return
+    }
+    if (novaSenha.length < 6) {
+      setMsg({ type: 'error', text: 'A nova senha deve ter pelo menos 6 caracteres!' })
+      setSaving(false)
+      return
+    }
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`/api/auth/users/${userId}/senha`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ NovaSenha: novaSenha })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Erro ao alterar senha')
+      setMsg({ type: 'success', text: 'Senha alterada com sucesso!' })
+      setSenhaAtual('')
+      setNovaSenha('')
+      setConfirmarSenha('')
+    } catch (err) {
+      setMsg({ type: 'error', text: err.message })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const tipoLabel = { admin: 'Administrador', pedagogico: 'Pedagógico', tesouraria: 'Tesouraria', recursos_humanos: 'Recursos Humanos', pendente: 'Pendente' }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#006c49]/10 text-[#006c49]">
+              <User className="size-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Meu Perfil</h2>
+              <p className="text-xs text-gray-500">{tipoLabel[userTipo] || userTipo}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <X className="size-5 text-gray-400" />
+          </button>
+        </div>
+
+        <div className="flex border-b border-gray-100">
+          <button onClick={() => setActiveSection('perfil')} className={`flex-1 py-3 text-sm font-medium transition-colors ${activeSection === 'perfil' ? 'text-[#006c49] border-b-2 border-[#006c49]' : 'text-gray-500 hover:text-gray-700'}`}>
+            Dados Pessoais
+          </button>
+          <button onClick={() => setActiveSection('senha')} className={`flex-1 py-3 text-sm font-medium transition-colors ${activeSection === 'senha' ? 'text-[#006c49] border-b-2 border-[#006c49]' : 'text-gray-500 hover:text-gray-700'}`}>
+            Alterar Senha
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          {msg.text && (
+            <div className={`mb-4 px-4 py-3 rounded-lg text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+              {msg.text}
+            </div>
+          )}
+
+          {activeSection === 'perfil' && (
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Nome Completo</label>
+                <input type="text" value={nome} onChange={e => setNome(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" required />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" required />
+              </div>
+              <div className="pt-2">
+                <button type="submit" disabled={saving} className="w-full py-2.5 rounded-lg bg-[#006c49] text-white text-sm font-semibold hover:bg-[#005236] transition-colors disabled:opacity-50">
+                  {saving ? 'A guardar...' : 'Guardar Alterações'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {activeSection === 'senha' && (
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Nova Senha</label>
+                <input type="password" value={novaSenha} onChange={e => setNovaSenha(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" required minLength={6} placeholder="Mínimo 6 caracteres" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Confirmar Nova Senha</label>
+                <input type="password" value={confirmarSenha} onChange={e => setConfirmarSenha(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" required minLength={6} placeholder="Repita a nova senha" />
+              </div>
+              <div className="pt-2">
+                <button type="submit" disabled={saving} className="w-full py-2.5 rounded-lg bg-[#006c49] text-white text-sm font-semibold hover:bg-[#005236] transition-colors disabled:opacity-50">
+                  {saving ? 'A alterar...' : 'Alterar Senha'}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ========== PÁGINA PRINCIPAL ==========
 export default function DashboardHome() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -2883,6 +3034,11 @@ export default function DashboardHome() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [isChecking, setIsChecking] = useState(true)
   const [userTipo, setUserTipo] = useState('admin')
+  const [userNome, setUserNome] = useState('')
+  const [userEmail, setUserEmail] = useState('')
+  const [userId, setUserId] = useState(null)
+  const [showPerfilModal, setShowPerfilModal] = useState(false)
+  const [perfilLoading, setPerfilLoading] = useState(false)
   const router = useRouter()
   const fileInputRef = useRef(null)
 
@@ -4264,6 +4420,10 @@ export default function DashboardHome() {
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token')
+      localStorage.removeItem('userTipo')
+      localStorage.removeItem('userName')
+      localStorage.removeItem('userEmail')
+      localStorage.removeItem('userId')
     }
     router.push('/auth/login')
   }
@@ -4310,7 +4470,13 @@ export default function DashboardHome() {
           setIsAdmin(true)
           const tipo = data.user.tipo || 'pedagogico'
           setUserTipo(tipo)
+          setUserNome(data.user.Nome || data.user.nome || '')
+          setUserEmail(data.user.Email || data.user.email || '')
+          setUserId(data.user.id || null)
           localStorage.setItem('userTipo', tipo)
+          localStorage.setItem('userName', data.user.Nome || data.user.nome || '')
+          localStorage.setItem('userEmail', data.user.Email || data.user.email || '')
+          localStorage.setItem('userId', data.user.id || '')
           if (tipo === 'tesouraria') setActiveTab('tesouraria')
           else if (tipo === 'pedagogico') setActiveTab('matriculas')
           await loadData()
@@ -4362,9 +4528,9 @@ export default function DashboardHome() {
 
   return (
     <div className="flex min-h-screen bg-gray-50/80">
-      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} userTipo={userTipo} />
+      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} userTipo={userTipo} userNome={userNome} />
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-        <TopBar setIsSidebarOpen={setIsSidebarOpen} onLogout={handleLogout} onSearch={handleGlobalSearch} />
+        <TopBar setIsSidebarOpen={setIsSidebarOpen} onLogout={handleLogout} onSearch={handleGlobalSearch} userNome={userNome} userTipo={userTipo} onOpenPerfil={() => setShowPerfilModal(true)} />
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           <div className="mx-auto max-w-[1400px] space-y-6">
             {renderContent()}
@@ -4561,6 +4727,23 @@ export default function DashboardHome() {
       </FormModal>
 
       <ViewModal isOpen={modalOpen && modalType === 'view'} onClose={handleCloseModal} data={modalData} type={viewRealType} />
+
+      {showPerfilModal && (
+        <PerfilModal
+          isOpen={showPerfilModal}
+          onClose={() => setShowPerfilModal(false)}
+          userNome={userNome}
+          userEmail={userEmail}
+          userId={userId}
+          userTipo={userTipo}
+          onSave={(nome, email) => {
+            setUserNome(nome)
+            setUserEmail(email)
+            localStorage.setItem('userName', nome)
+            localStorage.setItem('userEmail', email)
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -55,6 +55,9 @@ function LoginForm() {
         localStorage.setItem('token', data.token)
         if (data.user) {
           localStorage.setItem('userTipo', data.user.tipo || 'pendente')
+          localStorage.setItem('userName', data.user.nome || '')
+          localStorage.setItem('userEmail', data.user.email || '')
+          localStorage.setItem('userId', data.user.id || '')
         }
       }
 
