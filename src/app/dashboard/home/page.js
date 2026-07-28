@@ -2899,7 +2899,7 @@ function PerfilModal({ isOpen, onClose, userNome, userEmail, userId, userTipo, o
     setMsg({ type: '', text: '' })
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`/api/auth/users/${userId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/users/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ Nome: nome, Email: email })
@@ -2931,7 +2931,7 @@ function PerfilModal({ isOpen, onClose, userNome, userEmail, userId, userTipo, o
     }
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`/api/auth/users/${userId}/senha`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/users/${userId}/senha`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ NovaSenha: novaSenha })
