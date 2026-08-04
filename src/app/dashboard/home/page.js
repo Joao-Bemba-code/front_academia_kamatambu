@@ -1882,6 +1882,7 @@ function FinanceiroResumo({ stats }) {
 
   const items = [
     { label: 'Total Arrecadado', value: formatarMoeda(stats?.totalArrecadado || 0), icon: TrendingUp, accent: '#006c49' },
+    { label: 'Dinheiro Recebido', value: formatarMoeda(stats?.totalDinheiro || 0), icon: Banknote, accent: '#059669' },
     { label: 'Total Saídas', value: formatarMoeda(stats?.totalSaidas || 0), icon: TrendingDown, accent: '#dc2626' },
     { label: 'Total em Atraso', value: formatarMoeda(stats?.totalAtraso || 0), icon: AlertTriangle, accent: '#dc2626' },
     { label: 'Inadimplentes', value: stats?.inadimplentes || 0, icon: UsersIcon, accent: '#ea580c' },
@@ -1891,7 +1892,7 @@ function FinanceiroResumo({ stats }) {
   ]
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2 sm:gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-2 sm:gap-3">
       {items.map((item, index) => {
         const Icon = item.icon
         return (
@@ -3488,25 +3489,38 @@ export default function DashboardHome() {
     let y = 52
     if (stats && stats.length > 0) {
       const cardWidth = (rm - lm - (stats.length - 1) * 4) / stats.length
+      const valueFontSize = 10
+      const lineHeight = 4.5
+      let maxLines = 1
+      stats.forEach(stat => {
+        doc.setFontSize(valueFontSize)
+        doc.setFont('helvetica', 'bold')
+        const lines = doc.splitTextToSize(String(stat.value), cardWidth - 16)
+        if (lines.length > maxLines) maxLines = lines.length
+      })
+      const cardHeight = Math.max(16, 12 + maxLines * lineHeight + 2)
       stats.forEach((stat, i) => {
         const cx = lm + i * (cardWidth + 4)
         doc.setFillColor(...PDF_COLORS.white)
-        doc.roundedRect(cx, y, cardWidth, 16, 2, 2, 'F')
+        doc.roundedRect(cx, y, cardWidth, cardHeight, 2, 2, 'F')
         doc.setDrawColor(...PDF_COLORS.grayLighter)
         doc.setLineWidth(0.15)
-        doc.roundedRect(cx, y, cardWidth, 16, 2, 2, 'S')
+        doc.roundedRect(cx, y, cardWidth, cardHeight, 2, 2, 'S')
         doc.setFillColor(...PDF_COLORS.primary)
-        doc.roundedRect(cx, y, 3, 16, 1, 1, 'F')
+        doc.roundedRect(cx, y, 3, cardHeight, 1, 1, 'F')
         doc.setFontSize(7)
         doc.setFont('helvetica', 'normal')
         doc.setTextColor(...PDF_COLORS.gray)
         doc.text(stat.label.toUpperCase(), cx + 8, y + 5)
-        doc.setFontSize(13)
+        doc.setFontSize(valueFontSize)
         doc.setFont('helvetica', 'bold')
         doc.setTextColor(...PDF_COLORS.primary)
-        doc.text(String(stat.value), cx + 8, y + 12)
+        const valueLines = doc.splitTextToSize(String(stat.value), cardWidth - 16)
+        valueLines.forEach((line, idx) => {
+          doc.text(line, cx + 8, y + 12 + idx * lineHeight)
+        })
       })
-      y += 22
+      y += cardHeight + 6
     }
 
     doc.setDrawColor(...PDF_COLORS.grayLighter)
@@ -4189,7 +4203,6 @@ export default function DashboardHome() {
       notasAvaliacao.forEach(n => { notasPorDisciplina[n.disciplina] = n })
 
       const modulo = aluno.Modulo || 1
-      const nomeFormando = getNomeFormando(aluno.Nome)
 
       const somaNotas = notasAvaliacao.reduce((sum, n) => sum + parseFloat(n.nota), 0)
       const mediaFinal = (somaNotas / notasAvaliacao.length).toFixed(2)
@@ -4199,8 +4212,8 @@ export default function DashboardHome() {
       else if (mediaFinal >= 7) situacao = 'recuperacao'
       else situacao = 'reprovado'
 
-      const situacaoText = situacao === 'aprovado' ? 'APROVADO' :
-                           situacao === 'recuperacao' ? 'RECUPERAÇÃO' : 'REPROVADO'
+const situacaoText = situacao === 'aprovado' ? 'Apto' :
+                            situacao === 'recuperacao' ? 'Recuperação' : 'Não Apto'
       const corSituacao = situacao === 'aprovado' ? [0, 150, 0] :
                           situacao === 'recuperacao' ? [200, 150, 0] : [200, 0, 0]
 
@@ -4208,18 +4221,17 @@ export default function DashboardHome() {
       const lm = 14
       const rm = doc.internal.pageSize.getWidth() - 14
 
-      await addPDFHeader(doc, 'BOLETIM DO FORMANDO', [
-        { label: 'Formando', value: nomeFormando },
+let y = await addPDFHeader(doc, 'BOLETIM DO FORMANDO', [
+        { label: 'Formando', value: aluno.Nome },
         { label: 'Curso', value: aluno.Curso },
-        { label: 'Turma', value: aluno.Turma }
+        { label: 'Turma', value: aluno.Turma },
+        { label: 'BI', value: aluno.BI_Cedula || '-' }
       ])
 
-      let y = 68
-
-      doc.setFontSize(8)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(...PDF_COLORS.gray)
-      doc.text(`Modulo: ${modulo}`, lm, y)
+       doc.setFontSize(8)
+       doc.setFont('helvetica', 'normal')
+       doc.setTextColor(...PDF_COLORS.gray)
+       doc.text(`Modulo: ${modulo}`, lm, y)
       doc.text(`Data: ${new Date().toLocaleDateString('pt-PT')}`, rm, y, { align: 'right' })
       y += 8
 
@@ -4364,15 +4376,14 @@ export default function DashboardHome() {
       const lm = 14
       const rm = doc.internal.pageSize.getWidth() - 14
 
-      await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
-        { label: 'Formando', value: getNomeFormando(aluno.Nome) },
+let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
+        { label: 'Formando', value: aluno.Nome },
         { label: 'Curso', value: aluno.Curso },
-        { label: 'Turma', value: aluno.Turma }
+        { label: 'Turma', value: aluno.Turma },
+        { label: 'BI', value: aluno.BI_Cedula || '-' }
       ])
 
-      let y = 68
-
-      doc.setFontSize(8)
+       doc.setFontSize(8)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(PDF_COLORS.gray[0], PDF_COLORS.gray[1], PDF_COLORS.gray[2])
       doc.text(`Modulo: ${aluno.Modulo || 1}`, lm, y)
