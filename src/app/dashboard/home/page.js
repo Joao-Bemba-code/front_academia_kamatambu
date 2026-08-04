@@ -690,7 +690,9 @@ function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout, userTip
   const allowedTabs = {
     admin: ['dashboard', 'matriculas', 'turmas', 'cursos', 'formadores', 'tesouraria', 'academico', 'usuarios'],
     pedagogico: ['dashboard', 'matriculas', 'turmas', 'cursos', 'formadores', 'academico'],
-    tesouraria: ['dashboard', 'tesouraria']
+    tesouraria: ['dashboard', 'tesouraria'],
+    formador: ['dashboard', 'academico'],
+    recursos_humanos: ['dashboard']
   }
 
   const visibleTabs = allowedTabs[userTipo] || allowedTabs.admin
@@ -967,7 +969,7 @@ function TopBar({ setIsSidebarOpen, onLogout, onSearch, userNome, userTipo, onOp
           >
             <div className="text-right hidden sm:block">
               <p className="text-sm font-semibold text-gray-900">{userNome || 'Utilizador'}</p>
-              <p className="text-[11px] font-medium text-gray-500">{userTipo === 'admin' ? 'Administrador' : userTipo === 'tesouraria' ? 'Tesouraria' : userTipo === 'pedagogico' ? 'Pedagógico' : userTipo === 'recursos_humanos' ? 'Recursos Humanos' : userTipo}</p>
+              <p className="text-[11px] font-medium text-gray-500">{userTipo === 'admin' ? 'Administrador' : userTipo === 'tesouraria' ? 'Tesouraria' : userTipo === 'pedagogico' ? 'Pedagógico' : userTipo === 'recursos_humanos' ? 'Recursos Humanos' : userTipo === 'formador' ? 'Formador' : userTipo}</p>
             </div>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#006c49] to-[#004d34] text-white shadow-md shadow-[#006c49]/20 shrink-0">
               <User className="size-4" />
@@ -2498,7 +2500,8 @@ function AcademicoTab({
   onGerarAvaliacao,
   matriculas,
   cursosList,
-  formadoresList
+  formadoresList,
+  userTipo
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [activeSubTab, setActiveSubTab] = useState('notas')
@@ -2507,6 +2510,7 @@ function AcademicoTab({
   const [filterStatus, setFilterStatus] = useState('')
   const [gerandoBoletim, setGerandoBoletim] = useState(false)
   const [gerandoAvaliacao, setGerandoAvaliacao] = useState(false)
+  const ehFormadorView = userTipo === 'formador'
 
   useEffect(() => {
     let filtered = [...(notas || [])]
@@ -2582,6 +2586,11 @@ function AcademicoTab({
           <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#091426]">Gestão Acadêmica</h2>
           <p className="text-[10px] sm:text-xs lg:text-sm text-[#45474c] mt-0.5">Notas, avaliações e boletins dos alunos</p>
         </div>
+        {ehFormadorView && (
+          <div className="w-full sm:w-auto rounded-lg bg-[#006c49]/5 border border-[#006c49]/20 px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-xs text-[#006c49]">
+            Só pode avaliar formandos das suas próprias turmas
+          </div>
+        )}
         <button onClick={onCreate} className="flex items-center justify-center gap-2 rounded-lg bg-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#006c49]/90 w-full sm:w-auto">
           <Plus className="size-3.5 sm:size-4" /> Nova Avaliação
         </button>
@@ -2870,8 +2879,8 @@ function UsuariosTab() {
     setSaving(null)
   }
 
-  const tipoLabel = { admin: 'Administrador', pedagogico: 'Pedagógico', tesouraria: 'Tesouraria', recursos_humanos: 'Recursos Humanos', pendente: 'Pendente' }
-  const tipoColor = { admin: 'bg-purple-100 text-purple-800', pedagogico: 'bg-blue-100 text-blue-800', tesouraria: 'bg-orange-100 text-orange-800', recursos_humanos: 'bg-teal-100 text-teal-800', pendente: 'bg-yellow-100 text-yellow-800' }
+  const tipoLabel = { admin: 'Administrador', pedagogico: 'Pedagógico', tesouraria: 'Tesouraria', recursos_humanos: 'Recursos Humanos', formador: 'Formador', pendente: 'Pendente' }
+  const tipoColor = { admin: 'bg-purple-100 text-purple-800', pedagogico: 'bg-blue-100 text-blue-800', tesouraria: 'bg-orange-100 text-orange-800', recursos_humanos: 'bg-teal-100 text-teal-800', formador: 'bg-amber-100 text-amber-800', pendente: 'bg-yellow-100 text-yellow-800' }
 
   return (
     <div className="space-y-4">
@@ -2906,6 +2915,7 @@ function UsuariosTab() {
                       className="rounded-lg border border-[#c5c6cd] bg-white px-2 py-1 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20"
                     >
                       <option value="recursos_humanos">Recursos Humanos</option>
+                      <option value="formador">Formador</option>
                       <option value="pendente">Pendente</option>
                       <option value="pedagogico">Pedagógico</option>
                       <option value="tesouraria">Tesouraria</option>
@@ -3940,6 +3950,8 @@ export default function DashboardHome() {
 
   const loadData = async () => {
     try {
+      const tipoUser = typeof window !== 'undefined' ? localStorage.getItem('userTipo') || 'admin' : 'admin'
+      const ehFormadorLogado = tipoUser === 'formador'
       setLoading({ matriculas: true, turmas: true, cursos: true, formadores: true, pagamentos: true, saidas: true, notas: true, criterios: true })
       const token = localStorage.getItem('token')
 
@@ -3974,8 +3986,11 @@ export default function DashboardHome() {
 
       const [matriculasRes, turmasRes, cursosRes, formadoresRes, pagamentosRes, financeiroStatsRes, notasRes, criteriosRes, saidasRes] = await Promise.all([
         apiFetch('/matriculas'), apiFetch('/turmas'), apiFetch('/cursos'), apiFetch('/formadores'),
-        apiFetch('/pagamentos'), apiFetch('/pagamentos/financeiro/stats'), apiFetch('/academico/notas'),
-        apiFetch('/criterios-avaliacao'), apiFetch('/saidas')
+        ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/pagamentos'),
+        ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/pagamentos/financeiro/stats'),
+        apiFetch('/academico/notas'),
+        apiFetch('/criterios-avaliacao'),
+        ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/saidas')
       ])
 
       if (matriculasRes.success) setMatriculas(matriculasRes.data)
@@ -4648,6 +4663,7 @@ export default function DashboardHome() {
           localStorage.setItem('userId', data.user.id || '')
           if (tipo === 'tesouraria') setActiveTab('tesouraria')
           else if (tipo === 'pedagogico') setActiveTab('matriculas')
+          else if (tipo === 'formador') setActiveTab('academico')
           await loadData()
         } else {
           setIsAdmin(false)
@@ -4687,7 +4703,7 @@ export default function DashboardHome() {
       case 'tesouraria':
         return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} loadingMatriculas={loading.matriculas} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} saidas={saidas} onCreateSaida={() => handleOpenModal('saidas')} onEditSaida={(data) => handleOpenModal('saidas', data)} onDeleteSaida={(id) => handleConfirmDelete(id, 'saidas')} onViewSaida={(data) => handleOpenModal('view', data, 'saidas')} onGerarSaidaPDF={generateSaidaPDF} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} />
       case 'academico':
-        return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} />
+        return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} userTipo={userTipo} />
       case 'usuarios':
         return <UsuariosTab />
       default:

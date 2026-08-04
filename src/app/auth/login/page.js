@@ -101,20 +101,21 @@ function LoginForm() {
 
         <div className="space-y-1.5">
           <label htmlFor="email" className="text-sm font-medium text-gray-700">
-            E-mail
+            E-mail ou Telefone
           </label>
           <div className="relative">
             <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 size-[18px]" />
             <input
               id="email"
-              type="email"
-              placeholder="seu@email.com"
+              type="text"
+              inputMode="text"
+              placeholder="seu@email.com ou 9xxxxxxxx"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input-field"
               required
               disabled={isLoading}
-              autoComplete="email"
+              autoComplete="username"
             />
           </div>
         </div>
