@@ -1315,6 +1315,106 @@ function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento
   )
 }
 
+// ========== DASHBOARD DO FORMADOR ==========
+function FormadorDashboard({ turmas, matriculas, notas, userNome, onView }) {
+  const minhasTurmas = (turmas || []).filter(t => (t.Formador || '').trim().toLowerCase() === (userNome || '').trim().toLowerCase())
+
+  const getStatusColor = (status) => {
+    const colors = {
+      'Ativa': 'bg-[#006c49]/10 text-[#006c49]',
+      'Inscrito': 'bg-[#006c49]/10 text-[#006c49]',
+      'Admitido': 'bg-[#6cf8bb]/30 text-[#005236]',
+      'Pendente': 'bg-[#c0c1ff]/30 text-[#040057]',
+      'Concluída': 'bg-[#6cf8bb]/30 text-[#005236]',
+      'Concluido': 'bg-[#6cf8bb]/30 text-[#005236]',
+      'Cancelada': 'bg-[#ffdad6] text-[#93000a]',
+      'Cancelado': 'bg-[#ffdad6] text-[#93000a]'
+    }
+    return colors[status] || 'bg-gray-100 text-gray-700'
+  }
+
+  const statsCards = [
+    { label: 'Minhas Turmas', value: minhasTurmas.length, icon: <GraduationCap className="size-4 sm:size-5" /> },
+    { label: 'Meus Formandos', value: matriculas?.length || 0, icon: <UsersIcon className="size-4 sm:size-5" /> },
+    { label: 'Avaliações Registadas', value: notas?.length || 0, icon: <Award className="size-4 sm:size-5" /> }
+  ]
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#091426]">Dashboard</h2>
+        <p className="text-[10px] sm:text-xs lg:text-sm text-[#45474c] mt-0.5">Visão geral das suas turmas e formandos</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+        {statsCards.map((stat, index) => (
+          <div key={stat.label || index} className="rounded-xl border border-gray-200 bg-white p-3 sm:p-5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs font-medium text-gray-500 truncate">{stat.label}</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900 mt-0.5 sm:mt-1">{stat.value}</p>
+              </div>
+              <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg bg-[#006c49]/10 text-[#006c49]">
+                {stat.icon}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm sm:text-base font-bold text-gray-900">As Minhas Turmas</h4>
+          <span className="text-[10px] sm:text-xs text-[#45474c]">{minhasTurmas.length} turma{minhasTurmas.length !== 1 ? 's' : ''}</span>
+        </div>
+
+        {minhasTurmas.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            {minhasTurmas.map((turma) => (
+              <div key={turma.id} className="rounded-xl border border-[#eceef0] bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h5 className="font-semibold text-[#091426]">{turma.Turma}</h5>
+                    <p className="text-xs text-[#45474c]">{turma.Curso} • {turma.Periodo || 'Manhã'}</p>
+                  </div>
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${getStatusColor(turma.Status)}`}>
+                    {turma.Status || 'Pendente'}
+                  </span>
+                </div>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-[#45474c]">Formandos</span>
+                    <span className="font-medium">{turma.Numero_Alunos || 0}/{turma.Capacidade_Maxima || 30}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#45474c]">Módulo</span>
+                    <span className="font-medium">Módulo {turma.Modulo || 1}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#45474c]">Período</span>
+                    <span className="font-medium">{turma.Periodo || 'Manhã'}</span>
+                  </div>
+                </div>
+                <div className="mt-3 flex gap-2 border-t border-[#eceef0] pt-3">
+                  <button onClick={() => onView(turma)} className="flex-1 rounded-lg border border-[#006c49] px-3 py-1 text-xs text-[#006c49] hover:bg-[#006c49]/5">
+                    Ver Turma
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-[#c5c6cd] bg-white p-6 text-center">
+            <GraduationCap className="size-8 text-gray-300 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">Ainda não tem turmas atribuídas</p>
+            <p className="text-[10px] text-gray-400 mt-1">Assim que lhe for atribuída uma turma, ela aparecerá aqui</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ========== MATRÍCULAS TAB ==========
 function MatriculasTab({ matriculas, loading, onEdit, onDelete, onView, onCreate, cursosList, turmasList, onGeneratePDF }) {
   const [searchTerm, setSearchTerm] = useState('')
@@ -4689,6 +4789,16 @@ export default function DashboardHome() {
   if (!isAdmin) { return <AccessDenied /> }
 
   const renderContent = () => {
+    if (userTipo === 'formador') {
+      switch (activeTab) {
+        case 'academico':
+          return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} userTipo={userTipo} />
+        case 'dashboard':
+        default:
+          return <FormadorDashboard turmas={turmas} matriculas={matriculas} notas={notas} userNome={userNome} onView={(data) => handleOpenModal('view', data, 'turmas')} />
+      }
+    }
+
     switch (activeTab) {
       case 'dashboard':
         return <DashboardTab stats={stats} matriculas={matriculas} onEdit={(data) => handleOpenModal('matriculas', data)} onDelete={(id) => handleConfirmDelete(id, 'matriculas')} onView={(data) => handleOpenModal('view', data, 'matriculas')} crescimento={crescimento} inscricoesPorCurso={inscricoesPorCurso} onGeneratePDF={generateRelatorioGeral} />
