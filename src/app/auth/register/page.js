@@ -43,12 +43,12 @@ function RegisterForm() {
     e.preventDefault()
 
     if (!agreedToTerms) {
-      setError('Voce precisa concordar com os termos de uso')
+      setError('Você precisa concordar com os termos de uso')
       return
     }
 
     if (formData.senha !== formData.confirmarSenha) {
-      setError('As senhas nao coincidem')
+      setError('As senhas não coincidem')
       return
     }
 
@@ -157,7 +157,7 @@ function RegisterForm() {
           Cadastre-se
         </h1>
         <p className="text-sm sm:text-base text-gray-500">
-          Crie sua conta e comece a gerenciar sua formacao
+          Crie sua conta e comece a gerenciar sua formação
         </p>
       </div>
 
@@ -179,7 +179,7 @@ function RegisterForm() {
               id="nome"
               name="nome"
               type="text"
-              placeholder="Joao Silva"
+              placeholder="João Silva"
               value={formData.nome}
               onChange={handleChange}
               className="input-field"
@@ -249,7 +249,7 @@ function RegisterForm() {
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-gray-500">
-                  Forca: <span className="font-medium text-gray-700">{passwordStrength.label}</span>
+                  Força: <span className="font-medium text-gray-700">{passwordStrength.label}</span>
                 </span>
                 <span className="text-gray-400">
                   {formData.senha.length}/6+ caracteres
@@ -291,7 +291,7 @@ function RegisterForm() {
           </div>
           {formData.confirmarSenha && formData.confirmarSenha !== formData.senha && (
             <p className="text-xs text-red-600 mt-1">
-              As senhas nao coincidem
+              As senhas não coincidem
             </p>
           )}
         </div>
@@ -312,7 +312,7 @@ function RegisterForm() {
             </a>
             {' '}e{' '}
             <a href="#" className="text-[#006c49] font-semibold hover:underline">
-              Politica de Privacidade
+              Política de Privacidade
             </a>
           </label>
         </div>
@@ -347,9 +347,9 @@ function RegisterForm() {
 
       <div className="text-center">
         <p className="text-sm text-gray-600">
-          Ja tem uma conta?{' '}
+          Já tem uma conta?{' '}
           <Link href="/auth/login" className="font-semibold text-[#006c49] hover:underline">
-            Faca login
+            Faça login
           </Link>
         </p>
       </div>
@@ -379,7 +379,7 @@ export default function RegisterPage() {
                   Academia Kamatambu
                 </span>
                 <span className="block text-xs font-medium uppercase tracking-widest text-white/50">
-                  Centro de Formacao
+                  Centro de Formação
                 </span>
               </div>
             </div>
@@ -388,7 +388,7 @@ export default function RegisterPage() {
           <div className="flex-1 flex flex-col justify-center -mt-10">
             <div className="max-w-lg space-y-6">
               <h2 className="text-3xl sm:text-4xl xl:text-5xl font-bold leading-tight text-white">
-                Transforme sua gestao educacional
+                Transforme sua gestão educacional
               </h2>
 
               <p className="text-base leading-relaxed text-white/75 sm:text-lg">
@@ -398,7 +398,7 @@ export default function RegisterPage() {
 
               <ul className="flex flex-col items-start gap-3 pt-2">
                 {[
-                  { icon: Mail, label: 'Notificacoes por e-mail' },
+                  { icon: Mail, label: 'Notificações por e-mail' },
                   { icon: Lock, label: 'Dados seguros' },
                 ].map(({ icon: Icon, label }) => (
                   <li key={label} className="flex items-center gap-3 text-sm text-white/90">

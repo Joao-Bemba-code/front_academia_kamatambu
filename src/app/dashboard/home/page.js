@@ -292,6 +292,55 @@ function ViewModal({ isOpen, onClose, data, type }) {
     </div>
   )
 
+  const renderSaidaDetails = () => (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+        <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-red-50 shrink-0">
+          <ArrowDownRight className="size-10 sm:size-12 text-red-600" />
+        </div>
+        <div className="text-center sm:text-left">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900">{data.descricao}</h3>
+          <p className="text-xs sm:text-sm text-gray-500">ID: {data.id}</p>
+          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${getStatusColor(data.status)}`}>
+            {data.status || 'Pendente'}
+          </span>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</p>
+          <p className="text-sm sm:text-base text-gray-900 break-words">{data.descricao}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Despesa</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.tipo || 'Outro'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</p>
+          <p className="text-lg sm:text-xl font-bold text-red-600">{formatarMoeda(data.valor)}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
+          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${getStatusColor(data.status)}`}>
+            {data.status || 'Pendente'}
+          </span>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Data da Saída</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.data_saida ? new Date(data.data_saida).toLocaleDateString('pt-PT') : 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Forma de Pagamento</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.forma_pagamento || 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1 col-span-full">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Observação</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.observacao || 'Nenhuma observação'}</p>
+        </div>
+      </div>
+    </div>
+  )
+
   const renderNotaDetails = () => (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
@@ -526,6 +575,8 @@ function ViewModal({ isOpen, onClose, data, type }) {
         return renderFormadorDetails()
       case 'pagamentos':
         return renderPagamentoDetails()
+      case 'saidas':
+        return renderSaidaDetails()
       case 'notas':
       case 'academico':
         return renderNotaDetails()
@@ -541,6 +592,7 @@ function ViewModal({ isOpen, onClose, data, type }) {
       case 'cursos': return 'Detalhes do Curso'
       case 'formadores': return 'Detalhes do Formador'
       case 'pagamentos': return 'Detalhes do Pagamento'
+      case 'saidas': return 'Detalhes da Saída'
       case 'notas': return 'Detalhes da Avaliação'
       default: return 'Detalhes'
     }
@@ -1032,8 +1084,8 @@ function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
     <div className="overflow-hidden rounded-2xl border border-gray-200/60 bg-white shadow-sm">
       <div className="px-4 sm:px-6 py-3 sm:py-5 border-b border-gray-100 flex items-center justify-between">
         <div>
-          <h3 className="font-bold text-gray-900 text-sm sm:text-base">Matriculas Recentes</h3>
-          <p className="text-[11px] sm:text-sm text-gray-500 mt-0.5">Ultimas matriculas realizadas</p>
+          <h3 className="font-bold text-gray-900 text-sm sm:text-base">Matrículas Recentes</h3>
+          <p className="text-[11px] sm:text-sm text-gray-500 mt-0.5">Últimas matrículas realizadas</p>
         </div>
         <button className="text-xs sm:text-sm font-semibold text-[#006c49] hover:text-[#004d34] transition-colors">
           Ver todas
@@ -1053,7 +1105,7 @@ function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
               <th className="hidden md:table-cell px-3 sm:px-6 py-2.5 sm:py-3.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Curso</th>
               <th className="hidden lg:table-cell px-3 sm:px-6 py-2.5 sm:py-3.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Turma</th>
               <th className="px-3 sm:px-6 py-2.5 sm:py-3.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
-              <th className="px-3 sm:px-6 py-2.5 sm:py-3.5 text-right text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Acoes</th>
+              <th className="px-3 sm:px-6 py-2.5 sm:py-3.5 text-right text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -1101,8 +1153,8 @@ function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
                       <UsersIcon className="size-6 text-gray-300" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-500">Nenhuma matricula encontrada</p>
-                      <p className="text-sm text-gray-400">As matriculas aparecerao aqui</p>
+                      <p className="font-medium text-gray-500">Nenhuma matrícula encontrada</p>
+                      <p className="text-sm text-gray-400">As matrículas aparecerão aqui</p>
                     </div>
                   </div>
                 </td>
@@ -1120,7 +1172,7 @@ function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento
   const inscricoes = inscricoesPorCurso && inscricoesPorCurso.length > 0
     ? inscricoesPorCurso
     : [
-        { name: 'Gestao de Empresas', value: 0 },
+        { name: 'Gestão de Empresas', value: 0 },
         { name: 'Engenharia Software', value: 0 },
         { name: 'Design & UX', value: 0 },
         { name: 'Direito Academico', value: 0 },
@@ -1147,7 +1199,7 @@ function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors w-full sm:w-auto"
         >
           <FileDown className="size-4" />
-          Gerar Relatorio
+          Gerar Relatório
         </button>
       </div>
 
@@ -1158,7 +1210,7 @@ function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento
         <div className="lg:col-span-2 rounded-xl border border-gray-200 bg-white p-6">
           <div className="mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h4 className="text-base font-bold text-gray-900">Crescimento de Matriculas</h4>
+              <h4 className="text-base font-bold text-gray-900">Crescimento de Matrículas</h4>
               <p className="text-sm text-gray-500">Ingressos nos ultimos 6 meses</p>
             </div>
           </div>
@@ -1205,8 +1257,8 @@ function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento
 
         {/* Donut Chart */}
         <div className="rounded-xl border border-gray-200 bg-white p-6">
-          <h4 className="text-base font-bold text-gray-900">Inscricoes por Curso</h4>
-          <p className="text-sm text-gray-500 mb-4">Distribuicao atual</p>
+          <h4 className="text-base font-bold text-gray-900">Inscrições por Curso</h4>
+          <p className="text-sm text-gray-500 mb-4">Distribuição atual</p>
           <div className="flex justify-center mb-4">
             <svg width="160" height="160" viewBox="0 0 160 160">
               {(() => {
@@ -1731,9 +1783,9 @@ function FinanceiroResumo({ stats }) {
     { label: 'Total Saídas', value: formatarMoeda(stats?.totalSaidas || 0), icon: TrendingDown, accent: '#dc2626' },
     { label: 'Total em Atraso', value: formatarMoeda(stats?.totalAtraso || 0), icon: AlertTriangle, accent: '#dc2626' },
     { label: 'Inadimplentes', value: stats?.inadimplentes || 0, icon: UsersIcon, accent: '#ea580c' },
-    { label: 'Previsao Mes', value: formatarMoeda(stats?.previsaoMes || 0), icon: CalendarDays, accent: '#2563eb' },
+    { label: 'Previsão Mês', value: formatarMoeda(stats?.previsaoMes || 0), icon: CalendarDays, accent: '#2563eb' },
     { label: 'Saldo em Caixa', value: formatarMoeda(stats?.saldoCaixa || 0), icon: Wallet, accent: '#7c3aed' },
-    { label: 'Taxa Inadimplencia', value: `${stats?.taxaInadimplencia || 0}%`, icon: ShieldAlert, accent: '#ca8a04' }
+    { label: 'Taxa Inadimplência', value: `${stats?.taxaInadimplencia || 0}%`, icon: ShieldAlert, accent: '#ca8a04' }
   ]
 
   return (
@@ -1871,7 +1923,7 @@ function GraficoInadimplencia({ inadimplentes }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
       <div className="mb-4">
-        <h4 className="text-sm font-bold text-gray-900">Inadimplencia</h4>
+        <h4 className="text-sm font-bold text-gray-900">Inadimplência</h4>
         <p className="text-[11px] text-gray-500">Alunos com debitos pendentes</p>
       </div>
       {dados.length > 0 ? (
@@ -2103,6 +2155,8 @@ function TesourariaTab({
   onCreateSaida,
   onEditSaida,
   onDeleteSaida,
+  onViewSaida,
+  onGerarSaidaPDF,
   onEditMatricula,
   onDeleteMatricula,
   onViewMatricula,
@@ -2396,6 +2450,8 @@ function TesourariaTab({
                     </td>
                     <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right">
                       <div className="flex items-center justify-end gap-0.5 sm:gap-1">
+                        <button onClick={() => onGerarSaidaPDF(saida)} className="rounded p-0.5 sm:p-1 text-purple-600 hover:bg-purple-50" title="Recibo PDF"><FileDown className="size-3 sm:size-3.5 lg:size-4" /></button>
+                        <button onClick={() => onViewSaida(saida)} className="rounded p-0.5 sm:p-1 text-blue-600 hover:bg-blue-50" title="Visualizar"><Eye className="size-3 sm:size-3.5 lg:size-4" /></button>
                         <button onClick={() => onEditSaida(saida)} className="rounded p-0.5 sm:p-1 text-green-600 hover:bg-green-50" title="Editar"><Edit className="size-3 sm:size-3.5 lg:size-4" /></button>
                         <button onClick={() => onDeleteSaida(saida.id)} className="rounded p-0.5 sm:p-1 text-red-600 hover:bg-red-50" title="Excluir"><Trash2 className="size-3 sm:size-3.5 lg:size-4" /></button>
                       </div>
@@ -3293,7 +3349,7 @@ export default function DashboardHome() {
     doc.setFontSize(9)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...PDF_COLORS.gray)
-    doc.text('Centro de Formacao Profissional', nameX, 20, { align: nameAlign })
+    doc.text('Centro de Formação Profissional', nameX, 20, { align: nameAlign })
 
     doc.setDrawColor(...PDF_COLORS.grayLighter)
     doc.setLineWidth(0.15)
@@ -3366,14 +3422,14 @@ export default function DashboardHome() {
     doc.setFontSize(6.5)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...PDF_COLORS.grayLight)
-    doc.text('Documento confidencial - Uso exclusivo da Administracao', lm, pageHeight - 10)
+    doc.text('Documento confidencial - Uso exclusivo da Administração', lm, pageHeight - 10)
 
     const totalPages = doc.internal.getNumberOfPages()
-    doc.text(`Pagina ${pageNum} de ${totalPages}`, rm, pageHeight - 10, { align: 'right' })
+    doc.text(`Página ${pageNum} de ${totalPages}`, rm, pageHeight - 10, { align: 'right' })
 
     doc.setFontSize(6)
     doc.setTextColor(...PDF_COLORS.grayLighter)
-    doc.text('Academia Kamatambu | Plataforma de Gestao Academica', pageWidth / 2, pageHeight - 6, { align: 'center' })
+    doc.text('Academia Kamatambu | Plataforma de Gestão Académica', pageWidth / 2, pageHeight - 6, { align: 'center' })
   }
 
   const TABLE_BASE = {
@@ -3405,7 +3461,7 @@ export default function DashboardHome() {
     if (!cursos || cursos.length === 0) { showToast('Nenhum curso encontrado para gerar PDF', 'warning'); return }
     try {
       const doc = new jsPDF('landscape', 'mm', 'a4')
-      const startY = await addPDFHeader(doc, 'RELATORIO DE CURSOS', [
+      const startY = await addPDFHeader(doc, 'RELATÓRIO DE CURSOS', [
         { label: 'Total de Cursos', value: cursos.length },
         { label: 'Ativos', value: cursos.filter(c => c.Status === 'Ativo').length },
         { label: 'Valor Total', value: `Kz ${cursos.reduce((s, c) => s + parseFloat(c.Valor_curso || 0), 0).toLocaleString('pt-PT')}` },
@@ -3419,7 +3475,7 @@ export default function DashboardHome() {
       ])
       autoTable(doc, {
         startY,
-        head: [['No', 'Nome do Curso', 'Descricao', 'Tipo', 'Modulo', 'Edicao', 'Duracao', 'Carga Horaria', 'Valor (Kz)', 'Status']],
+        head: [['No', 'Nome do Curso', 'Descrição', 'Tipo', 'Módulo', 'Edição', 'Duração', 'Carga Horária', 'Valor (Kz)', 'Status']],
         body: tableData, theme: 'striped',
         ...TABLE_BASE,
         columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 32 }, 2: { cellWidth: 32 }, 3: { cellWidth: 22 }, 4: { cellWidth: 14 }, 5: { cellWidth: 14 }, 6: { cellWidth: 16 }, 7: { cellWidth: 18 }, 8: { cellWidth: 24 }, 9: { cellWidth: 16 } },
@@ -3433,12 +3489,12 @@ export default function DashboardHome() {
   }
 
   const generateMatriculasPDF = async () => {
-    if (!matriculas || matriculas.length === 0) { showToast('Nenhuma matricula encontrada para gerar PDF', 'warning'); return }
+    if (!matriculas || matriculas.length === 0) { showToast('Nenhuma matrícula encontrada para gerar PDF', 'warning'); return }
     try {
       const doc = new jsPDF('landscape', 'mm', 'a4')
       const inscritos = matriculas.filter(m => m.Status === 'Inscrito').length
       const concluidos = matriculas.filter(m => m.Status === 'Concluido' || m.Status === 'Concluido').length
-      const startY = await addPDFHeader(doc, 'RELATORIO DE MATRICULAS', [
+      const startY = await addPDFHeader(doc, 'RELATÓRIO DE MATRÍCULAS', [
         { label: 'Total', value: matriculas.length },
         { label: 'Inscritos', value: inscritos },
         { label: 'Concluidos', value: concluidos },
@@ -3450,7 +3506,7 @@ export default function DashboardHome() {
       ])
       autoTable(doc, {
         startY,
-        head: [['No', 'Nome', 'Curso', 'Turma', 'Modulo', 'Status', 'BI/Cedula', 'Telefone', 'Data Matricula']],
+        head: [['No', 'Nome', 'Curso', 'Turma', 'Módulo', 'Status', 'BI/Cédula', 'Telefone', 'Data Matrícula']],
         body: tableData, theme: 'striped',
         ...TABLE_BASE,
         columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 32 }, 2: { cellWidth: 28 }, 3: { cellWidth: 22 }, 4: { cellWidth: 14 }, 5: { cellWidth: 20 }, 6: { cellWidth: 22 }, 7: { cellWidth: 22 }, 8: { cellWidth: 22 } },
@@ -3469,19 +3525,19 @@ export default function DashboardHome() {
       const doc = new jsPDF('landscape', 'mm', 'a4')
       const totalAlunos = turmas.reduce((s, t) => s + parseInt(t.Numero_Alunos || 0), 0)
       const capacidadeTotal = turmas.reduce((s, t) => s + parseInt(t.Capacidade_Maxima || 30), 0)
-      const startY = await addPDFHeader(doc, 'RELATORIO DE TURMAS', [
+      const startY = await addPDFHeader(doc, 'RELATÓRIO DE TURMAS', [
         { label: 'Total Turmas', value: turmas.length },
         { label: 'Total Formandos', value: totalAlunos },
-        { label: 'Ocupacao', value: capacidadeTotal > 0 ? `${Math.round((totalAlunos / capacidadeTotal) * 100)}%` : '0%' },
+        { label: 'Ocupação', value: capacidadeTotal > 0 ? `${Math.round((totalAlunos / capacidadeTotal) * 100)}%` : '0%' },
       ])
       const tableData = turmas.map((t, index) => [
         index + 1, t.Turma || '-', t.Curso || '-', `${t.Modulo || 1}o`,
-        t.Periodo || 'Manha', t.Formador || '-', t.Numero_Alunos || 0,
+        t.Periodo || 'Manhã', t.Formador || '-', t.Numero_Alunos || 0,
         t.Capacidade_Maxima || 30, t.Status || 'Pendente'
       ])
       autoTable(doc, {
         startY,
-        head: [['No', 'Turma', 'Curso', 'Modulo', 'Periodo', 'Formador', 'Formandos', 'Capacidade', 'Status']],
+        head: [['No', 'Turma', 'Curso', 'Módulo', 'Período', 'Formador', 'Formandos', 'Capacidade', 'Status']],
         body: tableData, theme: 'striped',
         ...TABLE_BASE,
         columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 28 }, 2: { cellWidth: 30 }, 3: { cellWidth: 14 }, 4: { cellWidth: 18 }, 5: { cellWidth: 28 }, 6: { cellWidth: 14 }, 7: { cellWidth: 18 }, 8: { cellWidth: 18 } },
@@ -3498,7 +3554,7 @@ export default function DashboardHome() {
     if (!formadores || formadores.length === 0) { showToast('Nenhum formador encontrado para gerar PDF', 'warning'); return }
     try {
       const doc = new jsPDF('landscape', 'mm', 'a4')
-      const startY = await addPDFHeader(doc, 'RELATORIO DE FORMADORES', [
+      const startY = await addPDFHeader(doc, 'RELATÓRIO DE FORMADORES', [
         { label: 'Total Formadores', value: formadores.length },
         { label: 'Ativos', value: formadores.filter(f => f.Status === 'Ativo').length },
         { label: 'Especialidades', value: [...new Set(formadores.map(f => f.Especialidade).filter(Boolean))].length },
@@ -3526,8 +3582,8 @@ export default function DashboardHome() {
     try {
       const doc = new jsPDF('landscape', 'mm', 'a4')
       const lm = 14, rm = doc.internal.pageSize.getWidth() - 14
-      const startY = await addPDFHeader(doc, 'RELATORIO GERAL DA ACADEMIA', [
-        { label: 'Matriculas', value: matriculas?.length || 0 },
+      const startY = await addPDFHeader(doc, 'RELATÓRIO GERAL DA ACADÉMIA', [
+        { label: 'Matrículas', value: matriculas?.length || 0 },
         { label: 'Turmas', value: turmas?.length || 0 },
         { label: 'Cursos', value: cursos?.length || 0 },
         { label: 'Formadores', value: formadores?.length || 0 },
@@ -3557,7 +3613,7 @@ export default function DashboardHome() {
       }
 
       if (matriculas?.length > 0) {
-        drawSection('MATRICULAS', ['No', 'Nome', 'Curso', 'Turma', 'Status'],
+        drawSection('MATRÍCULAS', ['No', 'Nome', 'Curso', 'Turma', 'Status'],
           matriculas.slice(0, 20).map((m, i) => [i + 1, m.Nome || '-', m.Curso || '-', m.Turma || '-', m.Status || '-']),
           { 0: { cellWidth: 10 }, 1: { cellWidth: 40 }, 2: { cellWidth: 35 }, 3: { cellWidth: 30 }, 4: { cellWidth: 20 } }
         )
@@ -3577,7 +3633,7 @@ export default function DashboardHome() {
 
       addPDFFooter(doc, 1)
       doc.save('relatorio_geral_academia_kamatambu.pdf')
-      showToast('Relatorio geral gerado com sucesso!', 'success')
+      showToast('Relatório geral gerado com sucesso!', 'success')
     } catch (error) {
       console.error('Erro ao gerar relatorio:', error); showToast('Erro ao gerar relatorio', 'error')
     }
@@ -3586,7 +3642,7 @@ export default function DashboardHome() {
   const generateComprovativoPDF = async (pagamento) => {
     try {
       const nomeFormando = getNomeFormando(pagamento.aluno)
-      const tipoLabel = { matricula: 'Matricula', mensalidade: 'Mensalidade', certificado: 'Certificado', taxa: 'Taxa', outro: 'Outro' }[pagamento.tipo] || pagamento.tipo
+      const tipoLabel = { matricula: 'Matrícula', mensalidade: 'Mensalidade', certificado: 'Certificado', taxa: 'Taxa', outro: 'Outro' }[pagamento.tipo] || pagamento.tipo
       const valor = parseFloat(pagamento.valor || 0)
       const statusLabel = { pago: 'PAGO', pendente: 'PENDENTE', parcial: 'PAGO PARCIAL', cancelado: 'CANCELADO' }[pagamento.status] || pagamento.status
       const corStatus = { pago: [0, 150, 0], pendente: [200, 150, 0], parcial: [0, 108, 73], cancelado: [200, 0, 0] }[pagamento.status] || [100, 100, 100]
@@ -3669,7 +3725,7 @@ export default function DashboardHome() {
           ['Forma de Pagamento', pagamento.forma_pagamento || '-'],
           ['Estado', statusLabel],
           ['Data', pagamento.data_pagamento ? new Date(pagamento.data_pagamento).toLocaleDateString('pt-PT') : '-'],
-          ['Observacao', pagamento.observacao || '-']
+          ['Observação', pagamento.observacao || '-']
         ],
         ...TABLE_BASE,
         columnStyles: {
@@ -3687,7 +3743,7 @@ export default function DashboardHome() {
       doc.setFontSize(7)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(...PDF_COLORS.gray)
-      doc.text('Assinatura do Responsavel', lm + 25, y + 5, { align: 'center' })
+      doc.text('Assinatura do Responsável', lm + 25, y + 5, { align: 'center' })
 
       doc.line(rm - 50, y, rm, y)
       doc.text('Assinatura do Formando', rm - 25, y + 5, { align: 'center' })
@@ -3703,6 +3759,119 @@ export default function DashboardHome() {
     }
   }
 
+  const generateSaidaPDF = async (saida) => {
+    try {
+      const tipoLabel = { salario: 'Salário', aluguel: 'Aluguel', material: 'Material', equipamento: 'Equipamento', servico: 'Serviço', energia: 'Energia', agua: 'Água', internet: 'Internet', manutencao: 'Manutenção', imposto: 'Imposto', outro: 'Outro' }[saida.tipo] || saida.tipo
+      const valor = parseFloat(saida.valor || 0)
+      const statusLabel = { pago: 'PAGO', pendente: 'PENDENTE', cancelado: 'CANCELADO' }[saida.status] || saida.status
+      const corStatus = { pago: [0, 150, 0], pendente: [200, 150, 0], cancelado: [200, 0, 0] }[saida.status] || [100, 100, 100]
+
+      const doc = new jsPDF('portrait', 'mm', 'a4')
+      const lm = 14
+      const rm = doc.internal.pageSize.getWidth() - 14
+
+      await addPDFHeader(doc, 'RECIBO DE SAÍDA', [
+        { label: 'Tipo', value: tipoLabel },
+        { label: 'Valor', value: `Kz ${valor.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}` }
+      ])
+
+      let y = 68
+
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text(`Ref: AK-SAI-${String(saida.id).padStart(4, '0')}`, lm, y)
+      doc.text(`Data: ${saida.data_saida ? new Date(saida.data_saida).toLocaleDateString('pt-PT') : new Date().toLocaleDateString('pt-PT')}`, rm, y, { align: 'right' })
+      y += 12
+
+      doc.setFillColor(254, 226, 226)
+      doc.roundedRect(lm, y, rm - lm, 50, 2, 2, 'F')
+      doc.setDrawColor(220, 38, 38)
+      doc.setLineWidth(0.3)
+      doc.roundedRect(lm, y, rm - lm, 50, 2, 2, 'S')
+      y += 8
+
+      const drawField = (label, value, fx, fy) => {
+        doc.setFontSize(7)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(...PDF_COLORS.gray)
+        doc.text(label.toUpperCase(), fx, fy)
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...PDF_COLORS.dark)
+        doc.text(String(value || '-'), fx, fy + 5)
+      }
+
+      drawField('Descrição', saida.descricao, lm + 5, y)
+      drawField('Tipo de Despesa', tipoLabel, lm + 90, y)
+      y += 14
+
+      drawField('Valor Total', `Kz ${valor.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`, lm + 5, y)
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text('ESTADO', lm + 90, y)
+      y += 2
+
+      doc.setFillColor(...corStatus)
+      doc.roundedRect(lm + 90, y, 40, 8, 2, 2, 'F')
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(255, 255, 255)
+      doc.text(statusLabel, lm + 110, y + 5.5, { align: 'center' })
+
+      y += 22
+
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...PDF_COLORS.dark)
+      doc.text('Detalhes da Saída', lm, y)
+      y += 2
+
+      autoTable(doc, {
+        startY: y,
+        head: [['Campo', 'Valor']],
+        body: [
+          ['Descrição', saida.descricao || '-'],
+          ['Tipo de Despesa', tipoLabel],
+          ['Valor', `Kz ${valor.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`],
+          ['Forma de Pagamento', saida.forma_pagamento || '-'],
+          ['Estado', statusLabel],
+          ['Data', saida.data_saida ? new Date(saida.data_saida).toLocaleDateString('pt-PT') : '-'],
+          ['Observação', saida.observacao || '-']
+        ],
+        ...TABLE_BASE,
+        columnStyles: {
+          0: { cellWidth: 50, fontStyle: 'bold', halign: 'left' },
+          1: { cellWidth: 120, halign: 'left' }
+        },
+        margin: { left: lm, right: 14 }
+      })
+
+      y = doc.lastAutoTable.finalY + 15
+
+      doc.setDrawColor(...PDF_COLORS.grayLighter)
+      doc.setLineWidth(0.3)
+      doc.line(lm, y, lm + 50, y)
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text('Assinatura do Responsável', lm + 25, y + 5, { align: 'center' })
+
+      doc.line(rm - 50, y, rm, y)
+      doc.text('Assinatura do Beneficiário', rm - 25, y + 5, { align: 'center' })
+
+      addPDFFooter(doc, 1)
+
+      doc.save(`Recibo_Saida_${String(saida.id).padStart(4, '0')}_${tipoLabel.replace(/\s/g, '_')}.pdf`)
+      showToast('Recibo de saída gerado com sucesso!', 'success')
+
+    } catch (error) {
+      console.error('Erro ao gerar recibo de saída:', error)
+      showToast('Erro ao gerar recibo de saída', 'error')
+    }
+  }
+
   const generateRelatorioFinanceiro = async () => {
     if (!pagamentos || pagamentos.length === 0) { showToast('Nenhum pagamento encontrado para gerar relatorio', 'warning'); return }
     try {
@@ -3710,7 +3879,7 @@ export default function DashboardHome() {
       const totalArrecadado = pagamentos.reduce((s, p) => s + parseFloat(p.valor || 0), 0)
       const pagos = pagamentos.filter(p => p.status === 'pago' || p.status === 'Pago').length
       const pendentes = pagamentos.filter(p => p.status === 'pendente').length
-      const startY = await addPDFHeader(doc, 'RELATORIO FINANCEIRO', [
+      const startY = await addPDFHeader(doc, 'RELATÓRIO FINANCEIRO', [
         { label: 'Pagamentos', value: pagamentos.length },
         { label: 'Pago', value: pagos },
         { label: 'Pendente', value: pendentes },
@@ -3732,7 +3901,7 @@ export default function DashboardHome() {
         didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
       })
       doc.save('relatorio_financeiro_academia_kamatambu.pdf')
-      showToast('Relatorio financeiro gerado com sucesso!', 'success')
+      showToast('Relatório financeiro gerado com sucesso!', 'success')
     } catch (error) {
       console.error('Erro ao gerar relatorio financeiro:', error); showToast('Erro ao gerar relatorio financeiro', 'error')
     }
@@ -3916,7 +4085,7 @@ export default function DashboardHome() {
       else situacao = 'reprovado'
 
       const situacaoText = situacao === 'aprovado' ? 'APROVADO' :
-                           situacao === 'recuperacao' ? 'RECUPERACAO' : 'REPROVADO'
+                           situacao === 'recuperacao' ? 'RECUPERAÇÃO' : 'REPROVADO'
       const corSituacao = situacao === 'aprovado' ? [0, 150, 0] :
                           situacao === 'recuperacao' ? [200, 150, 0] : [200, 0, 0]
 
@@ -3956,7 +4125,7 @@ export default function DashboardHome() {
       doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...PDF_COLORS.dark)
-      doc.text('Criterios de Avaliacao', lm, y)
+      doc.text('Critérios de Avaliação', lm, y)
       y += 2
 
       autoTable(doc, {
@@ -3989,7 +4158,7 @@ export default function DashboardHome() {
       doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...PDF_COLORS.dark)
-      doc.text('Escala de Classificacao', lm, y)
+      doc.text('Escala de Classificação', lm, y)
       y += 2
 
       autoTable(doc, {
@@ -4000,7 +4169,7 @@ export default function DashboardHome() {
           ['75% - 89%', 'Muito Bom', 'Apto'],
           ['60% - 74%', 'Bom', 'Apto'],
           ['50% - 59%', 'Suficiente', 'Apto'],
-          ['Abaixo de 50%', 'Insuficiente', 'Nao Apto']
+          ['Abaixo de 50%', 'Insuficiente', 'Não Apto']
         ],
         ...TABLE_BASE,
         columnStyles: {
@@ -4069,7 +4238,7 @@ export default function DashboardHome() {
       const mediaFinal = totalPeso > 0 ? (somaPonderada / totalPeso * 20).toFixed(1) : '0.0'
 
       let classificacao = 'Insuficiente'
-      let resultado = 'Nao Apto'
+      let resultado = 'Não Apto'
       let corClassificacao = [200, 0, 0]
       if (mediaFinal >= 90) { classificacao = 'Excelente'; resultado = 'Apto'; corClassificacao = [0, 120, 60] }
       else if (mediaFinal >= 75) { classificacao = 'Muito Bom'; resultado = 'Apto'; corClassificacao = [0, 100, 180] }
@@ -4080,7 +4249,7 @@ export default function DashboardHome() {
       const lm = 14
       const rm = doc.internal.pageSize.getWidth() - 14
 
-      await addPDFHeader(doc, 'AVALIACAO POR CRITERIOS', [
+      await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
         { label: 'Formando', value: getNomeFormando(aluno.Nome) },
         { label: 'Curso', value: aluno.Curso },
         { label: 'Turma', value: aluno.Turma }
@@ -4098,7 +4267,7 @@ export default function DashboardHome() {
       doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(PDF_COLORS.dark[0], PDF_COLORS.dark[1], PDF_COLORS.dark[2])
-      doc.text('Avaliacao por Criterios', lm, y)
+      doc.text('Avaliação por Critérios', lm, y)
       y += 2
 
       autoTable(doc, {
@@ -4146,7 +4315,7 @@ export default function DashboardHome() {
       doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(PDF_COLORS.dark[0], PDF_COLORS.dark[1], PDF_COLORS.dark[2])
-      doc.text('Escala de Classificacao', lm, y)
+      doc.text('Escala de Classificação', lm, y)
       y += 2
 
       autoTable(doc, {
@@ -4157,7 +4326,7 @@ export default function DashboardHome() {
           ['75% - 89%', 'Muito Bom', 'Apto'],
           ['60% - 74%', 'Bom', 'Apto'],
           ['50% - 59%', 'Suficiente', 'Apto'],
-          ['Abaixo de 50%', 'Insuficiente', 'Nao Apto']
+          ['Abaixo de 50%', 'Insuficiente', 'Não Apto']
         ],
         ...TABLE_BASE,
         columnStyles: {
@@ -4516,7 +4685,7 @@ export default function DashboardHome() {
       case 'formadores':
         return <FormadoresTab formadores={formadores} loading={loading.formadores} onEdit={(data) => handleOpenModal('formadores', data)} onDelete={(id) => handleConfirmDelete(id, 'formadores')} onView={(data) => handleOpenModal('view', data, 'formadores')} onCreate={() => handleOpenModal('formadores')} onGeneratePDF={generateFormadoresPDF} />
       case 'tesouraria':
-        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} loadingMatriculas={loading.matriculas} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} saidas={saidas} onCreateSaida={() => handleOpenModal('saidas')} onEditSaida={(data) => handleOpenModal('saidas', data)} onDeleteSaida={(id) => handleConfirmDelete(id, 'saidas')} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} />
+        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} loadingMatriculas={loading.matriculas} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} saidas={saidas} onCreateSaida={() => handleOpenModal('saidas')} onEditSaida={(data) => handleOpenModal('saidas', data)} onDeleteSaida={(id) => handleConfirmDelete(id, 'saidas')} onViewSaida={(data) => handleOpenModal('view', data, 'saidas')} onGerarSaidaPDF={generateSaidaPDF} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} />
       case 'academico':
         return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} />
       case 'usuarios':
@@ -4680,7 +4849,7 @@ export default function DashboardHome() {
               <div><label className="text-xs sm:text-sm font-medium text-gray-700">Formador</label><select name="formador" defaultValue="" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione um formador</option>{formadoresList && formadoresList.length > 0 ? formadoresList.map(f => <option key={f.id} value={f.Nome}>{f.Nome}</option>) : <option value="" disabled>Nenhum formador cadastrado</option>}</select></div>
             </div>
             <div className="border-t border-gray-200 pt-4">
-              <h4 className="text-sm font-semibold text-gray-900 mb-3">Criterios de Avaliacao</h4>
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Critérios de Avaliação</h4>
               <p className="text-[11px] text-gray-500 mb-4">Insira a nota (0-20) para cada criterio. O peso de cada criterio e definido automaticamente.</p>
               <div className="space-y-3">
                 {criteriosAvaliacao.map((criterio) => (

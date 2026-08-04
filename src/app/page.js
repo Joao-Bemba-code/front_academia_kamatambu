@@ -83,9 +83,9 @@ function Navbar() {
 
         <div className="hidden md:flex md:items-center md:gap-1 lg:gap-2">
           {[
-            { label: 'Inicio', href: '/' },
+            { label: 'Início', href: '/' },
             { label: 'Sobre', href: '#sobre' },
-            { label: 'Contatos', href: '#contatos' },
+            { label: 'Contactos', href: '#contatos' },
           ].map((item) => (
             <Link
               key={item.label}
@@ -124,9 +124,9 @@ function Navbar() {
         <div className="overflow-hidden border-t border-white/10 bg-white md:hidden shadow-lg">
           <div className="flex flex-col space-y-1 px-4 py-4">
             {[
-              { icon: Home, label: 'Inicio', href: '/' },
+              { icon: Home, label: 'Início', href: '/' },
               { icon: Info, label: 'Sobre', href: '#sobre' },
-              { icon: Phone, label: 'Contatos', href: '#contatos' },
+              { icon: Phone, label: 'Contactos', href: '#contatos' },
             ].map((item) => (
               <Link
                 key={item.label}
@@ -160,21 +160,21 @@ function HeroSection() {
         <div className="flex-1 space-y-6 sm:space-y-8 text-center md:text-left">
           <div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.1] tracking-tight text-white">
-              Transforme a gestao da sua{' '}
-              <span className="text-white/90">formacao profissional</span>
+              Transforme a gestão da sua{' '}
+              <span className="text-white/90">formação profissional</span>
             </h1>
           </div>
 
           <p className="mx-auto max-w-xl text-base sm:text-lg leading-relaxed text-white/80 md:mx-0 md:text-xl">
             A Academia Kamatambu oferece uma plataforma completa para gerenciar cursos,
-            formadores, turmas e metricas de desempenho.
+            formadores, turmas e métricas de desempenho.
           </p>
 
           <ul className="hidden sm:flex flex-col gap-3 pt-2">
             {[
-              { text: 'Gestao completa de cursos' },
+              { text: 'Gestão completa de cursos' },
               { text: 'Acompanhamento em tempo real' },
-              { text: 'Certificacao reconhecida' },
+              { text: 'Certificação reconhecida' },
             ].map((item, index) => (
               <li key={index} className="flex items-center gap-3 text-sm text-white/85">
                 <CheckCircle className="size-4 text-white/60 shrink-0" />
@@ -188,7 +188,7 @@ function HeroSection() {
               href="/auth/register"
               className="inline-flex items-center justify-center gap-2.5 rounded-lg bg-white px-7 py-3.5 text-sm font-bold text-[#006c49] transition-colors hover:bg-gray-50"
             >
-              Comecar agora
+              Começar agora
               <ArrowRight className="size-4" />
             </Link>
             <Link
@@ -202,8 +202,8 @@ function HeroSection() {
           <div className="flex items-center gap-6 pt-4 justify-center md:justify-start">
             {[
               { icon: Shield, text: 'Dados seguros' },
-              { icon: BarChart3, text: 'Metricas em tempo real' },
-              { icon: Users, text: 'Gestao de formadores' },
+              { icon: BarChart3, text: 'Métricas em tempo real' },
+              { icon: Users, text: 'Gestão de formadores' },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-2 text-xs text-white/60">
                 <Icon className="size-3.5" />
@@ -217,7 +217,7 @@ function HeroSection() {
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl shadow-2xl">
             <Image
               src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-              alt="Estudantes em formacao profissional"
+              alt="Estudantes em formação profissional"
               fill
               className="object-cover"
               priority
@@ -233,22 +233,22 @@ function AboutSection() {
   const features = [
     {
       icon: BarChart3,
-      title: 'Metricas em tempo real',
-      description: 'Acompanhe desempenho, engajamento e resultados com dashboards interativos e relatorios detalhados.',
+      title: 'Métricas em tempo real',
+      description: 'Acompanhe desempenho, engajamento e resultados com dashboards interativos e relatórios detalhados.',
     },
     {
       icon: Users,
-      title: 'Gestao de formadores',
-      description: 'Gerencie sua equipe, competencias e performance de formadores com facilidade e eficiencia.',
+      title: 'Gestão de formadores',
+      description: 'Gerencie sua equipe, competências e performance de formadores com facilidade e eficiência.',
     },
     {
       icon: GraduationCap,
       title: 'Multi-cursos e turmas',
-      description: 'Organize cursos, turmas e alunos de forma simples e eficiente em um so lugar.',
+      description: 'Organize cursos, turmas e alunos de forma simples e eficiente em um só lugar.',
     },
     {
       icon: Shield,
-      title: 'Seguranca e conformidade',
+      title: 'Segurança e conformidade',
       description: 'Seus dados protegidos com tecnologia de ponta e conformidade com a LGPD.',
     },
   ]
@@ -258,11 +258,11 @@ function AboutSection() {
       <div className="mx-auto max-w-7xl">
         <AnimatedSection className="mb-12 sm:mb-16 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 leading-tight">
-            Tudo que voce precisa para{' '}
-            <span className="text-[#006c49]">gestao de excelencia</span>
+            Tudo que você precisa para{' '}
+            <span className="text-[#006c49]">gestão de excelência</span>
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base sm:text-lg text-gray-500 leading-relaxed">
-            Ferramentas poderosas para gestores, formadores e instituicoes que buscam resultados reais.
+            Ferramentas poderosas para gestores, formadores e instituições que buscam resultados reais.
           </p>
         </AnimatedSection>
 
@@ -288,7 +288,7 @@ function StatsSection() {
   const stats = [
     { value: '1.248+', label: 'Formandos', icon: Users },
     { value: '24', label: 'Cursos ativos', icon: BookOpen },
-    { value: '87.3%', label: 'Taxa de conclusao', icon: TrendingUp },
+    { value: '87.3%', label: 'Taxa de conclusão', icon: TrendingUp },
     { value: '18', label: 'Formadores ativos', icon: UserCheck },
     { value: '4.8/5', label: 'Satisfacao', icon: Award },
   ]
@@ -325,8 +325,8 @@ function ContactSection() {
   const contactInfo = [
     {
       icon: MapPin,
-      title: 'Endereco',
-      details: ['Rua da Formacao, 123', 'Bairro do Conhecimento, Cidade Educativa', 'CEP: 12345-678'],
+      title: 'Endereço',
+      details: ['Rua da Formação, 123', 'Bairro do Conhecimento, Cidade Educativa', 'CEP: 12345-678'],
     },
     {
       icon: Phone,
@@ -340,8 +340,8 @@ function ContactSection() {
     },
     {
       icon: Clock,
-      title: 'Horario',
-      details: ['Segunda a Sexta: 8h as 18h', 'Sabado: 8h as 12h'],
+      title: 'Horário',
+      details: ['Segunda a Sexta: 8h às 18h', 'Sábado: 8h às 12h'],
     },
   ]
 
@@ -353,7 +353,7 @@ function ContactSection() {
             Entre em contato
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base sm:text-lg text-gray-500">
-            Estamos prontos para ajudar. Escolha o canal mais conveniente para voce.
+            Estamos prontos para ajudar. Escolha o canal mais conveniente para você.
           </p>
         </AnimatedSection>
 
@@ -395,7 +395,7 @@ function ContactSection() {
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="Localizacao"
+              title="Localização"
               className="min-h-[320px] w-full"
             />
           </AnimatedSection>
@@ -423,13 +423,13 @@ function Footer() {
               />
             </div>
             <p className="mt-3 text-sm text-gray-500 max-w-xs">
-              Excelencia em formacao profissional desde 2024.
+              Excelência em formação profissional desde 2024.
             </p>
           </div>
 
           {[
-            { title: 'Links rapidos', links: ['Inicio', 'Sobre', 'Contatos', 'Entrar'] },
-            { title: 'Servicos', links: ['Cursos', 'Formacao', 'Certificacao', 'Consultoria'] },
+            { title: 'Links rápidos', links: ['Início', 'Sobre', 'Contactos', 'Entrar'] },
+            { title: 'Serviços', links: ['Cursos', 'Formação', 'Certificação', 'Consultoria'] },
           ].map((section) => (
             <div key={section.title} className="text-center sm:text-left">
               <h4 className="font-semibold text-white text-sm uppercase tracking-wider">{section.title}</h4>

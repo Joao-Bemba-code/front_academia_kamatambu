@@ -34,10 +34,10 @@ function ForgotPasswordForm() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || data.msg || 'Erro ao solicitar recuperacao')
+        throw new Error(data.message || data.msg || 'Erro ao solicitar recuperação')
       }
 
-      setSuccessMessage(data.message || 'Link de recuperacao enviado com sucesso!')
+      setSuccessMessage(data.message || 'Link de recuperação enviado com sucesso!')
       setSuccess(true)
     } catch (err) {
       setError(err.message)
@@ -86,7 +86,7 @@ function ForgotPasswordForm() {
           Recuperar senha
         </h1>
         <p className="text-sm sm:text-base text-gray-500">
-          Digite seu e-mail para receber o link de recuperacao
+          Digite seu e-mail para receber o link de recuperação
         </p>
       </div>
 
@@ -150,7 +150,7 @@ function ForgotPasswordForm() {
         <p className="text-sm text-gray-600">
           Lembrou a senha?{' '}
           <Link href="/auth/login" className="font-semibold text-[#006c49] hover:underline">
-            Faca login
+            Faça login
           </Link>
         </p>
       </div>
@@ -180,7 +180,7 @@ export default function ForgotPasswordPage() {
                   Academia Kamatambu
                 </span>
                 <span className="block text-xs font-medium uppercase tracking-widest text-white/50">
-                  Centro de Formacao
+                  Centro de Formação
                 </span>
               </div>
             </div>
@@ -189,17 +189,17 @@ export default function ForgotPasswordPage() {
           <div className="flex-1 flex flex-col justify-center -mt-10">
             <div className="max-w-lg space-y-6">
               <h2 className="text-3xl sm:text-4xl xl:text-5xl font-bold leading-tight text-white">
-                Recupere o acesso a sua conta
+                Recupere o acesso à sua conta
               </h2>
 
               <p className="text-base leading-relaxed text-white/75 sm:text-lg">
-                Nao se preocupe! Enviaremos um link para voce redefinir sua senha
-                e voltar a gerenciar suas formacoes.
+                Não se preocupe! Enviaremos um link para você redefinir sua senha
+                e voltar a gerenciar suas formações.
               </p>
 
               <ul className="flex flex-col items-start gap-3 pt-2">
                 {[
-                  { icon: Lock, label: 'Processo seguro de recuperacao' },
+                  { icon: Lock, label: 'Processo seguro de recuperação' },
                   { icon: Mail, label: 'Link enviado por e-mail' },
                 ].map(({ icon: Icon, label }) => (
                   <li key={label} className="flex items-center gap-3 text-sm text-white/90">

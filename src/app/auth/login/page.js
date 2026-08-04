@@ -87,7 +87,7 @@ function LoginForm() {
           Bem-vindo de volta
         </h1>
         <p className="text-sm sm:text-base text-gray-500">
-          Acesse sua conta para gerenciar formacoes, formadores e metricas do centro
+          Acesse sua conta para gerenciar formações, formadores e métricas do centro
         </p>
       </div>
 
@@ -181,7 +181,7 @@ function LoginForm() {
 
       <div className="text-center">
         <p className="text-sm text-gray-600">
-          Ainda nao tem acesso?{' '}
+          Ainda não tem acesso?{' '}
           <Link href="/auth/register" className="font-semibold text-[#006c49] hover:underline">
             Cadastre-se
           </Link>
@@ -214,7 +214,7 @@ export default function LoginPage() {
                   Academia Kamatambu
                 </span>
                 <span className="block text-xs font-medium uppercase tracking-widest text-white/50">
-                  Centro de Formacao
+                  Centro de Formação
                 </span>
               </div>
             </div>
@@ -223,18 +223,18 @@ export default function LoginPage() {
           <div className="flex-1 flex flex-col justify-center -mt-10">
             <div className="max-w-lg space-y-6">
               <h2 className="text-3xl sm:text-4xl xl:text-5xl font-bold leading-tight text-white">
-                Excelencia em formacao profissional
+                Excelência em formação profissional
               </h2>
 
               <p className="text-base leading-relaxed text-white/75 sm:text-lg">
-                Gerencie seus cursos, acompanhe o desempenho dos formadores e visualize metricas
+                Gerencie seus cursos, acompanhe o desempenho dos formadores e visualize métricas
                 do centro em tempo real.
               </p>
 
               <ul className="flex flex-col items-start gap-3 pt-2">
                 {[
-                  { icon: BarChart3, label: 'Metricas em tempo real' },
-                  { icon: Users, label: 'Gestao de formadores' },
+                  { icon: BarChart3, label: 'Métricas em tempo real' },
+                  { icon: Users, label: 'Gestão de formadores' },
                   { icon: Building2, label: 'Multi-cursos' },
                 ].map(({ icon: Icon, label }) => (
                   <li key={label} className="flex items-center gap-3 text-sm text-white/90">
@@ -249,7 +249,7 @@ export default function LoginPage() {
               <div className="flex flex-wrap gap-4 pt-4">
                 {[
                   { icon: Shield, label: 'Dados seguros' },
-                  { icon: Zap, label: 'Rapido e eficiente' },
+                  { icon: Zap, label: 'Rápido e eficiente' },
                   { icon: Globe, label: 'Acesso 24/7' },
                 ].map(({ icon: Icon, label }) => (
                   <div key={label} className="flex items-center gap-2 text-xs text-white/60">
