@@ -54,6 +54,7 @@ import {
   PiggyBank,
   ArrowUpRight,
   ArrowDownRight,
+  Landmark,
   AlertTriangle,
   BookOpen as BookOpenIcon,
   Shield
@@ -2363,6 +2364,19 @@ function TesourariaTab({
   const turmasUnicasMat = [...new Set(matriculas?.map(m => m.Turma).filter(Boolean) || [])]
   const statusUnicosMat = [...new Set(matriculas?.map(m => m.Status).filter(Boolean) || [])]
 
+  const saidasPagas = (saidas || []).filter(s => s.status === 'pago')
+  const saidasPorForma = [
+    { forma: 'dinheiro', label: 'Dinheiro', icon: Banknote, accent: '#059669' },
+    { forma: 'transferencia', label: 'Transferência', icon: ArrowUpRight, accent: '#2563eb' },
+    { forma: 'deposito', label: 'Depósito', icon: Landmark, accent: '#7c3aed' },
+    { forma: 'multicaixa', label: 'Multicaixa', icon: CreditCard, accent: '#ca8a04' }
+  ].map(item => ({
+    ...item,
+    total: saidasPagas
+      .filter(s => (s.forma_pagamento || 'dinheiro') === item.forma)
+      .reduce((acc, s) => acc + parseFloat(s.valor || 0), 0)
+  }))
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -2507,6 +2521,23 @@ function TesourariaTab({
       </>)}
 
       {activeSubTab === 'saidas' && (<>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+        {saidasPorForma.map((item) => {
+          const Icon = item.icon
+          return (
+            <div key={item.forma} className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm transition-colors hover:bg-gray-50/50">
+              <div className="flex items-center gap-2.5 mb-2.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-50 border border-gray-100">
+                  <Icon className="size-4" style={{ color: item.accent }} />
+                </div>
+                <p className="text-[10px] sm:text-[11px] font-medium text-gray-500 leading-tight">Saídas · {item.label}</p>
+              </div>
+              <p className="text-sm sm:text-base font-bold text-red-600">- {formatarMoeda(item.total)}</p>
+            </div>
+          )
+        })}
+      </div>
+
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 size-3.5 sm:size-4 -translate-y-1/2 text-[#45474c]" />
