@@ -132,6 +132,7 @@ function ViewModal({ isOpen, onClose, data, type }) {
       'mensalidade': 'Mensalidade',
       'certificado': 'Certificado',
       'taxa': 'Taxa',
+      'venda': 'Venda de Artigos',
       'outro': 'Outro',
       'prova': 'Prova',
       'trabalho': 'Trabalho',
@@ -243,7 +244,7 @@ function ViewModal({ isOpen, onClose, data, type }) {
           <Receipt className="size-10 sm:size-12 text-[#006c49]" />
         </div>
         <div className="text-center sm:text-left">
-          <h3 className="text-lg sm:text-xl font-bold text-gray-900">{data.aluno}</h3>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900">{data.aluno || (data.tipo === 'venda' ? 'Venda de Artigos' : '—')}</h3>
           <p className="text-xs sm:text-sm text-gray-500">ID: {data.id}</p>
           <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${getStatusColor(data.status)}`}>
             {data.status || 'Pendente'}
@@ -253,11 +254,11 @@ function ViewModal({ isOpen, onClose, data, type }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="space-y-0.5 sm:space-y-1">
           <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Formando</p>
-          <p className="text-sm sm:text-base text-gray-900 break-words">{data.aluno}</p>
+          <p className="text-sm sm:text-base text-gray-900 break-words">{data.aluno || (data.tipo === 'venda' ? 'Venda de Artigos (sem formando)' : '—')}</p>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
           <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</p>
-          <p className="text-sm sm:text-base text-gray-900 break-words">{data.curso || 'Não informado'}</p>
+          <p className="text-sm sm:text-base text-gray-900 break-words">{data.curso || (data.tipo === 'venda' ? 'Artigos' : 'Não informado')}</p>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
           <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Pagamento</p>
@@ -2350,7 +2351,7 @@ function TesourariaTab({
   }
 
   const getTipoLabel = (tipo) => {
-    const tipos = { 'matricula': 'Matrícula', 'mensalidade': 'Mensalidade', 'certificado': 'Certificado', 'taxa': 'Taxa', 'outro': 'Outro' }
+    const tipos = { 'matricula': 'Matrícula', 'mensalidade': 'Mensalidade', 'certificado': 'Certificado', 'taxa': 'Taxa', 'venda': 'Venda de Artigos', 'outro': 'Outro' }
     return tipos[tipo] || tipo
   }
 
@@ -3273,6 +3274,7 @@ export default function DashboardHome() {
   const [studentSearch, setStudentSearch] = useState('')
   const [studentSearchNotas, setStudentSearchNotas] = useState('')
   const [showDropdown, setShowDropdown] = useState(false)
+  const [pagoTipo, setPagoTipo] = useState('')
 
   const uploadToBackend = async (base64Image) => {
     try {
@@ -3796,8 +3798,8 @@ export default function DashboardHome() {
 
   const generateComprovativoPDF = async (pagamento) => {
     try {
-      const nomeFormando = getNomeFormando(pagamento.aluno)
-      const tipoLabel = { matricula: 'Matrícula', mensalidade: 'Mensalidade', certificado: 'Certificado', taxa: 'Taxa', outro: 'Outro' }[pagamento.tipo] || pagamento.tipo
+      const nomeFormando = getNomeFormando(pagamento.aluno) || (pagamento.tipo === 'venda' ? 'Venda de Artigos' : '-')
+      const tipoLabel = { matricula: 'Matrícula', mensalidade: 'Mensalidade', certificado: 'Certificado', taxa: 'Taxa', venda: 'Venda de Artigos', outro: 'Outro' }[pagamento.tipo] || pagamento.tipo
       const valor = parseFloat(pagamento.valor || 0)
       const statusLabel = { pago: 'PAGO', pendente: 'PENDENTE', parcial: 'PAGO PARCIAL', cancelado: 'CANCELADO' }[pagamento.status] || pagamento.status
       const corStatus = { pago: [0, 150, 0], pendente: [200, 150, 0], parcial: [0, 108, 73], cancelado: [200, 0, 0] }[pagamento.status] || [100, 100, 100]
@@ -4547,6 +4549,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
     setFotoCertificadoPreview(null)
     setStudentSearch(data?.aluno || '')
     setStudentSearchNotas('')
+    setPagoTipo(data?.tipo || (type === 'pagamentos' ? 'mensalidade' : ''))
     setShowDropdown(false)
     setModalOpen(true)
   }
@@ -4951,6 +4954,12 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
 
         {modalType === 'pagamentos' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            {pagoTipo === 'venda' && (
+              <div className="col-span-full rounded-lg border border-[#006c49]/20 bg-[#006c49]/5 px-3 py-2 text-[11px] sm:text-xs text-[#006c49]">
+                Venda de artigos registada sem formando associado. Use a Observação para descrever o artigo vendido.
+              </div>
+            )}
+            {pagoTipo !== 'venda' && (<>
             <div className="col-span-full">
               <label className="text-xs sm:text-sm font-medium text-gray-700">Formando *</label>
               <div className="relative mt-1">
@@ -4974,10 +4983,11 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
               <select id="hidden-aluno-select" name="aluno" defaultValue={modalData?.aluno || ''} className="hidden" required><option value="">Selecione</option>{matriculas && matriculas.length > 0 ? matriculas.map(m => <option key={m.id} value={m.Nome}>{m.Nome}</option>) : null}</select>
             </div>
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Curso</label><select name="curso" defaultValue={modalData?.curso} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione um curso</option>{cursosList && cursosList.length > 0 ? cursosList.map(c => <option key={c.id} value={c.Nome}>{c.Nome}</option>) : <option value="" disabled>Nenhum curso cadastrado</option>}</select></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Tipo *</label><select name="tipo" defaultValue={modalData?.tipo || 'mensalidade'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="matricula">Matrícula</option><option value="mensalidade">Mensalidade</option><option value="certificado">Certificado</option><option value="taxa">Taxa</option><option value="outro">Outro</option></select></div>
+            </>)}
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Tipo *</label><select name="tipo" defaultValue={modalData?.tipo || 'mensalidade'} onChange={(e) => setPagoTipo(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="matricula">Matrícula</option><option value="mensalidade">Mensalidade</option><option value="certificado">Certificado</option><option value="taxa">Taxa</option><option value="venda">Venda de Artigos</option><option value="outro">Outro</option></select></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Forma de Pagamento *</label><select name="forma_pagamento" defaultValue={modalData?.forma_pagamento || 'dinheiro'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="dinheiro">Dinheiro</option><option value="transferencia">Transferência</option><option value="deposito">Depósito</option><option value="multicaixa">Multicaixa</option></select></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Valor (Kz) *</label><input type="number" step="0.01" name="valor" defaultValue={modalData?.valor} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Status</label><select name="status" defaultValue={modalData?.status || 'pendente'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="pago">Pago</option><option value="pendente">Pendente</option><option value="parcial">Parcial</option><option value="cancelado">Cancelado</option></select></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Status</label><select key={pagoTipo} name="status" defaultValue={modalData?.status || (pagoTipo === 'venda' ? 'pago' : 'pendente')} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="pago">Pago</option><option value="pendente">Pendente</option><option value="parcial">Parcial</option><option value="cancelado">Cancelado</option></select></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data Pagamento</label><input type="date" name="data_pagamento" defaultValue={modalData?.data_pagamento || new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data Vencimento</label><input type="date" name="data_vencimento" defaultValue={modalData?.data_vencimento} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Observação</label><textarea name="observacao" defaultValue={modalData?.observacao} rows="2" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
