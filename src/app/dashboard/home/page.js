@@ -2724,7 +2724,7 @@ function TesourariaTab({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div>
           <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#091426]">Dívidas de Mensalidades</h2>
-          <p className="text-[10px] sm:text-xs lg:text-sm text-[#45474c] mt-0.5">Formandos em cursos multi-mês com mensalidades em aberto. Cobrança no dia 1 de cada mês.</p>
+          <p className="text-[10px] sm:text-xs text-[#45474c] mt-0.5">Formandos no curso <strong>English</strong> com mensalidades em aberto. Cobrança no dia 1 de cada mês.</p>
         </div>
         {(dividas || []).length > 0 && (
           <button onClick={onGerarNotasCobrancaAll} className="flex items-center justify-center gap-1.5 rounded-lg border border-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-[#006c49] hover:bg-[#006c49]/5 transition-colors w-full sm:w-auto">
@@ -5312,7 +5312,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
                       <div className="flex items-start gap-2">
                         <Info className="size-4 shrink-0 mt-0.5 text-blue-600" />
                         <p className="text-[10px] sm:text-xs text-blue-800">
-                          Este curso tem <strong>{modulos} módulos</strong>. Ao confirmar a matrícula, o sistema gera automaticamente as <strong>{modulos} mensalidades</strong> mensais (cobrança no dia 1 de cada mês). Gerir pagamentos e ver dívidas em <strong>Tesouraria &gt; Dívidas</strong>.
+                          Este curso tem <strong>{modulos} módulos</strong>. Ao confirmar a matrícula, o sistema gera automaticamente as <strong>{modulos} mensalidades</strong> mensais (cobrança no dia 1 de cada mês). Gerir pagamentos e ver dívidas em <strong>Tesouraria &gt; Dívidas</strong>. <em>(por enquanto, apenas para o curso English)</em>
                         </p>
                       </div>
                     </div>
@@ -5323,7 +5323,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
                     <div className="flex items-start gap-2">
                       <Info className="size-4 shrink-0 mt-0.5 text-blue-600" />
                       <p className="text-[10px] sm:text-xs text-blue-800">
-                        Cursos com mais de um módulo (ex: English, 4 módulos) geram <strong>mensalidades automáticas</strong> de cada mês. A cobrança é no dia 1 de cada mês e as dívidas são controladas em <strong>Tesouraria &gt; Dívidas</strong>.
+                        Cursos com mais de um módulo (ex: English, 4 módulos) geram <strong>mensalidades automáticas</strong> de cada mês. A cobrança é no dia 1 de cada mês e as dívidas são controladas em <strong>Tesouraria &gt; Dívidas</strong>. <em>(por enquanto, apenas para o curso English)</em>
                       </p>
                     </div>
                   </div>
