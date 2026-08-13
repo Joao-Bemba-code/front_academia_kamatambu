@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import jsPDF from 'jspdf'
@@ -565,6 +565,96 @@ function ViewModal({ isOpen, onClose, data, type }) {
     </div>
   )
 
+  const renderDividaDetails = () => {
+    const meses = (data.meses || []).sort((a, b) => {
+      if (a.data_vencimento && b.data_vencimento) return new Date(a.data_vencimento) - new Date(b.data_vencimento)
+      return 0
+    })
+    const mesesVencidas = meses.filter(m => m.vencida)
+    const totalDevido = meses.reduce((s, m) => s + parseFloat(m.valor || 0), 0)
+    const todosVencidos = mesesVencidas.length === meses.length
+
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+          <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-red-50 shrink-0">
+            <PiggyBank className="size-10 sm:size-12 text-red-600" />
+          </div>
+          <div className="text-center sm:text-left">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900">{data.aluno}</h3>
+            <p className="text-xs sm:text-sm text-gray-500">ID: {data.id}</p>
+            <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${todosVencidos ? 'bg-red-100 text-red-800' : mesesVencidas.length > 0 ? 'bg-orange-100 text-orange-800' : 'bg-amber-100 text-amber-800'}`}>
+              {todosVencidos ? 'Em atraso' : 'A vencer / Em atraso parcial'}
+            </span>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div className="space-y-0.5 sm:space-y-1">
+            <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Formando</p>
+            <p className="text-sm sm:text-base text-gray-900 break-words">{data.aluno || 'Não informado'}</p>
+          </div>
+          <div className="space-y-0.5 sm:space-y-1">
+            <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</p>
+            <p className="text-sm sm:text-base text-gray-900 break-words">{data.curso || 'Não informado'}</p>
+          </div>
+          <div className="space-y-0.5 sm:space-y-1">
+            <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Turma</p>
+            <p className="text-sm sm:text-base text-gray-900">{data.turma || 'Não informado'}</p>
+          </div>
+          <div className="space-y-0.5 sm:space-y-1">
+            <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</p>
+            <p className="text-sm sm:text-base text-gray-900 break-words">{data.telefone || 'Não informado'}</p>
+          </div>
+          <div className="space-y-0.5 sm:space-y-1">
+            <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Módulos do Curso</p>
+            <p className="text-sm sm:text-base text-gray-900">{data.modulos_curso || 1}</p>
+          </div>
+          <div className="space-y-0.5 sm:space-y-1">
+            <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Meses em Dívida</p>
+            <p className="text-lg sm:text-xl font-bold text-red-600">{data.total_meses_devidos || 0} {data.total_meses_devidos === 1 ? 'mês' : 'meses'}</p>
+          </div>
+        </div>
+
+        <div className="pt-2">
+          <h4 className="text-sm font-semibold text-gray-900 mb-2">Mensalidades em Aberto</h4>
+          <div className="overflow-x-auto rounded-lg border border-[#c5c6cd]/50">
+            <table className="w-full text-left text-[10px] sm:text-xs">
+              <thead className="bg-[#eceef0]">
+                <tr>
+                  <th className="px-2 sm:px-3 py-1 sm:py-2 text-[8px] sm:text-[10px] font-medium uppercase tracking-wider text-[#45474c]">Mês Referência</th>
+                  <th className="px-2 sm:px-3 py-1 sm:py-2 text-[8px] sm:text-[10px] font-medium uppercase tracking-wider text-[#45474c]">Vencimento</th>
+                  <th className="px-2 sm:px-3 py-1 sm:py-2 text-[8px] sm:text-[10px] font-medium uppercase tracking-wider text-[#45474c]">Valor</th>
+                  <th className="px-2 sm:px-3 py-1 sm:py-2 text-[8px] sm:text-[10px] font-medium uppercase tracking-wider text-[#45474c]">Situação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#c5c6cd]/50">
+                {meses.length > 0 ? meses.map((m) => (
+                  <tr key={m.id} className="hover:bg-[#f7f9fb]">
+                    <td className="px-2 sm:px-3 py-1 sm:py-2 text-[#091426] font-medium">{m.label}</td>
+                    <td className="px-2 sm:px-3 py-1 sm:py-2 text-[#45474c]">{m.data_vencimento ? new Date(m.data_vencimento).toLocaleDateString('pt-PT') : 'Não definida'}</td>
+                    <td className="px-2 sm:px-3 py-1 sm:py-2 font-semibold text-[#091426]">{formatarMoeda(m.valor)}</td>
+                    <td className="px-2 sm:px-3 py-1 sm:py-2">
+                      <span className={`rounded-full px-1.5 py-0.5 text-[7px] sm:text-[9px] font-bold uppercase ${m.vencida ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>
+                        {m.vencida ? 'Vencida' : 'A vencer'}
+                      </span>
+                    </td>
+                  </tr>
+                )) : (
+                  <tr><td colSpan="4" className="px-3 py-4 text-center text-gray-500 text-[10px]">Sem mensalidades em aberto</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between rounded-lg bg-red-50 border border-red-200 px-3 sm:px-4 py-2.5 sm:py-3">
+            <span className="text-xs sm:text-sm font-medium text-red-800">Total da Dívida</span>
+            <span className="text-lg sm:text-xl font-bold text-red-600">{formatarMoeda(totalDevido)}</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const renderDetails = () => {
     switch (type) {
       case 'matriculas':
@@ -579,6 +669,8 @@ function ViewModal({ isOpen, onClose, data, type }) {
         return renderPagamentoDetails()
       case 'saidas':
         return renderSaidaDetails()
+      case 'dividas':
+        return renderDividaDetails()
       case 'notas':
       case 'academico':
         return renderNotaDetails()
@@ -595,6 +687,7 @@ function ViewModal({ isOpen, onClose, data, type }) {
       case 'formadores': return 'Detalhes do Formador'
       case 'pagamentos': return 'Detalhes do Pagamento'
       case 'saidas': return 'Detalhes da Saída'
+      case 'dividas': return 'Detalhes da Dívida'
       case 'notas': return 'Detalhes da Avaliação'
       default: return 'Detalhes'
     }
@@ -2265,7 +2358,11 @@ function TesourariaTab({
   onEditMatricula,
   onDeleteMatricula,
   onViewMatricula,
-  onCreateMatricula
+  onCreateMatricula,
+  dividas,
+  dividasLoading,
+  onGerarNotaCobranca,
+  onGerarNotasCobrancaAll
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterTipo, setFilterTipo] = useState('')
@@ -2273,8 +2370,8 @@ function TesourariaTab({
   const [filteredPagamentos, setFilteredPagamentos] = useState([])
   const [showMatriculasModal, setShowMatriculasModal] = useState(false)
   const [activeSubTab, setActiveSubTab] = useState('entradas')
-  const [searchSaida, setSearchSaida] = useState('')
-  const [filteredSaidas, setFilteredSaidas] = useState([])
+   const [searchSaida, setSearchSaida] = useState('')
+   const [filteredSaidas, setFilteredSaidas] = useState([])
 
   // Search state for matrículas
   const [searchMatricula, setSearchMatricula] = useState('')
@@ -2318,17 +2415,28 @@ function TesourariaTab({
     setFilteredMatriculas(filtered)
   }, [matriculas, searchMatricula, filterCursoMat, filterTurmaMat, filterStatusMat])
 
-  useEffect(() => {
-    let filtered = [...(saidas || [])]
-    if (searchSaida.trim()) {
-      const term = searchSaida.toLowerCase().trim()
-      filtered = filtered.filter(s => 
-        (s.descricao && s.descricao.toLowerCase().includes(term)) ||
-        (s.tipo && s.tipo.toLowerCase().includes(term))
-      )
-    }
-    setFilteredSaidas(filtered)
-  }, [saidas, searchSaida])
+   useEffect(() => {
+     let filtered = [...(saidas || [])]
+     if (searchSaida.trim()) {
+       const term = searchSaida.toLowerCase().trim()
+       filtered = filtered.filter(s => 
+         (s.descricao && s.descricao.toLowerCase().includes(term)) ||
+         (s.tipo && s.tipo.toLowerCase().includes(term))
+       )
+     }
+     setFilteredSaidas(filtered)
+   }, [saidas, searchSaida])
+
+   const filteredDividas = useMemo(() => {
+     if (!searchTerm.trim()) return [...(dividas || [])]
+     const term = searchTerm.toLowerCase().trim()
+     return (dividas || []).filter(d => 
+       (d.aluno && d.aluno.toLowerCase().includes(term)) ||
+       (d.curso && d.curso.toLowerCase().includes(term)) ||
+       (d.turma && d.turma.toLowerCase().includes(term)) ||
+       (d.id && String(d.id).includes(term))
+     )
+   }, [dividas, searchTerm])
 
   const getStatusBadge = (status) => {
     const colors = { 'pago': 'bg-green-100 text-green-800', 'pendente': 'bg-yellow-100 text-yellow-800', 'parcial': 'bg-orange-100 text-orange-800', 'cancelado': 'bg-red-100 text-red-800' }
@@ -2413,6 +2521,9 @@ function TesourariaTab({
         </button>
         <button onClick={() => setActiveSubTab('saidas')} className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors border-b-2 ${activeSubTab === 'saidas' ? 'border-red-600 text-red-600' : 'border-transparent text-[#45474c] hover:text-[#091426]'}`}>
           <TrendingDown className="size-4" /> Saídas
+        </button>
+        <button onClick={() => setActiveSubTab('dividas')} className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors border-b-2 ${activeSubTab === 'dividas' ? 'border-amber-600 text-amber-600' : 'border-transparent text-[#45474c] hover:text-[#091426]'}`}>
+          <AlertTriangle className="size-4" /> Dívidas
         </button>
       </div>
 
@@ -2599,6 +2710,145 @@ function TesourariaTab({
                     <div className="flex flex-col items-center gap-2">
                       <Search className="size-8 text-gray-300" />
                       <p>Nenhuma saída encontrada</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      </>)}
+
+      {activeSubTab === 'dividas' && (<>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div>
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#091426]">Dívidas de Mensalidades</h2>
+          <p className="text-[10px] sm:text-xs lg:text-sm text-[#45474c] mt-0.5">Formandos em cursos multi-mês com mensalidades em aberto. Cobrança no dia 1 de cada mês.</p>
+        </div>
+        {(dividas || []).length > 0 && (
+          <button onClick={onGerarNotasCobrancaAll} className="flex items-center justify-center gap-1.5 rounded-lg border border-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-[#006c49] hover:bg-[#006c49]/5 transition-colors w-full sm:w-auto">
+            <FileDown className="size-3.5 sm:size-4" /> Gerar notas (todos)
+          </button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+        <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm">
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50 border border-amber-200"><UsersIcon className="size-4 text-amber-600" /></div>
+            <p className="text-[10px] sm:text-xs font-medium text-gray-500">Devedores</p>
+          </div>
+          <p className="text-xl sm:text-2xl font-bold text-[#091426]">{(dividas || []).length}</p>
+        </div>
+        <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm">
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-50 border border-red-200"><CalendarDays className="size-4 text-red-600" /></div>
+            <p className="text-[10px] sm:text-xs font-medium text-gray-500">Meses em dívida</p>
+          </div>
+          <p className="text-xl sm:text-2xl font-bold text-red-600">{(dividas || []).reduce((s, d) => s + (d.total_meses_devidos || 0), 0)}</p>
+        </div>
+        <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm">
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-50 border border-red-200"><PiggyBank className="size-4 text-red-600" /></div>
+            <p className="text-[10px] sm:text-xs font-medium text-gray-500">Total em dívida</p>
+          </div>
+          <p className="text-xl sm:text-2xl font-bold text-red-600">{formatarMoeda((dividas || []).reduce((s, d) => s + (d.total_divida || 0), 0))}</p>
+        </div>
+        <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm">
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50 border border-amber-200"><Wallet className="size-4 text-amber-600" /></div>
+            <p className="text-[10px] sm:text-xs font-medium text-gray-500">Só em atraso</p>
+          </div>
+          <p className="text-xl sm:text-2xl font-bold text-amber-600">
+            {formatarMoeda((dividas || []).reduce((s, d) => s + (d.meses || []).filter(m => m.vencida).reduce((ms, m) => ms + parseFloat(m.valor || 0), 0), 0))}
+          </p>
+        </div>
+      </div>
+
+      <div className="relative flex-1 w-full">
+        <Search className="absolute left-3 top-1/2 size-3.5 sm:size-4 -translate-y-1/2 text-[#45474c]" />
+        <input type="text" placeholder="Buscar por formando, curso, turma..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full rounded-lg border border-[#c5c6cd] bg-white py-1.5 sm:py-2 pl-8 sm:pl-10 pr-3 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
+      </div>
+
+      <div className="text-xs sm:text-sm text-[#45474c]">
+        {filteredDividas.length > 0 ? <span>Mostrando <strong>{filteredDividas.length}</strong> formando{(filteredDividas.length > 1 ? 's' : '')} devedor{(filteredDividas.length > 1 ? 's' : '')}</span> : <span>Nenhum formando com dívida de mensalidade encontrado</span>}
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-[#eceef0] bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-[10px] sm:text-xs lg:text-sm">
+            <thead className="bg-[#eceef0]">
+              <tr>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Formando</th>
+                <th className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Curso</th>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Turma</th>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Deve (meses)</th>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Total (Kz)</th>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Situação</th>
+                <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#c5c6cd]/50">
+              {dividasLoading ? (
+                <tr><td colSpan="8" className="px-6 py-8 text-center text-gray-500"><Loader2 className="size-5 sm:size-6 animate-spin mx-auto" /></td></tr>
+              ) : filteredDividas.length > 0 ? (
+                filteredDividas.map((d) => {
+                  const mesesVencidas = (d.meses || []).filter(m => m.vencida)
+                  const mesesAVencer = (d.meses || []).filter(m => !m.vencida)
+                  const todosVencidos = mesesAVencer.length === 0
+                  return (
+                    <tr key={d.id} className="transition-colors hover:bg-[#f7f9fb]">
+                      <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
+                        <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
+                          <div className="flex h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 items-center justify-center rounded-full bg-[#eceef0] text-[8px] sm:text-[10px] lg:text-xs font-bold text-[#091426]">
+                            {d.aluno ? d.aluno.split(' ').map(n => n[0]).join('') : '?'}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[10px] sm:text-xs lg:text-sm font-semibold text-[#091426] truncate">{d.aluno}</p>
+                            <p className="text-[8px] sm:text-[10px] lg:text-[11px] text-[#45474c]">ID: {d.id}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c] truncate max-w-[80px] sm:max-w-[100px]">{d.curso}</td>
+                      <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c]">{d.turma}</td>
+                      <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-red-600">{d.total_meses_devidos} {d.total_meses_devidos === 1 ? 'mês' : 'meses'}</span>
+                          <div className="mt-0.5 flex flex-wrap gap-0.5">
+                            {d.meses.slice(0, 3).map((m) => (
+                              <span key={m.id} className={`inline-block rounded px-1 py-0.5 text-[7px] sm:text-[9px] font-medium ${m.vencida ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>
+                                {m.label}
+                              </span>
+                            ))}
+                            {d.meses.length > 3 && (
+                              <span className="inline-block rounded px-1 py-0.5 text-[7px] sm:text-[9px] font-medium bg-gray-100 text-gray-700">+{d.meses.length - 3} mais</span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 font-semibold text-[#091426]">{formatarMoeda(d.total_divida)}</td>
+                      <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
+                        <span className={`inline-block rounded-full px-1.5 sm:px-2 lg:px-3 py-0.5 text-[7px] sm:text-[9px] lg:text-[11px] font-bold uppercase tracking-tighter ${todosVencidos ? 'bg-red-100 text-red-800' : mesesVencidas.length > 0 ? 'bg-orange-100 text-orange-800' : 'bg-amber-100 text-amber-800'}`}>
+                          {todosVencidos ? 'Em atraso' : (mesesVencidas.length > 0 ? 'Parcial atraso' : 'A vencer')}
+                        </span>
+                      </td>
+                      <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right">
+                        <div className="flex items-center justify-end gap-0.5 sm:gap-1">
+                          <button onClick={() => onGerarNotaCobranca(d)} className="rounded p-0.5 sm:p-1 text-purple-600 hover:bg-purple-50" title="Nota de Cobrança (PDF)"><FileDown className="size-3 sm:size-3.5 lg:size-4" /></button>
+                          <button onClick={() => onViewDivida && onViewDivida(d)} className="rounded p-0.5 sm:p-1 text-blue-600 hover:bg-blue-50" title="Ver dívida"><Eye className="size-3 sm:size-3.5 lg:size-4" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
+              ) : (
+                <tr>
+                  <td colSpan="8" className="px-6 py-8 text-center text-gray-500">
+                    <div className="flex flex-col items-center gap-2">
+                      <CheckCircle className="size-8 text-green-500" />
+                      <p>Sem dívidas de mensalidades</p>
+                      <p className="text-[10px] text-gray-400">Todos os formandos em mãos na atualidade</p>
                     </div>
                   </td>
                 </tr>
@@ -3246,6 +3496,8 @@ export default function DashboardHome() {
   const [cursos, setCursos] = useState([])
   const [formadores, setFormadores] = useState([])
   const [pagamentos, setPagamentos] = useState([])
+  const [dividas, setDividas] = useState([])
+  const [dividasLoading, setDividasLoading] = useState(false)
   const [notas, setNotas] = useState([])
   const [criteriosAvaliacao, setCriteriosAvaliacao] = useState([])
   const [saidas, setSaidas] = useState([])
@@ -3916,6 +4168,147 @@ export default function DashboardHome() {
     }
   }
 
+  // ========== NOTA DE COBRANÇA (por formando com dívida) ==========
+  const generateNotaCobrancaPDF = async (divida) => {
+    if (!divida) { showToast('Sem dados de dívida para gerar nota', 'warning'); return }
+    try {
+      const meses = (divida.meses || []).slice().sort((a, b) => {
+        if (a.data_vencimento && b.data_vencimento) return new Date(a.data_vencimento) - new Date(b.data_vencimento)
+        return 0
+      })
+      const totalDevido = divida.total_divida || meses.reduce((s, m) => s + parseFloat(m.valor || 0), 0)
+      const nomeFormando = getNomeFormando(divida.aluno) || divida.aluno || '-'
+
+      const doc = new jsPDF('portrait', 'mm', 'a4')
+      const lm = 14
+      const rm = doc.internal.pageSize.getWidth() - 14
+      const pageWidth = doc.internal.pageSize.getWidth()
+
+      const startY = await addPDFHeader(doc, 'NOTA DE COBRANÇA', [
+        { label: 'Formando', value: divida.aluno },
+        { label: 'Curso', value: divida.curso },
+        { label: 'Total Devido', value: `Kz ${totalDevido.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}` }
+      ])
+
+      let y = startY
+
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text(`Emitido em: ${new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' })}`, lm, y)
+      doc.text(`Referência: AK-DIV-${String(divida.id).padStart(5, '0')}`, rm, y, { align: 'right' })
+      y += 8
+
+      // Box dados pessoais
+      doc.setFillColor(...PDF_COLORS.primaryLight)
+      doc.roundedRect(lm, y, rm - lm, 40, 2, 2, 'F')
+      doc.setDrawColor(...PDF_COLORS.primary)
+      doc.setLineWidth(0.3)
+      doc.roundedRect(lm, y, rm - lm, 40, 2, 2, 'S')
+      y += 10
+
+      const drawField = (label, value, fx, fy) => {
+        doc.setFontSize(7)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(...PDF_COLORS.gray)
+        doc.text(label.toUpperCase(), fx, fy)
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...PDF_COLORS.dark)
+        doc.text(String(value || '-'), fx, fy + 5)
+      }
+
+      drawField('Formando', divida.aluno, lm + 5, y)
+      drawField('Curso', divida.curso, lm + 5, y + 8)
+      drawField('Turma', divida.turma, lm + 5, y + 16)
+      drawField('Telefone', divida.telefone, lm + 60, y)
+      drawField('Módulos do curso', divida.modulos_curso || '-', lm + 60, y + 8)
+      drawField('Total a pagar', `Kz ${totalDevido.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`, lm + 60, y + 16)
+      y += 42
+
+      // Lista de meses em dívida
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...PDF_COLORS.dark)
+      doc.text('Mensalidades em Aberto', lm, y)
+      y += 4
+
+      autoTable(doc, {
+        startY: y,
+        head: [['No', 'Mês Referência', 'Vencimento', 'Valor (Kz)', 'Situação']],
+        body: meses.map((m, i) => [
+          i + 1,
+          m.label || 'Mês desconhecido',
+          m.data_vencimento ? new Date(m.data_vencimento).toLocaleDateString('pt-PT') : '-',
+          parseFloat(m.valor || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 }),
+          m.vencida ? 'VENCIDA' : 'A VENCER'
+        ]),
+        ...TABLE_BASE,
+        columnStyles: {
+          0: { cellWidth: 10 },
+          1: { cellWidth: 50 },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 30 },
+          4: { cellWidth: 30 }
+        },
+        margin: { left: lm, right: 14 },
+        didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) }
+      })
+
+      y = doc.lastAutoTable.finalY + 12
+
+      // Destaque do total
+      doc.setFillColor(...PDF_COLORS.primary)
+      doc.roundedRect(lm, y, rm - lm, 12, 2, 2, 'F')
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...PDF_COLORS.white)
+      doc.text(`TOTAL A PAGAR: Kz ${totalDevido.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`, pageWidth / 2, y + 8, { align: 'center' })
+      y += 20
+
+      // Aviso / instruções
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...PDF_COLORS.gray)
+      const aviso = 'Aviso: O pagamento das mensalidades deve ser efectuado até ao dia 1 de cada mês. O não pagamento no prazo implica a suspensão das aulas e a acumulação de dívidas.'
+      const avisoSplit = doc.splitTextToSize(aviso, rm - lm)
+      doc.text(avisoSplit, lm, y)
+      y += avisoSplit.length * 3.6 + 4
+
+      doc.setDrawColor(...PDF_COLORS.grayLighter)
+      doc.setLineWidth(0.3)
+      doc.line(lm, y, lm + 50, y)
+      doc.setFontSize(7)
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text('Assinatura da Academia', lm + 25, y + 5, { align: 'center' })
+
+      doc.line(rm - 50, y, rm, y)
+      doc.text('Assinatura do Formando', rm - 25, y + 5, { align: 'center' })
+
+      addPDFFooter(doc, doc.internal.getNumberOfPages())
+
+      doc.save(`Nota_Cobranca_${nomeFormando.replace(/\s/g, '_')}_${divida.id}.pdf`)
+      showToast('Nota de cobrança gerada com sucesso!', 'success')
+    } catch (error) {
+      console.error('Erro ao gerar nota de cobrança:', error)
+      showToast('Erro ao gerar nota de cobrança', 'error')
+    }
+  }
+
+  // ========== GERAR NOTAS DE COBRANÇA (todas as dívidas) ==========
+  const generateNotasCobrancaAllPDF = async () => {
+    if (!dividas || dividas.length === 0) { showToast('Nenhuma dívida encontrada para gerar notas', 'warning'); return }
+    try {
+      for (const divida of dividas) {
+        await generateNotaCobrancaPDF(divida)
+      }
+      showToast(`${dividas.length} nota(s) de cobrança gerada(s) com sucesso!`, 'success')
+    } catch (error) {
+      console.error('Erro ao gerar notas de cobrança:', error)
+      showToast('Erro ao gerar notas de cobrança', 'error')
+    }
+  }
+
   const generateSaidaPDF = async (saida) => {
     try {
       const tipoLabel = { salario: 'Salário', aluguel: 'Aluguel', material: 'Material', equipamento: 'Equipamento', servico: 'Serviço', energia: 'Energia', agua: 'Água', internet: 'Internet', manutencao: 'Manutenção', imposto: 'Imposto', outro: 'Outro' }[saida.tipo] || saida.tipo
@@ -4099,7 +4492,8 @@ export default function DashboardHome() {
     try {
       const tipoUser = typeof window !== 'undefined' ? localStorage.getItem('userTipo') || 'admin' : 'admin'
       const ehFormadorLogado = tipoUser === 'formador'
-      setLoading({ matriculas: true, turmas: true, cursos: true, formadores: true, pagamentos: true, saidas: true, notas: true, criterios: true })
+       setLoading({ matriculas: true, turmas: true, cursos: true, formadores: true, pagamentos: true, saidas: true, notas: true, criterios: true })
+       setDividasLoading(true)
       const token = localStorage.getItem('token')
 
       try {
@@ -4131,13 +4525,14 @@ export default function DashboardHome() {
         ])
       }
 
-      const [matriculasRes, turmasRes, cursosRes, formadoresRes, pagamentosRes, financeiroStatsRes, notasRes, criteriosRes, saidasRes] = await Promise.all([
+      const [matriculasRes, turmasRes, cursosRes, formadoresRes, pagamentosRes, financeiroStatsRes, notasRes, criteriosRes, saidasRes, dividasRes] = await Promise.all([
         apiFetch('/matriculas'), apiFetch('/turmas'), apiFetch('/cursos'), apiFetch('/formadores'),
         ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/pagamentos'),
         ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/pagamentos/financeiro/stats'),
         apiFetch('/academico/notas'),
         apiFetch('/criterios-avaliacao'),
-        ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/saidas')
+        ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/saidas'),
+        ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/pagamentos/dividas')
       ])
 
       if (matriculasRes.success) setMatriculas(matriculasRes.data)
@@ -4152,6 +4547,9 @@ export default function DashboardHome() {
       if (notasRes.success) setNotas(notasRes.data)
       if (criteriosRes.success) setCriteriosAvaliacao(criteriosRes.data)
       if (saidasRes.success) setSaidas(saidasRes.data)
+      if (dividasRes.success) {
+        setDividas(dividasRes.data || [])
+      }
 
       try {
         const [cursosListRes, turmasListRes, formadoresListRes] = await Promise.all([
@@ -4173,6 +4571,7 @@ export default function DashboardHome() {
       showToast('Erro ao carregar dados', 'error')
     } finally {
       setLoading({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, saidas: false, notas: false, criterios: false })
+      setDividasLoading(false)
     }
   }
 
@@ -4663,7 +5062,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
       const response = await apiFetch(endpoint, { method: 'POST', body: JSON.stringify(data) })
       
       if (response.success) {
-        showToast(`${type === 'notas' || type === 'academico' ? 'Avaliação' : type === 'saidas' ? 'Saída' : type.slice(0, -1)} criado com sucesso!`, 'success')
+        showToast(response.message || `${type === 'notas' || type === 'academico' ? 'Avaliação' : type === 'saidas' ? 'Saída' : type.slice(0, -1)} criado com sucesso!`, 'success')
         setModalOpen(false); setFotoUrl(null); setFotoPreview(null); setFotoCertificadoUrl(null); setFotoCertificadoPreview(null); loadData()
       } else {
         console.error('Erro do backend:', response); showToast(response.message || 'Erro ao criar', 'error')
@@ -4856,7 +5255,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
       case 'formadores':
         return <FormadoresTab formadores={formadores} loading={loading.formadores} onEdit={(data) => handleOpenModal('formadores', data)} onDelete={(id) => handleConfirmDelete(id, 'formadores')} onView={(data) => handleOpenModal('view', data, 'formadores')} onCreate={() => handleOpenModal('formadores')} onGeneratePDF={generateFormadoresPDF} />
       case 'tesouraria':
-        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} loadingMatriculas={loading.matriculas} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} saidas={saidas} onCreateSaida={() => handleOpenModal('saidas')} onEditSaida={(data) => handleOpenModal('saidas', data)} onDeleteSaida={(id) => handleConfirmDelete(id, 'saidas')} onViewSaida={(data) => handleOpenModal('view', data, 'saidas')} onGerarSaidaPDF={generateSaidaPDF} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} />
+        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} loadingMatriculas={loading.matriculas} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} saidas={saidas} onCreateSaida={() => handleOpenModal('saidas')} onEditSaida={(data) => handleOpenModal('saidas', data)} onDeleteSaida={(id) => handleConfirmDelete(id, 'saidas')} onViewSaida={(data) => handleOpenModal('view', data, 'saidas')} onGerarSaidaPDF={generateSaidaPDF} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} dividas={dividas} dividasLoading={dividasLoading} onGerarNotaCobranca={generateNotaCobrancaPDF} onGerarNotasCobrancaAll={generateNotasCobrancaAllPDF} onViewDivida={(data) => handleOpenModal('view', data, 'dividas')} />
       case 'academico':
         return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} userTipo={userTipo} />
       case 'usuarios':
@@ -4902,6 +5301,35 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Telefone *</label><input name="Telefone" defaultValue={modalData?.Telefone} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Curso *</label><select name="Curso" defaultValue={modalData?.Curso} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="">Selecione um curso</option>{cursosList && cursosList.length > 0 ? cursosList.map(curso => <option key={curso.id} value={curso.Nome}>{curso.Nome}</option>) : <option value="" disabled>Nenhum curso cadastrado</option>}</select></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Turma *</label><select name="Turma" defaultValue={modalData?.Turma} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="">Selecione uma turma</option>{turmasList && turmasList.length > 0 ? turmasList.map(turma => <option key={turma.id} value={turma.Turma}>{turma.Turma}</option>) : <option value="" disabled>Nenhuma turma cadastrada</option>}</select></div>
+
+            <div className="col-span-full">
+              {modalType === 'matriculas' && (() => {
+                const cursoInfo = cursosList && cursosList.find(c => c.Nome === modalData?.Curso)
+                const modulos = cursoInfo ? (parseInt(cursoInfo.Modulos) || 1) : 1
+                if (modulos > 1) {
+                  return (
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-2.5 sm:p-3">
+                      <div className="flex items-start gap-2">
+                        <Info className="size-4 shrink-0 mt-0.5 text-blue-600" />
+                        <p className="text-[10px] sm:text-xs text-blue-800">
+                          Este curso tem <strong>{modulos} módulos</strong>. Ao confirmar a matrícula, o sistema gera automaticamente as <strong>{modulos} mensalidades</strong> mensais (cobrança no dia 1 de cada mês). Gerir pagamentos e ver dívidas em <strong>Tesouraria &gt; Dívidas</strong>.
+                        </p>
+                      </div>
+                    </div>
+                  )
+                }
+                return (
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-2.5 sm:p-3">
+                    <div className="flex items-start gap-2">
+                      <Info className="size-4 shrink-0 mt-0.5 text-blue-600" />
+                      <p className="text-[10px] sm:text-xs text-blue-800">
+                        Cursos com mais de um módulo (ex: English, 4 módulos) geram <strong>mensalidades automáticas</strong> de cada mês. A cobrança é no dia 1 de cada mês e as dívidas são controladas em <strong>Tesouraria &gt; Dívidas</strong>.
+                      </p>
+                    </div>
+                  </div>
+                )
+              })()}
+            </div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Módulo</label><input type="number" name="Modulo" defaultValue={modalData?.Modulo || 1} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Status</label><select name="Status" defaultValue={modalData?.Status || 'Inscrito'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="Inscrito">Inscrito</option><option value="Admitido">Admitido</option><option value="Ativo">Ativo</option><option value="Desistente">Desistente</option><option value="Concluido">Concluído</option></select></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data de Matrícula</label><input type="date" name="Data_Matricula" defaultValue={modalData?.Data_Matricula || new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
