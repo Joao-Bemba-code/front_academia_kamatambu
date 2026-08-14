@@ -225,8 +225,8 @@ function ViewModal({ isOpen, onClose, data, type }) {
         </div>
         <div className="space-y-0.5 sm:space-y-1">
           <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
-          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${getStatusColor(data.Status)}`}>
-            {data.Status || 'Inscrito'}
+          <span className="inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium bg-[#006c49]/10 text-[#006c49]">
+            {data.Status || 'Ativo'}
           </span>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
@@ -507,6 +507,14 @@ function ViewModal({ isOpen, onClose, data, type }) {
           <span className="inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium bg-[#006c49]/10 text-[#006c49]">
             {data.Status || 'Ativo'}
           </span>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Paga Mensal</p>
+          <p className="text-sm sm:text-base text-gray-900">
+            <span className={(data.paga_mensal || 'nao') === 'sim' ? 'text-green-600 font-medium' : 'text-gray-500'}>
+              {(data.paga_mensal || 'nao') === 'sim' ? 'Sim' : 'Não'}
+            </span>
+          </p>
         </div>
       </div>
     </div>
@@ -1792,7 +1800,7 @@ function CursosTab({ cursos, loading, onEdit, onDelete, onView, onCreate, onGene
   const [searchTerm, setSearchTerm] = useState('')
   const filteredCursos = Array.isArray(cursos) ? cursos.filter(item => {
     const term = searchTerm?.toLowerCase() || ''
-    return item.Nome?.toLowerCase().includes(term) || item.Desc?.toLowerCase().includes(term) || item.Tipo_curso?.toLowerCase().includes(term) || item.Status?.toLowerCase().includes(term) || item.Duracao?.toLowerCase().includes(term)
+    return item.Nome?.toLowerCase().includes(term) || item.Desc?.toLowerCase().includes(term) || item.Tipo_curso?.toLowerCase().includes(term) || item.Status?.toLowerCase().includes(term) || item.Duracao?.toLowerCase().includes(term) || (item.paga_mensal || '')?.toLowerCase().includes(term)
   }) : []
 
   return (
@@ -1834,6 +1842,7 @@ function CursosTab({ cursos, loading, onEdit, onDelete, onView, onCreate, onGene
                   <p className="text-[#45474c]"><span className="font-medium">Duração:</span> <span className="break-words">{curso.Duracao || 'Não definida'}</span></p>
                   <p className="text-[#45474c]"><span className="font-medium">Carga Horária:</span> {curso.Carga_Horaria ? `${curso.Carga_Horaria} horas` : 'Não definida'}</p>
                   <p className="text-[#45474c]"><span className="font-medium">Valor:</span> {curso.Valor_curso ? `Kz ${parseFloat(curso.Valor_curso).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}` : 'Não definido'}</p>
+                  <p className="text-[#45474c]"><span className="font-medium">Paga Mensal:</span> <span className={curso.paga_mensal === 'sim' ? 'text-green-600 font-medium' : 'text-gray-500'}>{(curso.paga_mensal || 'nao') === 'sim' ? 'Sim' : 'Não'}</span></p>
                 </div>
                 <div className="mt-2 sm:mt-3 lg:mt-4 flex gap-2 border-t border-[#eceef0] pt-2 sm:pt-3">
                   <button onClick={() => onView(curso)} className="flex-1 rounded-lg border border-[#c5c6cd] px-2 sm:px-3 py-1 text-[10px] sm:text-xs lg:text-sm text-[#45474c] hover:bg-[#f7f9fb]">Ver</button>
@@ -2724,7 +2733,7 @@ function TesourariaTab({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div>
           <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#091426]">Dívidas de Mensalidades</h2>
-          <p className="text-[10px] sm:text-xs text-[#45474c] mt-0.5">Formandos no curso <strong>English</strong> com mensalidades em aberto. Cobrança no dia 1 de cada mês.</p>
+          <p className="text-[10px] sm:text-xs text-[#45474c] mt-0.5">Formandos em cursos com <strong>pagamento mensal</strong> com mensalidades em aberto. Vencimento no dia 5; a partir do dia 6 do mês seguinte é considerada dívida.</p>
         </div>
         {(dividas || []).length > 0 && (
           <button onClick={onGerarNotasCobrancaAll} className="flex items-center justify-center gap-1.5 rounded-lg border border-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-[#006c49] hover:bg-[#006c49]/5 transition-colors w-full sm:w-auto">
@@ -2754,15 +2763,6 @@ function TesourariaTab({
             <p className="text-[10px] sm:text-xs font-medium text-gray-500">Total em dívida</p>
           </div>
           <p className="text-xl sm:text-2xl font-bold text-red-600">{formatarMoeda((dividas || []).reduce((s, d) => s + (d.total_divida || 0), 0))}</p>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm">
-          <div className="flex items-center gap-2.5 mb-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50 border border-amber-200"><Wallet className="size-4 text-amber-600" /></div>
-            <p className="text-[10px] sm:text-xs font-medium text-gray-500">Só em atraso</p>
-          </div>
-          <p className="text-xl sm:text-2xl font-bold text-amber-600">
-            {formatarMoeda((dividas || []).reduce((s, d) => s + (d.meses || []).filter(m => m.vencida).reduce((ms, m) => ms + parseFloat(m.valor || 0), 0), 0))}
-          </p>
         </div>
       </div>
 
@@ -4270,7 +4270,7 @@ export default function DashboardHome() {
       doc.setFontSize(8)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(...PDF_COLORS.gray)
-      const aviso = 'Aviso: O pagamento das mensalidades deve ser efectuado até ao dia 1 de cada mês. O não pagamento no prazo implica a suspensão das aulas e a acumulação de dívidas.'
+      const aviso = 'Aviso: O vencimento de cada mensalidade é no dia 5 do mês de referência, com prazo de pagamento de 1 mês (até dia 5 do mês seguinte). A partir do dia 6 do mês seguinte, a mensalidade não paga é considerada dívida.'
       const avisoSplit = doc.splitTextToSize(aviso, rm - lm)
       doc.text(avisoSplit, lm, y)
       y += avisoSplit.length * 3.6 + 4
@@ -4974,6 +4974,8 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
         if (!edicoesValidas.includes(data.Edicao)) data.Edicao = '1º'
         const statusValidos = ['Ativo', 'Inativo', 'Em desenvolvimento']
         if (!statusValidos.includes(data.Status)) data.Status = 'Ativo'
+        const pagaMensalValidos = ['sim', 'nao']
+        if (!pagaMensalValidos.includes(data.paga_mensal)) data.paga_mensal = 'nao'
         if (data.Modulos) data.Modulos = parseInt(data.Modulos)
         if (data.Carga_Horaria) data.Carga_Horaria = parseInt(data.Carga_Horaria)
         else data.Carga_Horaria = null
@@ -5084,6 +5086,8 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
         if (!edicoesValidas.includes(data.Edicao)) data.Edicao = '1º'
         const statusValidos = ['Ativo', 'Inativo', 'Em desenvolvimento']
         if (!statusValidos.includes(data.Status)) data.Status = 'Ativo'
+        const pagaMensalValidos = ['sim', 'nao']
+        if (!pagaMensalValidos.includes(data.paga_mensal)) data.paga_mensal = 'nao'
         if (data.Modulos) data.Modulos = parseInt(data.Modulos)
         if (data.Carga_Horaria) data.Carga_Horaria = parseInt(data.Carga_Horaria)
         else data.Carga_Horaria = null
@@ -5306,13 +5310,14 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
               {modalType === 'matriculas' && (() => {
                 const cursoInfo = cursosList && cursosList.find(c => c.Nome === modalData?.Curso)
                 const modulos = cursoInfo ? (parseInt(cursoInfo.Modulos) || 1) : 1
-                if (modulos > 1) {
+                const pagaMensal = cursoInfo?.paga_mensal === 'sim'
+                if (modulos > 1 && pagaMensal) {
                   return (
                     <div className="rounded-lg border border-blue-200 bg-blue-50 p-2.5 sm:p-3">
                       <div className="flex items-start gap-2">
                         <Info className="size-4 shrink-0 mt-0.5 text-blue-600" />
                         <p className="text-[10px] sm:text-xs text-blue-800">
-                          Este curso tem <strong>{modulos} módulos</strong>. Ao confirmar a matrícula, o sistema gera automaticamente as <strong>{modulos} mensalidades</strong> mensais (cobrança no dia 1 de cada mês). Gerir pagamentos e ver dívidas em <strong>Tesouraria &gt; Dívidas</strong>. <em>(por enquanto, apenas para o curso English)</em>
+                          Este curso tem <strong>{modulos} módulos</strong>. Ao confirmar a matrícula, o sistema gera automaticamente as <strong>{modulos} mensalidades</strong> mensais. O vencimento é no dia 5 de cada mês, com prazo de 1 mês (a partir do dia 6 do mês seguinte é considerada dívida). Gerir pagamentos e ver dívidas em <strong>Tesouraria &gt; Dívidas</strong>.
                         </p>
                       </div>
                     </div>
@@ -5323,7 +5328,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
                     <div className="flex items-start gap-2">
                       <Info className="size-4 shrink-0 mt-0.5 text-blue-600" />
                       <p className="text-[10px] sm:text-xs text-blue-800">
-                        Cursos com mais de um módulo (ex: English, 4 módulos) geram <strong>mensalidades automáticas</strong> de cada mês. A cobrança é no dia 1 de cada mês e as dívidas são controladas em <strong>Tesouraria &gt; Dívidas</strong>. <em>(por enquanto, apenas para o curso English)</em>
+                        Cursos com mais de um módulo e <strong>paga mensal</strong> geram <strong>mensalidades automáticas</strong> de cada mês. O vencimento é no dia 5, com prazo de 1 mês (a partir do dia 6 do mês seguinte é considerada dívida). As dívidas são controladas em <strong>Tesouraria &gt; Dívidas</strong>.
                       </p>
                     </div>
                   </div>
@@ -5364,6 +5369,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Carga Horária (horas)</label><input type="number" name="Carga_Horaria" defaultValue={modalData?.Carga_Horaria} min="0" placeholder="Ex: 120" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Valor do Curso (Kz)</label><input type="text" name="Valor_curso" defaultValue={modalData?.Valor_curso || "0.00"} placeholder="0.00" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Status</label><select name="Status" defaultValue={modalData?.Status || 'Ativo'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="Ativo">Ativo</option><option value="Inativo">Inativo</option><option value="Em desenvolvimento">Em desenvolvimento</option></select></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Paga Mensal</label><select name="paga_mensal" defaultValue={modalData?.paga_mensal || 'nao'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
           </div>
         )}
 
