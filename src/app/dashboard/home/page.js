@@ -2733,7 +2733,7 @@ function TesourariaTab({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div>
           <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#091426]">Dívidas de Mensalidades</h2>
-          <p className="text-[10px] sm:text-xs text-[#45474c] mt-0.5">Formandos em cursos com <strong>pagamento mensal</strong> com mensalidades em aberto. Vencimento no dia 5; a partir do dia 6 do mês seguinte é considerada dívida.</p>
+          <p className="text-[10px] sm:text-xs text-[#45474c] mt-0.5">Formandos em cursos com <strong>pagamento mensal</strong> com mensalidades em aberto. Vencimento no dia 5; a partir do dia 6 do próprio mês é considerada dívida.</p>
         </div>
         {(dividas || []).length > 0 && (
           <button onClick={onGerarNotasCobrancaAll} className="flex items-center justify-center gap-1.5 rounded-lg border border-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-[#006c49] hover:bg-[#006c49]/5 transition-colors w-full sm:w-auto">
@@ -4270,7 +4270,7 @@ export default function DashboardHome() {
       doc.setFontSize(8)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(...PDF_COLORS.gray)
-      const aviso = 'Aviso: O vencimento de cada mensalidade é no dia 5 do mês de referência, com prazo de pagamento de 1 mês (até dia 5 do mês seguinte). A partir do dia 6 do mês seguinte, a mensalidade não paga é considerada dívida.'
+      const aviso = 'Aviso: O vencimento de cada mensalidade é no dia 5 do mês de referência. A partir do dia 6 do próprio mês, a mensalidade não paga é considerada dívida.'
       const avisoSplit = doc.splitTextToSize(aviso, rm - lm)
       doc.text(avisoSplit, lm, y)
       y += avisoSplit.length * 3.6 + 4
@@ -5317,7 +5317,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
                       <div className="flex items-start gap-2">
                         <Info className="size-4 shrink-0 mt-0.5 text-blue-600" />
                         <p className="text-[10px] sm:text-xs text-blue-800">
-                          Este curso tem <strong>{modulos} módulos</strong>. Ao confirmar a matrícula, o sistema gera automaticamente as <strong>{modulos} mensalidades</strong> mensais. O vencimento é no dia 5 de cada mês, com prazo de 1 mês (a partir do dia 6 do mês seguinte é considerada dívida). Gerir pagamentos e ver dívidas em <strong>Tesouraria &gt; Dívidas</strong>.
+                          Este curso tem <strong>{modulos} módulos</strong>. Ao confirmar a matrícula, o sistema gera automaticamente as <strong>{modulos} mensalidades</strong> mensais. O vencimento é no dia 5 de cada mês; a partir do dia 6 do próprio mês é considerada dívida. Gerir pagamentos e ver dívidas em <strong>Tesouraria &gt; Dívidas</strong>.
                         </p>
                       </div>
                     </div>
@@ -5328,7 +5328,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
                     <div className="flex items-start gap-2">
                       <Info className="size-4 shrink-0 mt-0.5 text-blue-600" />
                       <p className="text-[10px] sm:text-xs text-blue-800">
-                        Cursos com mais de um módulo e <strong>paga mensal</strong> geram <strong>mensalidades automáticas</strong> de cada mês. O vencimento é no dia 5, com prazo de 1 mês (a partir do dia 6 do mês seguinte é considerada dívida). As dívidas são controladas em <strong>Tesouraria &gt; Dívidas</strong>.
+                        Cursos com mais de um módulo e <strong>paga mensal</strong> geram <strong>mensalidades automáticas</strong> de cada mês. O vencimento é no dia 5; a partir do dia 6 do próprio mês é considerada dívida. As dívidas são controladas em <strong>Tesouraria &gt; Dívidas</strong>.
                       </p>
                     </div>
                   </div>
