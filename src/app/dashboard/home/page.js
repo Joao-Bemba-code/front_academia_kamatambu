@@ -2371,7 +2371,8 @@ function TesourariaTab({
   dividas,
   dividasLoading,
   onGerarNotaCobranca,
-  onGerarNotasCobrancaAll
+  onGerarNotasCobrancaAll,
+  onViewDivida
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterTipo, setFilterTipo] = useState('')
