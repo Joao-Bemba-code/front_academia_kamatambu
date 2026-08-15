@@ -632,6 +632,7 @@ function ViewModal({ isOpen, onClose, data, type }) {
                   <th className="px-2 sm:px-3 py-1 sm:py-2 text-[8px] sm:text-[10px] font-medium uppercase tracking-wider text-[#45474c]">Mês Referência</th>
                   <th className="px-2 sm:px-3 py-1 sm:py-2 text-[8px] sm:text-[10px] font-medium uppercase tracking-wider text-[#45474c]">Vencimento</th>
                   <th className="px-2 sm:px-3 py-1 sm:py-2 text-[8px] sm:text-[10px] font-medium uppercase tracking-wider text-[#45474c]">Valor</th>
+                  <th className="px-2 sm:px-3 py-1 sm:py-2 text-[8px] sm:text-[10px] font-medium uppercase tracking-wider text-[#45474c]">Acréscimo</th>
                   <th className="px-2 sm:px-3 py-1 sm:py-2 text-[8px] sm:text-[10px] font-medium uppercase tracking-wider text-[#45474c]">Situação</th>
                 </tr>
               </thead>
@@ -641,6 +642,7 @@ function ViewModal({ isOpen, onClose, data, type }) {
                     <td className="px-2 sm:px-3 py-1 sm:py-2 text-[#091426] font-medium">{m.label}</td>
                     <td className="px-2 sm:px-3 py-1 sm:py-2 text-[#45474c]">{m.data_vencimento ? new Date(m.data_vencimento).toLocaleDateString('pt-PT') : 'Não definida'}</td>
                     <td className="px-2 sm:px-3 py-1 sm:py-2 font-semibold text-[#091426]">{formatarMoeda(m.valor)}</td>
+                    <td className="px-2 sm:px-3 py-1 sm:py-2 text-[#45474c]">{parseFloat(m.acrescimo || 0) > 0 ? `+ ${formatarMoeda(m.acrescimo)}` : '-'}</td>
                     <td className="px-2 sm:px-3 py-1 sm:py-2">
                       <span className={`rounded-full px-1.5 py-0.5 text-[7px] sm:text-[9px] font-bold uppercase ${m.vencida ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>
                         {m.vencida ? 'Vencida' : 'A vencer'}
@@ -648,7 +650,7 @@ function ViewModal({ isOpen, onClose, data, type }) {
                     </td>
                   </tr>
                 )) : (
-                  <tr><td colSpan="4" className="px-3 py-4 text-center text-gray-500 text-[10px]">Sem mensalidades em aberto</td></tr>
+                  <tr><td colSpan="5" className="px-3 py-4 text-center text-gray-500 text-[10px]">Sem mensalidades em aberto</td></tr>
                 )}
               </tbody>
             </table>
@@ -2734,7 +2736,7 @@ function TesourariaTab({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div>
           <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#091426]">Dívidas de Mensalidades</h2>
-          <p className="text-[10px] sm:text-xs text-[#45474c] mt-0.5">Formandos em cursos com <strong>pagamento mensal</strong> com mensalidades em aberto. Vencimento no dia 5; a partir do dia 6 do próprio mês é considerada dívida.</p>
+          <p className="text-[10px] sm:text-xs text-[#45474c] mt-0.5">Formandos em cursos com <strong>pagamento mensal</strong> com mensalidades em aberto. Vencimento no dia 5; a partir do dia 6 do próprio mês é considerada dívida. Acréscimo de <strong>Kz 3 000</strong> na mensalidade não paga até ao dia 15.</p>
         </div>
         {(dividas || []).length > 0 && (
           <button onClick={onGerarNotasCobrancaAll} className="flex items-center justify-center gap-1.5 rounded-lg border border-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-[#006c49] hover:bg-[#006c49]/5 transition-colors w-full sm:w-auto">
@@ -2756,7 +2758,7 @@ function TesourariaTab({
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-50 border border-red-200"><CalendarDays className="size-4 text-red-600" /></div>
             <p className="text-[10px] sm:text-xs font-medium text-gray-500">Meses em dívida</p>
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-red-600">{(dividas || []).reduce((s, d) => s + (d.total_meses_devidos || 0), 0)}</p>
+          <p className="text-xl sm:text-2xl font-bold text-red-600">{(dividas || []).reduce((set, d) => { (d.meses || []).forEach(m => { if (m.ref_mes) set.add(m.ref_mes) }); return set }, new Set()).size}</p>
         </div>
         <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm">
           <div className="flex items-center gap-2.5 mb-2">
@@ -4271,7 +4273,7 @@ export default function DashboardHome() {
       doc.setFontSize(8)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(...PDF_COLORS.gray)
-      const aviso = 'Aviso: O vencimento de cada mensalidade é no dia 5 do mês de referência. A partir do dia 6 do próprio mês, a mensalidade não paga é considerada dívida.'
+      const aviso = 'Aviso: O vencimento de cada mensalidade é no dia 5 do mês de referência. A partir do dia 6 do próprio mês, a mensalidade não paga é considerada dívida, com acréscimo de Kz 3.000 se não paga até ao dia 15.'
       const avisoSplit = doc.splitTextToSize(aviso, rm - lm)
       doc.text(avisoSplit, lm, y)
       y += avisoSplit.length * 3.6 + 4
