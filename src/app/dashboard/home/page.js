@@ -1315,10 +1315,10 @@ function CrescimentoChart({ matriculas }) {
   const dataPoints = computeChartData()
   const maxDays = 31
 
-  const chartLeft = 42
+  const chartLeft = 48
   const chartRight = 740
   const chartTop = 8
-  const chartBottom = 370
+  const chartBottom = 960
   const chartH = chartBottom - chartTop
   const chartW = chartRight - chartLeft
   const spacing = chartW / dataPoints.length
@@ -1343,17 +1343,17 @@ function CrescimentoChart({ matriculas }) {
       </div>
 
       <div className="relative px-5 pb-5 overflow-x-auto">
-        <div className="relative border-l border-b border-gray-200" style={{ minWidth: 700, height: 560 }}>
+        <div className="relative border-l border-b border-gray-200" style={{ minWidth: 700, height: 800, maxHeight: '75vh', overflowY: 'auto' }}>
           <svg
             ref={svgRef}
-            viewBox="0 0 780 380"
+            viewBox="0 0 780 970"
             className="w-full h-full"
             preserveAspectRatio="xMidYMid meet"
             onMouseLeave={() => setHoveredBar(null)}
           >
             {gridDays.map((dia) => {
               const y = dayToY(dia)
-              const isRef = dia === 1 || dia === 5 || dia === 10 || dia === 15 || dia === 20 || dia === 25 || dia === 30
+              const isRef = dia % 5 === 0 || dia === 1
               return (
                 <g key={`grid-${dia}`}>
                   <line
@@ -1361,11 +1361,9 @@ function CrescimentoChart({ matriculas }) {
                     stroke={isRef ? '#d1d5db' : '#f3f4f6'}
                     strokeWidth={isRef ? 0.6 : 0.3}
                   />
-                  {isRef && (
-                    <text x={chartLeft - 6} y={y + 3} textAnchor="end" fill="#9ca3af" fontSize="8" fontFamily="JetBrains Mono, monospace">
-                      {dia}
-                    </text>
-                  )}
+                  <text x={chartLeft - 5} y={y + 3} textAnchor="end" fill={isRef ? '#9ca3af' : '#d1d5db'} fontSize={isRef ? '8' : '7'} fontFamily="JetBrains Mono, monospace" fontWeight={isRef ? '600' : '400'}>
+                    {dia}
+                  </text>
                 </g>
               )
             })}
@@ -1451,7 +1449,7 @@ function CrescimentoChart({ matriculas }) {
             })}
 
             <line x1={chartLeft} y1={chartBottom} x2={chartRight} y2={chartBottom} stroke="#d1d5db" strokeWidth="0.5" />
-            <text x={chartLeft - 6} y={chartTop - 2} textAnchor="end" fill="#9ca3af" fontSize="8" fontFamily="JetBrains Mono, monospace">Dia</text>
+            <text x={chartLeft - 5} y={chartTop - 2} textAnchor="end" fill="#9ca3af" fontSize="7" fontWeight="600" fontFamily="JetBrains Mono, monospace">Dia</text>
           </svg>
         </div>
       </div>
