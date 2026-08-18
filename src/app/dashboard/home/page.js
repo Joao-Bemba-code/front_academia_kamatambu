@@ -1284,23 +1284,34 @@ function CrescimentoChart({ matriculas }) {
     const now = new Date()
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
     const monthlyCounts = {}
+    const dailyByMonth = {}
     for (let i = 0; i < 6; i++) {
       const d = new Date(sixMonthsAgo.getFullYear(), sixMonthsAgo.getMonth() + i, 1)
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-      monthlyCounts[key] = { mes: MONTH_SHORT[d.getMonth()], year: d.getFullYear(), total: 0, key }
+      const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
+      monthlyCounts[key] = { mes: MONTH_SHORT[d.getMonth()], year: d.getFullYear(), total: 0, key, daysInMonth, diasComInscricao: [] }
+      dailyByMonth[key] = {}
     }
     safeMatriculas.forEach(m => {
       if (!m.Data_Matricula) return
       const date = new Date(m.Data_Matricula)
       if (isNaN(date.getTime())) return
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-      if (monthlyCounts[key]) monthlyCounts[key].total++
+      if (monthlyCounts[key]) {
+        monthlyCounts[key].total++
+        const dayNum = date.getDate()
+        dailyByMonth[key][dayNum] = (dailyByMonth[key][dayNum] || 0) + 1
+      }
     })
-    return Object.values(monthlyCounts).map((m, i) => ({ ...m, index: i }))
+    return Object.values(monthlyCounts).map((m, i) => {
+      const diasComInscricao = Object.entries(dailyByMonth[m.key])
+        .map(([dia, count]) => ({ dia: parseInt(dia), count }))
+        .sort((a, b) => a.dia - b.dia)
+      return { ...m, index: i, diasComInscricao }
+    })
   }
 
   const dataPoints = computeChartData()
-  const maxVal = Math.max(...dataPoints.map(d => d.total), 1)
 
   const chartLeft = 45
   const chartRight = 510
@@ -1308,92 +1319,107 @@ function CrescimentoChart({ matriculas }) {
   const chartBottom = 195
   const chartH = chartBottom - chartTop
   const chartW = chartRight - chartLeft
+  const maxDays = 32
   const barW = Math.min(55, Math.max(32, chartW / dataPoints.length * 0.5))
   const spacing = chartW / dataPoints.length
 
   const barData = dataPoints.map((item, i) => {
     const x = chartLeft + i * spacing + (spacing - barW) / 2
-    const h = (item.total / maxVal) * chartH
+    const h = (item.daysInMonth / maxDays) * chartH
     const cx = x + barW / 2
     return { ...item, x, cx, cy: chartBottom - h, h, index: i }
   })
 
   const linePts = barData.map(b => `${b.cx},${b.cy}`).join(' ')
-  const areaPts = barData.length > 0
-    ? `${barData[0].cx},${chartBottom} ${barData.map(b => `${b.cx},${b.cy}`).join(' ')} ${barData[barData.length - 1].cx},${chartBottom}`
-    : ''
 
-  const gridLines = [0, 0.25, 0.5, 0.75, 1].map(pct => ({
-    y: chartTop + chartH * (1 - pct),
-    label: Math.round(maxVal * pct),
+  const gridLines = [0, 8, 16, 24, 32].map(dia => ({
+    y: chartBottom - (dia / maxDays) * chartH,
+    label: dia,
   }))
 
   return (
     <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-5 sm:p-6 shadow-sm">
       <div className="mb-5">
         <h4 className="text-base font-bold text-gray-900">Evolução de Matrículas</h4>
-        <p className="text-sm text-gray-400 mt-0.5">Inscritos nos últimos 6 meses</p>
+        <p className="text-sm text-gray-400 mt-0.5">Dias com inscrições nos últimos 6 meses</p>
       </div>
 
-      <div className="relative h-64 w-full">
-        <svg viewBox="0 0 560 215" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+      <div className="relative h-72 w-full">
+        <svg viewBox="0 0 560 220" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
           <defs>
             <linearGradient id="cBarGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#34d399" />
-              <stop offset="100%" stopColor="#059669" />
+              <stop offset="0%" stopColor="#d1fae5" />
+              <stop offset="100%" stopColor="#a7f3d0" />
             </linearGradient>
             <linearGradient id="cBarGradH" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#6ee7b7" />
-              <stop offset="100%" stopColor="#34d399" />
+              <stop offset="0%" stopColor="#a7f3d0" />
+              <stop offset="100%" stopColor="#6ee7b7" />
             </linearGradient>
-            <linearGradient id="cAreaGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#059669" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#059669" stopOpacity="0" />
-            </linearGradient>
-            <filter id="cShadow"><feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#059669" floodOpacity="0.15" /></filter>
+            <filter id="cShadow"><feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#059669" floodOpacity="0.12" /></filter>
             <filter id="cTip"><feDropShadow dx="0" dy="3" stdDeviation="6" floodColor="#000" floodOpacity="0.1" /></filter>
           </defs>
 
           {gridLines.map((l, i) => (
             <g key={i}>
               <line x1={chartLeft} y1={l.y} x2={chartRight} y2={l.y} stroke="#f1f5f9" strokeWidth="1" strokeDasharray={i === 0 ? "0" : "3 4"} />
-              <text x={chartLeft - 7} y={l.y + 3} textAnchor="end" fill="#94a3b8" fontSize="9">{l.label}</text>
+              <text x={chartLeft - 7} y={l.y + 3} textAnchor="end" fill="#94a3b8" fontSize="9" fontWeight="500">{l.label}</text>
             </g>
           ))}
 
-          <polygon points={areaPts} fill="url(#cAreaGrad)" className="animate-area-fade" />
-
-          <polyline points={linePts} fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="animate-trend-draw" />
+          <polyline points={linePts} fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-trend-draw" opacity="0.5" />
 
           {barData.map((bar) => {
             const hov = hoveredBar === bar.index
             return (
               <g key={bar.index} onMouseEnter={() => setHoveredBar(bar.index)} onMouseLeave={() => setHoveredBar(null)} style={{ cursor: 'pointer' }}>
                 <rect x={bar.x - 6} y={chartTop} width={barW + 12} height={chartH} fill="transparent" />
+
                 <rect
-                  x={bar.x} y={bar.cy} width={barW} height={Math.max(bar.h, 1)} rx="5"
+                  x={bar.x} y={bar.cy} width={barW} height={Math.max(bar.h, 1)} rx="4"
                   fill={hov ? 'url(#cBarGradH)' : 'url(#cBarGrad)'}
+                  stroke={hov ? '#059669' : '#d1fae5'}
+                  strokeWidth={hov ? 1.5 : 0.5}
                   filter={hov ? 'url(#cShadow)' : undefined}
                   className="animate-chart-grow"
                   style={{ transformOrigin: `${bar.cx}px ${chartBottom}px`, animationDelay: `${bar.index * 0.1}s`, transition: 'opacity 0.2s', opacity: hoveredBar !== null && !hov ? 0.4 : 1 }}
                 />
-                {bar.h > 5 && (
-                  <text x={bar.cx} y={bar.cy - 6} textAnchor="middle" fill={hov ? '#047857' : '#6b7280'} fontSize={hov ? '12' : '10'} fontWeight="700" style={{ transition: 'all 0.2s' }}>
-                    {bar.total}
-                  </text>
-                )}
+
+                {bar.diasComInscricao.map((d) => {
+                  const dayY = chartBottom - (d.dia / maxDays) * chartH
+                  const opacity = Math.min(0.4 + (d.count * 0.3), 1)
+                  return (
+                    <g key={`d-${bar.index}-${d.dia}`}>
+                      <line
+                        x1={bar.x + 3} y1={dayY} x2={bar.x + barW - 3} y2={dayY}
+                        stroke="#059669" strokeWidth={hov ? 3 : 2} strokeLinecap="round"
+                        opacity={hov ? opacity + 0.2 : opacity}
+                        style={{ transition: 'all 0.2s' }}
+                      />
+                      {hov && d.count > 1 && (
+                        <text x={bar.x + barW + 5} y={dayY + 3} fill="#059669" fontSize="7.5" fontWeight="700">
+                          {d.count}x
+                        </text>
+                      )}
+                    </g>
+                  )
+                })}
+
+                <text x={bar.cx} y={bar.cy - 7} textAnchor="middle" fill={hov ? '#047857' : '#6b7280'} fontSize={hov ? '12' : '10'} fontWeight="700" style={{ transition: 'all 0.2s' }}>
+                  {bar.total}
+                </text>
+
                 <text x={bar.cx} y={chartBottom + 14} textAnchor="middle" fill={hov ? '#047857' : '#64748b'} fontSize="10.5" fontWeight={hov ? '700' : '500'} style={{ transition: 'all 0.2s' }}>
                   {bar.mes}
                 </text>
-                <circle cx={bar.cx} cy={bar.cy} r={hov ? 5 : 3.5} fill="#f59e0b" stroke="white" strokeWidth="2" style={{ transition: 'r 0.2s' }} />
+
                 {hov && (
                   <>
-                    <line x1={bar.cx} y1={bar.cy} x2={bar.cx} y2={chartBottom} stroke="#059669" strokeWidth="1" strokeDasharray="3 3" opacity="0.2" />
+                    <line x1={bar.cx} y1={bar.cy} x2={bar.cx} y2={chartBottom} stroke="#059669" strokeWidth="1" strokeDasharray="3 3" opacity="0.15" />
                     <g className="animate-tooltip-pop">
-                      <rect x={bar.cx - 48} y={bar.cy - 44} width="96" height="34" rx="8" fill="white" filter="url(#cTip)" stroke="#e5e7eb" strokeWidth="1" />
-                      <polygon points={`${bar.cx - 4},${bar.cy - 10} ${bar.cx + 4},${bar.cy - 10} ${bar.cx},${bar.cy - 5}`} fill="white" stroke="#e5e7eb" strokeWidth="1" />
-                      <text x={bar.cx} y={bar.cy - 28} textAnchor="middle" fill="#94a3b8" fontSize="8.5">{bar.mes} {bar.year}</text>
-                      <text x={bar.cx} y={bar.cy - 16} textAnchor="middle" fill="#047857" fontSize="11" fontWeight="700">{bar.total} inscrito{bar.total !== 1 ? 's' : ''}</text>
+                      <rect x={bar.cx - 58} y={bar.cy - 52} width="116" height="40" rx="8" fill="white" filter="url(#cTip)" stroke="#e5e7eb" strokeWidth="1" />
+                      <polygon points={`${bar.cx - 4},${bar.cy - 12} ${bar.cx + 4},${bar.cy - 12} ${bar.cx},${bar.cy - 7}`} fill="white" stroke="#e5e7eb" strokeWidth="1" />
+                      <text x={bar.cx} y={bar.cy - 36} textAnchor="middle" fill="#94a3b8" fontSize="8.5">{bar.mes} {bar.year} — {bar.daysInMonth} dias</text>
+                      <text x={bar.cx} y={bar.cy - 22} textAnchor="middle" fill="#047857" fontSize="11" fontWeight="700">{bar.total} inscrito{bar.total !== 1 ? 's' : ''} em {bar.diasComInscricao.length} dia{bar.diasComInscricao.length !== 1 ? 's' : ''}</text>
                     </g>
                   </>
                 )}
