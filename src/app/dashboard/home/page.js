@@ -1398,7 +1398,7 @@ function CrescimentoChart({ matriculas }) {
                 <g key={bar.index} onMouseEnter={() => setHoveredBar(bar.index)} onMouseLeave={() => setHoveredBar(null)} style={{ cursor: 'pointer' }}>
                   <rect x={barX - 3} y={chartTop} width={barW + 6} height={chartH} fill="transparent" />
                   <rect
-                    x={barX} y={bar.cy} width={barW} height={Math.max(bar.h, 2)} rx="2"
+                    x={barX} y={chartBottom - Math.max(bar.h, 50)} width={barW} height={Math.max(bar.h, 50)} rx="3"
                     fill={hov ? 'rgba(59,130,246,0.35)' : 'rgba(59,130,246,0.15)'}
                     stroke={hov ? '#3b82f6' : 'rgba(59,130,246,0.3)'}
                     strokeWidth={hov ? 1.5 : 0.5}
@@ -1406,16 +1406,26 @@ function CrescimentoChart({ matriculas }) {
                     style={{ transformOrigin: `${bar.cx}px ${chartBottom}px`, animationDelay: `${bar.index * 0.1}s`, transition: 'all 0.2s', opacity: hoveredBar !== null && !hov ? 0.4 : 1 }}
                   />
 
-                  {bar.diasComInscricao.map((d) => {
-                    const dayY = chartBottom - (d.dia / bar.daysInMonth) * bar.h
+                  {Array.from({ length: bar.daysInMonth }, (_, i) => i + 1).map((dia) => {
+                    const minH = 50
+                    const effectiveH = Math.max(bar.h, minH)
+                    const baseY = chartBottom - effectiveH
+                    const dayY = baseY + ((dia - 1) / (bar.daysInMonth - 1 || 1)) * effectiveH
+                    const temInscricao = bar.diasComInscricao.find(d => d.dia === dia)
                     return (
-                      <line
-                        key={`d-${bar.index}-${d.dia}`}
-                        x1={barX + 2} y1={dayY} x2={barX + barW - 2} y2={dayY}
-                        stroke="#3b82f6" strokeWidth={1.5} strokeLinecap="round"
-                        opacity={hov ? 0.7 : 0.35}
-                        style={{ transition: 'opacity 0.2s' }}
-                      />
+                      <g key={`d-${bar.index}-${dia}`}>
+                        <line
+                          x1={barX + 2} y1={dayY} x2={barX + barW - 2} y2={dayY}
+                          stroke={temInscricao ? (hov ? '#2563eb' : '#3b82f6') : '#e5e7eb'}
+                          strokeWidth={temInscricao ? 2.5 : 0.5}
+                          strokeLinecap="round"
+                          opacity={temInscricao ? (hov ? 1 : 0.7) : (hov ? 0.4 : 0.2)}
+                          style={{ transition: 'all 0.2s' }}
+                        />
+                        {temInscricao && (
+                          <circle cx={barX + barW / 2} cy={dayY} r={hov ? 2.5 : 2} fill="#2563eb" opacity={hov ? 1 : 0.8} />
+                        )}
+                      </g>
                     )
                   })}
 
@@ -1437,10 +1447,15 @@ function CrescimentoChart({ matriculas }) {
                       <line x1={bar.cx} y1={chartTop} x2={bar.cx} y2={chartBottom} stroke="#10b981" strokeWidth="0.5" strokeDasharray="4 3" opacity="0.4" />
                       <circle cx={bar.cx} cy={bar.cy} r="5" fill="#10b981" stroke="white" strokeWidth="2" style={{ filter: 'drop-shadow(0 0 4px rgba(16,185,129,0.3))' }} />
                       <g className="animate-tooltip-pop">
-                        <rect x={bar.cx - 65} y={bar.cy - 52} width="130" height="40" rx="8" fill="#1e293b" style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))' }} />
-                        <polygon points={`${bar.cx - 4},${bar.cy - 12} ${bar.cx + 4},${bar.cy - 12} ${bar.cx},${bar.cy - 7}`} fill="#1e293b" />
-                        <text x={bar.cx} y={bar.cy - 36} textAnchor="middle" fill="#94a3b8" fontSize="9" fontWeight="600">{bar.mes} {bar.year}</text>
-                        <text x={bar.cx} y={bar.cy - 22} textAnchor="middle" fill="white" fontSize="10" fontFamily="JetBrains Mono, monospace">{bar.total} inscrito{bar.total !== 1 ? 's' : ''}</text>
+                        <rect x={bar.cx - 65} y={bar.cy - 66} width="130" height="58" rx="8" fill="#1e293b" style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))' }} />
+                        <polygon points={`${bar.cx - 4},${bar.cy - 8} ${bar.cx + 4},${bar.cy - 8} ${bar.cx},${bar.cy - 2}`} fill="#1e293b" />
+                        <text x={bar.cx} y={bar.cy - 48} textAnchor="middle" fill="#94a3b8" fontSize="9" fontWeight="600">{bar.mes} {bar.year}</text>
+                        <text x={bar.cx} y={bar.cy - 35} textAnchor="middle" fill="white" fontSize="10" fontFamily="JetBrains Mono, monospace">{bar.total} inscrito{bar.total !== 1 ? 's' : ''}</text>
+                        {bar.diasComInscricao.length > 0 && (
+                          <text x={bar.cx} y={bar.cy - 20} textAnchor="middle" fill="#60a5fa" fontSize="8" fontFamily="JetBrains Mono, monospace">
+                            dias: {bar.diasComInscricao.map(d => d.dia).join(', ')}
+                          </text>
+                        )}
                       </g>
                     </>
                   )}
