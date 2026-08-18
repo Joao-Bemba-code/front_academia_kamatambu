@@ -1274,6 +1274,266 @@ function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
   )
 }
 
+// ========== CRESCIMENTO CHART (Modern) ==========
+function CrescimentoChart({ meses }) {
+  const [activePeriod, setActivePeriod] = useState('mes')
+  const [hoveredBar, setHoveredBar] = useState(null)
+
+  const periods = [
+    { key: 'dia', label: 'Dia' },
+    { key: 'mes', label: 'Mês' },
+    { key: 'ano', label: 'Ano' },
+  ]
+
+  const chartLeft = 50
+  const chartRight = 505
+  const chartTop = 15
+  const chartBottom = 205
+  const chartHeight = chartBottom - chartTop
+  const chartWidth = chartRight - chartLeft
+
+  const maxVal = Math.max(...meses.map(m => m.total || 0), 1)
+  const totalInscricoes = meses.reduce((sum, m) => sum + (m.total || 0), 0)
+
+  const prevMonth = meses.length >= 2 ? meses[meses.length - 2]?.total || 0 : 0
+  const currMonth = meses.length >= 1 ? meses[meses.length - 1]?.total || 0 : 0
+  const pctChange = prevMonth > 0 ? Math.round(((currMonth - prevMonth) / prevMonth) * 100) : (currMonth > 0 ? 100 : 0)
+
+  const barW = Math.min(48, Math.max(24, chartWidth / meses.length * 0.55))
+  const spacing = chartWidth / meses.length
+
+  const barData = meses.map((item, index) => {
+    const x = chartLeft + index * spacing + (spacing - barW) / 2
+    const h = maxVal > 0 ? (item.total / maxVal) * chartHeight : 0
+    const cx = x + barW / 2
+    const cy = chartBottom - h
+    return { ...item, x, cx, cy, h, index }
+  })
+
+  const trendPoints = barData.map(b => `${b.cx},${b.cy}`).join(' ')
+  const areaPoints = barData.length > 0
+    ? `${barData[0].cx},${chartBottom} ${barData.map(b => `${b.cx},${b.cy}`).join(' ')} ${barData[barData.length - 1].cx},${chartBottom}`
+    : ''
+
+  const gridLines = [0, 0.25, 0.5, 0.75, 1].map(pct => ({
+    y: chartTop + chartHeight * (1 - pct),
+    label: Math.round(maxVal * pct),
+  }))
+
+  return (
+    <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <h4 className="text-base font-bold text-gray-900 flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-50">
+              <TrendingUp className="size-4 text-emerald-600" />
+            </span>
+            Crescimento de Matrículas
+          </h4>
+          <p className="text-sm text-gray-500 mt-1 ml-10">Ingressos nos últimos 6 meses</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
+            pctChange >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
+          }`}>
+            {pctChange >= 0 ? (
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 17l5-5 5 5M7 7l5 5 5-5" />
+              </svg>
+            ) : (
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 7l-5 5-5-5M17 17l-5-5-5 5" />
+              </svg>
+            )}
+            {pctChange >= 0 ? '+' : ''}{pctChange}% vs anterior
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1 mb-4 bg-gray-50 rounded-xl p-1 w-fit">
+        {periods.map(p => (
+          <button
+            key={p.key}
+            onClick={() => setActivePeriod(p.key)}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+              activePeriod === p.key
+                ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-emerald-100'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="relative h-64 w-full">
+        <svg viewBox="0 0 530 225" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#34d399" />
+              <stop offset="100%" stopColor="#059669" />
+            </linearGradient>
+            <linearGradient id="barGradHover" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#6ee7b7" />
+              <stop offset="100%" stopColor="#34d399" />
+            </linearGradient>
+            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#059669" stopOpacity="0.12" />
+              <stop offset="100%" stopColor="#059669" stopOpacity="0.01" />
+            </linearGradient>
+            <filter id="barShadow" x="-20%" y="-10%" width="140%" height="130%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#059669" floodOpacity="0.15" />
+            </filter>
+            <filter id="tooltipShadow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#000" floodOpacity="0.1" />
+            </filter>
+          </defs>
+
+          {gridLines.map((line, i) => (
+            <g key={i}>
+              <line
+                x1={chartLeft} y1={line.y} x2={chartRight} y2={line.y}
+                stroke="#f1f5f9" strokeWidth="1" strokeDasharray={i === 0 ? "0" : "4 3"}
+              />
+              <text
+                x={chartLeft - 8} y={line.y + 3.5}
+                textAnchor="end" fill="#94a3b8" fontSize="10" fontWeight="500"
+              >
+                {line.label}
+              </text>
+            </g>
+          ))}
+
+          {barData.length > 1 && (
+            <polygon
+              points={areaPoints}
+              fill="url(#areaGrad)"
+              className="animate-area-fade"
+            />
+          )}
+
+          {barData.length > 1 && (
+            <polyline
+              points={trendPoints}
+              fill="none"
+              stroke="#059669"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="animate-trend-draw"
+            />
+          )}
+
+          {barData.map((bar) => {
+            const isHovered = hoveredBar === bar.index
+            return (
+              <g
+                key={`${bar.mes}-${bar.index}`}
+                onMouseEnter={() => setHoveredBar(bar.index)}
+                onMouseLeave={() => setHoveredBar(null)}
+                style={{ cursor: 'pointer' }}
+              >
+                <rect
+                  x={bar.x - 4}
+                  y={chartTop}
+                  width={barW + 8}
+                  height={chartHeight}
+                  fill="transparent"
+                />
+                <rect
+                  x={bar.x}
+                  y={bar.cy}
+                  width={barW}
+                  height={bar.h}
+                  rx={barW > 30 ? 6 : 4}
+                  fill={isHovered ? 'url(#barGradHover)' : 'url(#barGrad)'}
+                  filter={isHovered ? 'url(#barShadow)' : undefined}
+                  className="animate-chart-grow"
+                  style={{
+                    transformOrigin: `${bar.cx}px ${chartBottom}px`,
+                    animationDelay: `${bar.index * 0.1}s`,
+                    transition: 'opacity 0.2s ease',
+                    opacity: hoveredBar !== null && !isHovered ? 0.45 : 1,
+                  }}
+                />
+                <text
+                  x={bar.cx} y={bar.cy - 8}
+                  textAnchor="middle"
+                  fill={isHovered ? '#059669' : '#6b7280'}
+                  fontSize={isHovered ? '12' : '10'}
+                  fontWeight="700"
+                  style={{
+                    transition: 'all 0.2s ease',
+                    opacity: bar.h > 0 ? 1 : 0,
+                  }}
+                >
+                  {bar.total}
+                </text>
+                <text
+                  x={bar.cx} y={chartBottom + 18}
+                  textAnchor="middle"
+                  fill={isHovered ? '#059669' : '#64748b'}
+                  fontSize="10.5"
+                  fontWeight={isHovered ? '700' : '500'}
+                  style={{ transition: 'all 0.2s ease' }}
+                >
+                  {bar.mes}
+                </text>
+
+                {isHovered && bar.h > 0 && (
+                  <g className="animate-tooltip-pop">
+                    <rect
+                      x={bar.cx - 52} y={bar.cy - 52}
+                      width="104" height="38" rx="10"
+                      fill="white"
+                      filter="url(#tooltipShadow)"
+                      stroke="#e5e7eb" strokeWidth="1"
+                    />
+                    <polygon
+                      points={`${bar.cx - 5},${bar.cy - 14} ${bar.cx + 5},${bar.cy - 14} ${bar.cx},${bar.cy - 8}`}
+                      fill="white" stroke="#e5e7eb" strokeWidth="1"
+                    />
+                    <rect x={bar.cx - 52} y={bar.cy - 15} width="104" height="1" fill="#e5e7eb" />
+                    <text x={bar.cx} y={bar.cy - 32} textAnchor="middle" fill="#94a3b8" fontSize="9" fontWeight="500">
+                      {bar.mes}
+                    </text>
+                    <text x={bar.cx} y={bar.cy - 20} textAnchor="middle" fill="#0f172a" fontSize="13" fontWeight="700">
+                      {bar.total} ingresso{bar.total !== 1 ? 's' : ''}
+                    </text>
+                  </g>
+                )}
+
+                {isHovered && (
+                  <line
+                    x1={bar.cx} y1={bar.cy} x2={bar.cx} y2={chartBottom}
+                    stroke="#059669" strokeWidth="1" strokeDasharray="3 3" opacity="0.3"
+                  />
+                )}
+              </g>
+            )
+          })}
+
+          {barData.length > 0 && barData.map((bar, i) => (
+            i === barData.length - 1 && bar.h > 0 ? (
+              <circle
+                key="trend-dot"
+                cx={bar.cx} cy={bar.cy} r="4"
+                fill="#059669" stroke="white" strokeWidth="2"
+                className="animate-pulse-dot"
+              />
+            ) : null
+          ))}
+        </svg>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between text-xs text-gray-400">
+        <span>Total: <span className="font-semibold text-gray-600">{totalInscricoes}</span> matrículas</span>
+        <span>Período: {meses.length > 0 ? `${meses[0].mes} – ${meses[meses.length - 1].mes}` : '—'}</span>
+      </div>
+    </div>
+  )
+}
+
 // ========== DASHBOARD TAB ==========
 function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento, inscricoesPorCurso, onGeneratePDF }) {
   const inscricoes = inscricoesPorCurso && inscricoesPorCurso.length > 0
@@ -1313,57 +1573,10 @@ function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento
       <StatsCards stats={stats} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Growth Chart */}
-        <div className="lg:col-span-2 rounded-xl border border-gray-200 bg-white p-6">
-          <div className="mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <h4 className="text-base font-bold text-gray-900">Crescimento de Matrículas</h4>
-              <p className="text-sm text-gray-500">Ingressos nos ultimos 6 meses</p>
-            </div>
-          </div>
-          <div className="h-64 w-full">
-            <svg viewBox="0 0 400 200" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
-              {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => (
-                <g key={i}>
-                  <line x1="40" y1={10 + 160 * (1 - pct)} x2="390" y2={10 + 160 * (1 - pct)} stroke="#f1f5f9" strokeWidth="1" />
-                  <text x="36" y={14 + 160 * (1 - pct)} textAnchor="end" className="fill-gray-400" style={{ fontSize: '9px' }}>
-                    {Math.round(maxVal * pct)}
-                  </text>
-                </g>
-              ))}
-              {meses.map((item, index) => {
-                const barW = 40
-                const totalW = 350
-                const spacing = totalW / meses.length
-                const x = 45 + index * spacing + (spacing - barW) / 2
-                const h = maxVal > 0 ? (item.total / maxVal) * 160 : 0
-                return (
-                  <g key={`${item.mes}-${index}`}>
-                    <rect
-                      x={x}
-                      y={10 + 160 - h}
-                      width={barW}
-                      height={h}
-                      rx="4"
-                      fill="#006c49"
-                      className="animate-chart-grow"
-                      style={{ transformOrigin: `${x + barW / 2}px ${10 + 160}px`, animationDelay: `${index * 0.12}s` }}
-                    />
-                    <text x={x + barW / 2} y={6 + 160 - h} textAnchor="middle" className="fill-gray-600" style={{ fontSize: '9px', fontWeight: 600 }}>
-                      {item.total}
-                    </text>
-                    <text x={x + barW / 2} y={188} textAnchor="middle" className="fill-gray-500" style={{ fontSize: '10px', fontWeight: 500 }}>
-                      {item.mes}
-                    </text>
-                  </g>
-                )
-              })}
-            </svg>
-          </div>
-        </div>
+        <CrescimentoChart meses={meses} />
 
         {/* Donut Chart */}
-        <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
           <h4 className="text-base font-bold text-gray-900">Inscrições por Curso</h4>
           <p className="text-sm text-gray-500 mb-4">Distribuição atual</p>
           <div className="flex justify-center mb-4">
