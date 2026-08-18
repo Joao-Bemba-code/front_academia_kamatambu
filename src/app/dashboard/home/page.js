@@ -1278,7 +1278,6 @@ function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
 function CrescimentoChart({ matriculas }) {
   const [hoveredBar, setHoveredBar] = useState(null)
 
-  const MONTHS_ORDER = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ']
   const MONTH_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
 
   const safeMatriculas = Array.isArray(matriculas) ? matriculas : []
@@ -1294,7 +1293,7 @@ function CrescimentoChart({ matriculas }) {
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
       const monthLabel = MONTH_SHORT[d.getMonth()]
       const yearLabel = d.getFullYear()
-      monthlyCounts[key] = { mes: monthLabel.toUpperCase(), year: yearLabel, total: 0, key, monthIdx: d.getMonth() }
+      monthlyCounts[key] = { mes: monthLabel, year: yearLabel, total: 0, key, monthIdx: d.getMonth() }
       dailyByMonth[key] = {}
     }
 
@@ -1311,41 +1310,32 @@ function CrescimentoChart({ matriculas }) {
     })
 
     const months = Object.values(monthlyCounts)
-
-    let cumSum = 0
-    const dataPoints = months.map((m, i) => {
-      cumSum += m.total
+    return months.map((m, i) => {
       const daysInMonth = new Date(m.year, m.monthIdx + 1, 0).getDate()
-      const dailyData = []
-      let dayCum = cumSum - m.total
+      const dias = []
       for (let d = 1; d <= daysInMonth; d++) {
-        dayCum += (dailyByMonth[m.key][d] || 0)
-        dailyData.push({ day: d, monthly: dailyByMonth[m.key][d] || 0, cumulative: dayCum })
+        dias.push({ dia: d, inscritos: dailyByMonth[m.key][d] || 0 })
       }
-      return { ...m, index: i, cumTotal: cumSum, dailyData }
+      return { ...m, index: i, dias }
     })
-
-    return dataPoints
   }
 
   const dataPoints = computeChartData()
   const totalMatriculas = dataPoints.reduce((s, d) => s + d.total, 0)
   const maxMonthly = Math.max(...dataPoints.map(d => d.total), 1)
-  const maxCumulative = Math.max(...dataPoints.map(d => d.cumTotal), 1)
 
   const prevMonth = dataPoints.length >= 2 ? dataPoints[dataPoints.length - 2]?.total || 0 : 0
   const currMonth = dataPoints.length >= 1 ? dataPoints[dataPoints.length - 1]?.total || 0 : 0
   const pctChange = prevMonth > 0 ? Math.round(((currMonth - prevMonth) / prevMonth) * 100) : (currMonth > 0 ? 100 : 0)
 
-  const chartLeft = 55
+  const chartLeft = 50
   const chartRight = 510
   const chartTop = 20
   const chartBottom = 200
   const chartHeight = chartBottom - chartTop
   const chartWidth = chartRight - chartLeft
-  const rightAxisX = chartRight + 35
 
-  const barW = Math.min(50, Math.max(28, chartWidth / dataPoints.length * 0.5))
+  const barW = Math.min(52, Math.max(30, chartWidth / dataPoints.length * 0.5))
   const spacing = chartWidth / dataPoints.length
 
   const barData = dataPoints.map((item, index) => {
@@ -1353,24 +1343,20 @@ function CrescimentoChart({ matriculas }) {
     const h = (item.total / maxMonthly) * chartHeight
     const cx = x + barW / 2
     const cy = chartBottom - h
-    const cumY = chartBottom - (item.cumTotal / maxCumulative) * chartHeight
-    return { ...item, x, cx, cy, h, cumY, index }
+    return { ...item, x, cx, cy, h, index }
   })
 
-  const trendPoints = barData.map(b => `${b.cx},${b.cumY}`).join(' ')
-  const areaPoints = barData.length > 0
-    ? `${barData[0].cx},${chartBottom} ${barData.map(b => `${b.cx},${b.cumY}`).join(' ')} ${barData[barData.length - 1].cx},${chartBottom}`
-    : ''
-
-  const barAreaPoints = barData.length > 0
+  const linePoints = barData.map(b => `${b.cx},${b.cy}`).join(' ')
+  const lineAreaPoints = barData.length > 0
     ? `${barData[0].cx},${chartBottom} ${barData.map(b => `${b.cx},${b.cy}`).join(' ')} ${barData[barData.length - 1].cx},${chartBottom}`
     : ''
 
   const gridLines = [0, 0.25, 0.5, 0.75, 1].map(pct => ({
     y: chartTop + chartHeight * (1 - pct),
-    leftLabel: Math.round(maxMonthly * pct),
-    rightLabel: Math.round(maxCumulative * pct),
+    label: Math.round(maxMonthly * pct),
   }))
+
+  const hovered = hoveredBar !== null ? barData.find(b => b.index === hoveredBar) : null
 
   return (
     <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
@@ -1380,11 +1366,11 @@ function CrescimentoChart({ matriculas }) {
             <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-50">
               <TrendingUp className="size-4 text-emerald-600" />
             </span>
-            Crescimento de Matrículas
+            Evolução de Matrículas
           </h4>
-          <p className="text-sm text-gray-500 mt-1 ml-10">Visão completa — ingressos e acumulado</p>
+          <p className="text-sm text-gray-500 mt-1 ml-10">Inscritos nos últimos 6 meses — dados reais</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
             pctChange >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
           }`}>
@@ -1405,20 +1391,16 @@ function CrescimentoChart({ matriculas }) {
       <div className="flex flex-wrap items-center gap-4 mb-4 text-xs">
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-sm bg-gradient-to-b from-emerald-400 to-emerald-600"></span>
-          <span className="text-gray-600 font-medium">Ingressos / mês</span>
+          <span className="text-gray-600 font-medium">Inscritos / mês</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-3 h-0.5 bg-amber-500 rounded-full"></span>
-          <span className="text-gray-600 font-medium">Acumulado</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-sm bg-gradient-to-b from-blue-400 to-blue-600 opacity-40"></span>
-          <span className="text-gray-600 font-medium">Área diária</span>
+          <svg className="w-4 h-1"><line x1="0" y1="0.5" x2="16" y2="0.5" stroke="#f59e0b" strokeWidth="2.5" strokeDasharray="4 2" /></svg>
+          <span className="text-gray-600 font-medium">Tendência</span>
         </div>
       </div>
 
       <div className="relative h-72 w-full">
-        <svg viewBox="-5 0 570 230" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+        <svg viewBox="0 0 560 225" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
           <defs>
             <linearGradient id="cBarGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#34d399" />
@@ -1428,13 +1410,13 @@ function CrescimentoChart({ matriculas }) {
               <stop offset="0%" stopColor="#6ee7b7" />
               <stop offset="100%" stopColor="#34d399" />
             </linearGradient>
-            <linearGradient id="cCumAreaGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.10" />
-              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.01" />
-            </linearGradient>
-            <linearGradient id="cBarAreaGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#059669" stopOpacity="0.06" />
+            <linearGradient id="cLineAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#059669" stopOpacity="0.10" />
               <stop offset="100%" stopColor="#059669" stopOpacity="0.01" />
+            </linearGradient>
+            <linearGradient id="cDailyGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#60a5fa" />
+              <stop offset="100%" stopColor="#2563eb" />
             </linearGradient>
             <filter id="cBarShadow" x="-20%" y="-10%" width="140%" height="130%">
               <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#059669" floodOpacity="0.18" />
@@ -1442,7 +1424,7 @@ function CrescimentoChart({ matriculas }) {
             <filter id="cTooltipShadow" x="-30%" y="-30%" width="160%" height="160%">
               <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="#000" floodOpacity="0.12" />
             </filter>
-            <clipPath id="chartClip">
+            <clipPath id="cClip">
               <rect x={chartLeft} y={chartTop} width={chartWidth} height={chartHeight} />
             </clipPath>
           </defs>
@@ -1457,39 +1439,26 @@ function CrescimentoChart({ matriculas }) {
                 x={chartLeft - 8} y={line.y + 3.5}
                 textAnchor="end" fill="#94a3b8" fontSize="9" fontWeight="500"
               >
-                {line.leftLabel}
-              </text>
-              <text
-                x={rightAxisX} y={line.y + 3.5}
-                textAnchor="start" fill="#d4a017" fontSize="9" fontWeight="500" opacity="0.7"
-              >
-                {line.rightLabel}
+                {line.label}
               </text>
             </g>
           ))}
 
-          <text x={chartLeft - 8} y={chartTop - 8} textAnchor="end" fill="#64748b" fontSize="8" fontWeight="600" letterSpacing="0.5">MÊS</text>
-          <text x={rightAxisX} y={chartTop - 8} textAnchor="start" fill="#d4a017" fontSize="8" fontWeight="600" letterSpacing="0.5" opacity="0.7">ACUM.</text>
-
-          <g clipPath="url(#chartClip)">
+          <g clipPath="url(#cClip)">
             {barData.length > 0 && (
-              <polygon points={barAreaPoints} fill="url(#cBarAreaGrad)" className="animate-area-fade" />
-            )}
-            {barData.length > 0 && (
-              <polygon points={areaPoints} fill="url(#cCumAreaGrad)" className="animate-area-fade" style={{ animationDelay: '0.4s' }} />
+              <polygon points={lineAreaPoints} fill="url(#cLineAreaGrad)" className="animate-area-fade" />
             )}
           </g>
 
           {barData.length > 1 && (
             <polyline
-              points={trendPoints}
+              points={linePoints}
               fill="none"
               stroke="#f59e0b"
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
               className="animate-trend-draw"
-              strokeDasharray="6 3"
             />
           )}
 
@@ -1503,9 +1472,9 @@ function CrescimentoChart({ matriculas }) {
                 style={{ cursor: 'pointer' }}
               >
                 <rect
-                  x={bar.x - 4}
+                  x={bar.x - 6}
                   y={chartTop}
-                  width={barW + 8}
+                  width={barW + 12}
                   height={chartHeight}
                   fill="transparent"
                 />
@@ -1551,7 +1520,7 @@ function CrescimentoChart({ matriculas }) {
                 </text>
 
                 <circle
-                  cx={bar.cx} cy={bar.cumY} r={isHovered ? 5 : 3.5}
+                  cx={bar.cx} cy={bar.cy} r={isHovered ? 5 : 3.5}
                   fill="#f59e0b"
                   stroke="white"
                   strokeWidth="2"
@@ -1565,28 +1534,49 @@ function CrescimentoChart({ matriculas }) {
                       stroke="#059669" strokeWidth="1" strokeDasharray="3 3" opacity="0.25"
                     />
                     <g className="animate-tooltip-pop">
-                      <rect
-                        x={bar.cx - 70} y={Math.min(bar.cy, bar.cumY) - 72}
-                        width="140" height="58" rx="12"
-                        fill="white"
-                        filter="url(#cTooltipShadow)"
-                        stroke="#e5e7eb" strokeWidth="1"
-                      />
-                      <polygon
-                        points={`${bar.cx - 5},${Math.min(bar.cy, bar.cumY) - 14} ${bar.cx + 5},${Math.min(bar.cy, bar.cumY) - 14} ${bar.cx},${Math.min(bar.cy, bar.cumY) - 8}`}
-                        fill="white" stroke="#e5e7eb" strokeWidth="1"
-                      />
-                      <line x1={bar.cx - 70} y1={Math.min(bar.cy, bar.cumY) - 15} x2={bar.cx + 70} y2={Math.min(bar.cy, bar.cumY) - 15} stroke="#e5e7eb" strokeWidth="1" />
-                      <text x={bar.cx} y={Math.min(bar.cy, bar.cumY) - 56} textAnchor="middle" fill="#94a3b8" fontSize="9" fontWeight="500">
-                        {bar.mes} {bar.year}
-                      </text>
-                      <text x={bar.cx} y={Math.min(bar.cy, bar.cumY) - 42} textAnchor="middle" fill="#059669" fontSize="11" fontWeight="700">
-                        {bar.total} ingresso{bar.total !== 1 ? 's' : ''}
-                      </text>
-                      <text x={bar.cx} y={Math.min(bar.cy, bar.cumY) - 28} textAnchor="middle" fill="#d97706" fontSize="10" fontWeight="600">
-                        Acumulado: {bar.cumTotal}
-                      </text>
+                      {(() => {
+                        const tipW = 150
+                        const tipH = 62
+                        const tipX = bar.cx - tipW / 2
+                        const tipY = bar.cy - tipH - 18
+                        const finalTipY = tipY < chartTop - 10 ? bar.cy + 20 : tipY
+                        const arrowY = tipY < chartTop - 10 ? finalTipY - 4 : finalTipY + tipH
+                        const arrowDir = tipY < chartTop - 10 ? 'up' : 'down'
+                        return (
+                          <>
+                            <rect
+                              x={tipX} y={finalTipY}
+                              width={tipW} height={tipH} rx="10"
+                              fill="white"
+                              filter="url(#cTooltipShadow)"
+                              stroke="#e5e7eb" strokeWidth="1"
+                            />
+                            <polygon
+                              points={arrowDir === 'up'
+                                ? `${bar.cx - 5},${finalTipY + tipH} ${bar.cx + 5},${finalTipY + tipH} ${bar.cx},${finalTipY + tipH + 6}`
+                                : `${bar.cx - 5},${finalTipY} ${bar.cx + 5},${finalTipY} ${bar.cx},${finalTipY - 6}`
+                              }
+                              fill="white" stroke="#e5e7eb" strokeWidth="1"
+                            />
+                            <text x={bar.cx} y={finalTipY + 16} textAnchor="middle" fill="#94a3b8" fontSize="8.5" fontWeight="500">
+                              {bar.mes} {bar.year}
+                            </text>
+                            <text x={bar.cx} y={finalTipY + 30} textAnchor="middle" fill="#047857" fontSize="12" fontWeight="700">
+                              {bar.total} inscrito{bar.total !== 1 ? 's' : ''}
+                            </text>
+                            <line x1={tipX + 12} y1={finalTipY + 36} x2={tipX + tipW - 12} y2={finalTipY + 36} stroke="#f1f5f9" strokeWidth="1" />
+                            <text x={bar.cx} y={finalTipY + 52} textAnchor="middle" fill="#94a3b8" fontSize="8">
+                              {bar.dias.filter(d => d.inscritos > 0).length} dia{bar.dias.filter(d => d.inscritos > 0).length !== 1 ? 's' : ''} com inscrições
+                            </text>
+                          </>
+                        )
+                      })()}
                     </g>
+
+                    <line
+                      x1={chartLeft} y1={bar.cy} x2={bar.x} y2={bar.cy}
+                      stroke="#f59e0b" strokeWidth="1" strokeDasharray="3 3" opacity="0.3"
+                    />
                   </>
                 )}
 
@@ -1601,9 +1591,54 @@ function CrescimentoChart({ matriculas }) {
         </svg>
       </div>
 
+      {hovered && (
+        <div className="mt-4 rounded-xl bg-gradient-to-r from-blue-50/80 to-emerald-50/50 border border-blue-100/60 p-4 animate-fade-in-up">
+          <div className="flex items-center justify-between mb-3">
+            <h5 className="text-sm font-bold text-gray-800">
+              Detalhe — {hovered.mes} {hovered.year}
+            </h5>
+            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+              {hovered.total} inscrito{hovered.total !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="flex items-end gap-[2px] h-16">
+            {hovered.dias.map((d) => {
+              const maxDay = Math.max(...hovered.dias.map(x => x.inscritos), 1)
+              const dayH = maxDay > 0 ? (d.inscritos / maxDay) * 100 : 0
+              const hasData = d.inscritos > 0
+              return (
+                <div
+                  key={d.dia}
+                  className="flex-1 flex flex-col items-center justify-end"
+                  title={`Dia ${d.dia}: ${d.inscritos} inscrito${d.inscritos !== 1 ? 's' : ''}`}
+                >
+                  {hasData && (
+                    <span className="text-[7px] font-bold text-blue-600 mb-0.5">{d.inscritos}</span>
+                  )}
+                  <div
+                    className="w-full rounded-t-sm transition-all duration-300"
+                    style={{
+                      height: `${Math.max(dayH, 3)}%`,
+                      background: hasData
+                        ? 'linear-gradient(to top, #2563eb, #60a5fa)'
+                        : '#e2e8f0',
+                      opacity: hasData ? 1 : 0.3,
+                    }}
+                  />
+                </div>
+              )
+            })}
+          </div>
+          <div className="flex justify-between mt-1.5">
+            <span className="text-[9px] text-gray-400">Dia 1</span>
+            <span className="text-[9px] text-gray-400">Dia {hovered.dias.length}</span>
+          </div>
+        </div>
+      )}
+
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
         <div className="flex items-center gap-4">
-          <span>Total: <span className="font-bold text-emerald-600">{totalMatriculas}</span> matrículas</span>
+          <span>Total: <span className="font-bold text-emerald-600">{totalMatriculas}</span> inscritos</span>
           <span className="text-gray-300">|</span>
           <span>Período: <span className="font-medium text-gray-600">{dataPoints.length > 0 ? `${dataPoints[0].mes} – ${dataPoints[dataPoints.length - 1].mes}` : '—'}</span></span>
         </div>
