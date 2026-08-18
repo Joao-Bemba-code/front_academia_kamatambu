@@ -1277,6 +1277,8 @@ function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
 // ========== CRESCIMENTO CHART ==========
 function CrescimentoChart({ matriculas }) {
   const [hoveredBar, setHoveredBar] = useState(null)
+  const [mousePos, setMousePos] = useState(null)
+  const svgRef = useRef(null)
   const MONTH_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
   const safeMatriculas = Array.isArray(matriculas) ? matriculas : []
 
@@ -1313,122 +1315,165 @@ function CrescimentoChart({ matriculas }) {
 
   const dataPoints = computeChartData()
 
-  const chartLeft = 45
-  const chartRight = 510
-  const chartTop = 15
-  const chartBottom = 195
+  const chartLeft = 48
+  const chartRight = 520
+  const chartTop = 10
+  const chartBottom = 190
   const chartH = chartBottom - chartTop
   const chartW = chartRight - chartLeft
   const maxDays = 32
-  const barW = Math.min(55, Math.max(32, chartW / dataPoints.length * 0.5))
   const spacing = chartW / dataPoints.length
+  const barW = Math.min(28, Math.max(14, spacing * 0.35))
 
   const barData = dataPoints.map((item, i) => {
-    const x = chartLeft + i * spacing + (spacing - barW) / 2
+    const cx = chartLeft + i * spacing + spacing / 2
     const h = (item.daysInMonth / maxDays) * chartH
-    const cx = x + barW / 2
-    return { ...item, x, cx, cy: chartBottom - h, h, index: i }
+    return { ...item, cx, cy: chartBottom - h, h, index: i }
   })
 
-  const linePts = barData.map(b => `${b.cx},${b.cy}`).join(' ')
+  const smoothPath = (points) => {
+    if (points.length < 2) return ''
+    let d = `M ${points[0].cx} ${points[0].cy}`
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[i === 0 ? i : i - 1]
+      const p1 = points[i]
+      const p2 = points[i + 1]
+      const p3 = points[i + 2 < points.length ? i + 2 : i + 1]
+      const tension = 0.3
+      const cp1x = p1.cx + (p2.cx - p0.cx) * tension
+      const cp1y = p1.cy + (p2.cy - p0.cy) * tension
+      const cp2x = p2.cx - (p3.cx - p1.cx) * tension
+      const cp2y = p2.cy - (p3.cy - p1.cy) * tension
+      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.cx} ${p2.cy}`
+    }
+    return d
+  }
 
-  const gridLines = [0, 8, 16, 24, 32].map(dia => ({
+  const linePath = smoothPath(barData)
+  const areaPath = barData.length > 0
+    ? `${linePath} L ${barData[barData.length - 1].cx},${chartBottom} L ${barData[0].cx},${chartBottom} Z`
+    : ''
+
+  const gridLines = [0, 6, 12, 18, 24, 30].map(dia => ({
     y: chartBottom - (dia / maxDays) * chartH,
     label: dia,
   }))
 
   return (
-    <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-5 sm:p-6 shadow-sm">
-      <div className="mb-5">
-        <h4 className="text-base font-bold text-gray-900">Evolução de Matrículas</h4>
-        <p className="text-sm text-gray-400 mt-0.5">Dias com inscrições nos últimos 6 meses</p>
+    <div className="lg:col-span-2 rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <div className="px-5 pt-5 pb-4 flex justify-between items-center">
+        <div>
+          <h2 className="text-lg font-bold text-gray-900">Crescimento de Inscrições</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Volume diário e tendências mensais</p>
+        </div>
+        <div className="flex gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-sm bg-blue-100 border border-blue-400"></div>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Volume Diário</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-0.5 bg-amber-500 rounded"></div>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Tendência</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Pontos</span>
+          </div>
+        </div>
       </div>
 
-      <div className="relative h-72 w-full">
-        <svg viewBox="0 0 560 220" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
-          <defs>
-            <linearGradient id="cBarGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#d1fae5" />
-              <stop offset="100%" stopColor="#a7f3d0" />
-            </linearGradient>
-            <linearGradient id="cBarGradH" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#a7f3d0" />
-              <stop offset="100%" stopColor="#6ee7b7" />
-            </linearGradient>
-            <filter id="cShadow"><feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#059669" floodOpacity="0.12" /></filter>
-            <filter id="cTip"><feDropShadow dx="0" dy="3" stdDeviation="6" floodColor="#000" floodOpacity="0.1" /></filter>
-          </defs>
+      <div className="relative px-4 pb-4">
+        <div className="relative border-l border-b border-gray-200" style={{ height: 420 }}>
+          <svg
+            ref={svgRef}
+            viewBox="0 0 560 210"
+            className="w-full h-full"
+            preserveAspectRatio="xMidYMid meet"
+            onMouseMove={(e) => {
+              if (!svgRef.current) return
+              const rect = svgRef.current.getBoundingClientRect()
+              const svgX = ((e.clientX - rect.left) / rect.width) * 560
+              setMousePos({ x: svgX, clientX: e.clientX, clientY: e.clientY })
+            }}
+            onMouseLeave={() => { setMousePos(null); setHoveredBar(null) }}
+          >
+            <defs>
+              <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.12" />
+                <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.01" />
+              </linearGradient>
+            </defs>
 
-          {gridLines.map((l, i) => (
-            <g key={i}>
-              <line x1={chartLeft} y1={l.y} x2={chartRight} y2={l.y} stroke="#f1f5f9" strokeWidth="1" strokeDasharray={i === 0 ? "0" : "3 4"} />
-              <text x={chartLeft - 7} y={l.y + 3} textAnchor="end" fill="#94a3b8" fontSize="9" fontWeight="500">{l.label}</text>
-            </g>
-          ))}
-
-          <polyline points={linePts} fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-trend-draw" opacity="0.5" />
-
-          {barData.map((bar) => {
-            const hov = hoveredBar === bar.index
-            return (
-              <g key={bar.index} onMouseEnter={() => setHoveredBar(bar.index)} onMouseLeave={() => setHoveredBar(null)} style={{ cursor: 'pointer' }}>
-                <rect x={bar.x - 6} y={chartTop} width={barW + 12} height={chartH} fill="transparent" />
-
-                <rect
-                  x={bar.x} y={bar.cy} width={barW} height={Math.max(bar.h, 1)} rx="4"
-                  fill={hov ? 'url(#cBarGradH)' : 'url(#cBarGrad)'}
-                  stroke={hov ? '#059669' : '#d1fae5'}
-                  strokeWidth={hov ? 1.5 : 0.5}
-                  filter={hov ? 'url(#cShadow)' : undefined}
-                  className="animate-chart-grow"
-                  style={{ transformOrigin: `${bar.cx}px ${chartBottom}px`, animationDelay: `${bar.index * 0.1}s`, transition: 'opacity 0.2s', opacity: hoveredBar !== null && !hov ? 0.4 : 1 }}
-                />
-
-                {bar.diasComInscricao.map((d) => {
-                  const dayY = chartBottom - (d.dia / maxDays) * chartH
-                  const opacity = Math.min(0.4 + (d.count * 0.3), 1)
-                  return (
-                    <g key={`d-${bar.index}-${d.dia}`}>
-                      <line
-                        x1={bar.x + 3} y1={dayY} x2={bar.x + barW - 3} y2={dayY}
-                        stroke="#059669" strokeWidth={hov ? 3 : 2} strokeLinecap="round"
-                        opacity={hov ? opacity + 0.2 : opacity}
-                        style={{ transition: 'all 0.2s' }}
-                      />
-                      {hov && d.count > 1 && (
-                        <text x={bar.x + barW + 5} y={dayY + 3} fill="#059669" fontSize="7.5" fontWeight="700">
-                          {d.count}x
-                        </text>
-                      )}
-                    </g>
-                  )
-                })}
-
-                <text x={bar.cx} y={bar.cy - 7} textAnchor="middle" fill={hov ? '#047857' : '#6b7280'} fontSize={hov ? '12' : '10'} fontWeight="700" style={{ transition: 'all 0.2s' }}>
-                  {bar.total}
-                </text>
-
-                <text x={bar.cx} y={chartBottom + 14} textAnchor="middle" fill={hov ? '#047857' : '#64748b'} fontSize="10.5" fontWeight={hov ? '700' : '500'} style={{ transition: 'all 0.2s' }}>
-                  {bar.mes}
-                </text>
-
-                {hov && (
-                  <>
-                    <line x1={bar.cx} y1={bar.cy} x2={bar.cx} y2={chartBottom} stroke="#059669" strokeWidth="1" strokeDasharray="3 3" opacity="0.15" />
-                    <g className="animate-tooltip-pop">
-                      <rect x={bar.cx - 58} y={bar.cy - 52} width="116" height="40" rx="8" fill="white" filter="url(#cTip)" stroke="#e5e7eb" strokeWidth="1" />
-                      <polygon points={`${bar.cx - 4},${bar.cy - 12} ${bar.cx + 4},${bar.cy - 12} ${bar.cx},${bar.cy - 7}`} fill="white" stroke="#e5e7eb" strokeWidth="1" />
-                      <text x={bar.cx} y={bar.cy - 36} textAnchor="middle" fill="#94a3b8" fontSize="8.5">{bar.mes} {bar.year} — {bar.daysInMonth} dias</text>
-                      <text x={bar.cx} y={bar.cy - 22} textAnchor="middle" fill="#047857" fontSize="11" fontWeight="700">{bar.total} inscrito{bar.total !== 1 ? 's' : ''} em {bar.diasComInscricao.length} dia{bar.diasComInscricao.length !== 1 ? 's' : ''}</text>
-                    </g>
-                  </>
-                )}
+            {gridLines.map((l, i) => (
+              <g key={i}>
+                <line x1={chartLeft} y1={l.y} x2={chartRight} y2={l.y} stroke="#e5e7eb" strokeWidth="0.5" strokeDasharray={i === 0 ? "0" : "3 4"} />
+                <text x={chartLeft - 8} y={l.y + 3} textAnchor="end" fill="#9ca3af" fontSize="9" fontFamily="JetBrains Mono, monospace">{l.label}</text>
               </g>
-            )
-          })}
+            ))}
 
-          <line x1={chartLeft} y1={chartBottom} x2={chartRight} y2={chartBottom} stroke="#e2e8f0" strokeWidth="1" />
-        </svg>
+            {areaPath && (
+              <path d={areaPath} fill="url(#areaFill)" className="animate-area-fade" />
+            )}
+
+            {linePath && (
+              <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" className="animate-trend-draw" />
+            )}
+
+            {barData.map((bar) => {
+              const hov = hoveredBar === bar.index
+              const barX = bar.cx - barW / 2
+              return (
+                <g key={bar.index} onMouseEnter={() => setHoveredBar(bar.index)} onMouseLeave={() => setHoveredBar(null)} style={{ cursor: 'pointer' }}>
+                  <rect x={barX - 3} y={chartTop} width={barW + 6} height={chartH} fill="transparent" />
+                  <rect
+                    x={barX} y={bar.cy} width={barW} height={Math.max(bar.h, 2)} rx="2"
+                    fill={hov ? 'rgba(59,130,246,0.35)' : 'rgba(59,130,246,0.15)'}
+                    stroke={hov ? '#3b82f6' : 'rgba(59,130,246,0.3)'}
+                    strokeWidth={hov ? 1.5 : 0.5}
+                    style={{ transition: 'all 0.2s' }}
+                  />
+
+                  {bar.diasComInscricao.map((d) => {
+                    const dayY = chartBottom - (d.dia / maxDays) * chartH
+                    return (
+                      <line
+                        key={`d-${bar.index}-${d.dia}`}
+                        x1={barX + 2} y1={dayY} x2={barX + barW - 2} y2={dayY}
+                        stroke="#3b82f6" strokeWidth={1.5} strokeLinecap="round"
+                        opacity={hov ? 0.7 : 0.35}
+                        style={{ transition: 'opacity 0.2s' }}
+                      />
+                    )
+                  })}
+
+                  <text x={bar.cx} y={chartBottom + 14} textAnchor="middle" fill={hov ? '#1e40af' : '#6b7280'} fontSize="10" fontWeight={hov ? '700' : '500'} fontFamily="JetBrains Mono, monospace" style={{ transition: 'all 0.2s' }}>
+                    {bar.mes}
+                  </text>
+
+                  <circle cx={bar.cx} cy={bar.cy} r="3" fill="#10b981" stroke="white" strokeWidth="1.5" />
+
+                  {hov && (
+                    <>
+                      <line x1={chartLeft} y1={bar.cy} x2={chartRight} y2={bar.cy} stroke="#10b981" strokeWidth="0.5" strokeDasharray="4 3" opacity="0.4" />
+                      <line x1={bar.cx} y1={chartTop} x2={bar.cx} y2={chartBottom} stroke="#10b981" strokeWidth="0.5" strokeDasharray="4 3" opacity="0.4" />
+
+                      <circle cx={bar.cx} cy={bar.cy} r="5" fill="#10b981" stroke="white" strokeWidth="2" style={{ filter: 'drop-shadow(0 0 4px rgba(16,185,129,0.3))' }} />
+
+                      <g className="animate-tooltip-pop">
+                        <rect x={bar.cx - 68} y={bar.cy - 56} width="136" height="44" rx="8" fill="#1e293b" style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))' }} />
+                        <polygon points={`${bar.cx - 4},${bar.cy - 12} ${bar.cx + 4},${bar.cy - 12} ${bar.cx},${bar.cy - 7}`} fill="#1e293b" />
+                        <text x={bar.cx} y={bar.cy - 38} textAnchor="middle" fill="#94a3b8" fontSize="9" fontWeight="600">Pico de Inscrições</text>
+                        <text x={bar.cx} y={bar.cy - 24} textAnchor="middle" fill="white" fontSize="10" fontFamily="JetBrains Mono, monospace">Dia {bar.diasComInscricao.length > 0 ? bar.diasComInscricao[0].dia : '—'}, {bar.mes}</text>
+                      </g>
+                    </>
+                  )}
+                </g>
+              )
+            })}
+
+            <line x1={chartLeft} y1={chartBottom} x2={chartRight} y2={chartBottom} stroke="#d1d5db" strokeWidth="0.5" />
+          </svg>
+        </div>
       </div>
     </div>
   )
