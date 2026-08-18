@@ -1316,9 +1316,9 @@ function CrescimentoChart({ matriculas }) {
   const maxDays = 31
 
   const chartLeft = 52
-  const chartRight = 848
+  const chartRight = 680
   const chartTop = 20
-  const chartBottom = 920
+  const chartBottom = 560
   const chartH = chartBottom - chartTop
   const chartW = chartRight - chartLeft
   const spacing = chartW / dataPoints.length
@@ -1369,10 +1369,10 @@ function CrescimentoChart({ matriculas }) {
       </div>
 
       <div className="relative px-5 pb-6 overflow-x-auto">
-        <div className="relative border-l-2 border-b-2 border-gray-300" style={{ height: 620 }}>
+        <div className="relative border-l-2 border-b-2 border-gray-300" style={{ height: 480 }}>
           <svg
             ref={svgRef}
-            viewBox="0 0 900 940"
+            viewBox="0 0 720 600"
             className="w-full h-full"
             preserveAspectRatio="xMidYMid meet"
             onMouseLeave={() => setHoveredBar(null)}
