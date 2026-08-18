@@ -1313,146 +1313,133 @@ function CrescimentoChart({ matriculas }) {
   }
 
   const dataPoints = computeChartData()
-  const maxVal = Math.max(...dataPoints.map(d => d.total), 1)
+  const maxDays = 31
 
-  const chartLeft = 48
-  const chartRight = 520
-  const chartTop = 10
-  const chartBottom = 190
+  const chartLeft = 42
+  const chartRight = 740
+  const chartTop = 8
+  const chartBottom = 370
   const chartH = chartBottom - chartTop
   const chartW = chartRight - chartLeft
   const spacing = chartW / dataPoints.length
-  const barW = Math.min(28, Math.max(14, spacing * 0.35))
+  const barW = Math.min(60, Math.max(32, spacing * 0.45))
+
+  const dayToY = (dia) => {
+    return chartBottom - ((dia - 1) / (maxDays - 1)) * chartH
+  }
 
   const barData = dataPoints.map((item, i) => {
     const cx = chartLeft + i * spacing + spacing / 2
-    const h = maxVal > 0 ? (item.total / maxVal) * chartH : 0
-    return { ...item, cx, cy: chartBottom - h, h, index: i }
+    return { ...item, cx, index: i }
   })
 
-  const smoothPath = (points) => {
-    if (points.length < 2) return ''
-    let d = `M ${points[0].cx} ${points[0].cy}`
-    for (let i = 0; i < points.length - 1; i++) {
-      const p0 = points[i === 0 ? i : i - 1]
-      const p1 = points[i]
-      const p2 = points[i + 1]
-      const p3 = points[i + 2 < points.length ? i + 2 : i + 1]
-      const t = 0.3
-      const cp1x = p1.cx + (p2.cx - p0.cx) * t
-      const cp1y = p1.cy + (p2.cy - p0.cy) * t
-      const cp2x = p2.cx - (p3.cx - p1.cx) * t
-      const cp2y = p2.cy - (p3.cy - p1.cy) * t
-      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.cx} ${p2.cy}`
-    }
-    return d
-  }
-
-  const linePath = smoothPath(barData)
-  const areaPath = barData.length > 0
-    ? `${linePath} L ${barData[barData.length - 1].cx},${chartBottom} L ${barData[0].cx},${chartBottom} Z`
-    : ''
-
-  const gridLines = [0, 0.25, 0.5, 0.75, 1].map(pct => ({
-    y: chartBottom - pct * chartH,
-    label: Math.round(maxVal * pct),
-  }))
+  const gridDays = Array.from({ length: maxDays }, (_, i) => i + 1)
 
   return (
     <div className="lg:col-span-2 rounded-xl border border-gray-200 bg-white overflow-hidden">
-      <div className="px-5 pt-5 pb-4">
-        <h2 className="text-lg font-bold text-gray-900">Crescimento de Inscrições</h2>
-        <p className="text-sm text-gray-500 mt-0.5">Inscritos nos últimos 6 meses</p>
+      <div className="px-6 pt-6 pb-4">
+        <h2 className="text-lg font-bold text-gray-900">Evolução de Inscrições</h2>
+        <p className="text-sm text-gray-500 mt-0.5">Dias com inscrições nos últimos 6 meses</p>
       </div>
 
-      <div className="relative px-4 pb-4">
-        <div className="relative border-l border-b border-gray-200" style={{ height: 420 }}>
+      <div className="relative px-5 pb-5 overflow-x-auto">
+        <div className="relative border-l border-b border-gray-200" style={{ minWidth: 700, height: 560 }}>
           <svg
             ref={svgRef}
-            viewBox="0 0 560 210"
+            viewBox="0 0 780 380"
             className="w-full h-full"
             preserveAspectRatio="xMidYMid meet"
             onMouseLeave={() => setHoveredBar(null)}
           >
-            <defs>
-              <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.12" />
-                <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.01" />
-              </linearGradient>
-            </defs>
-
-            {gridLines.map((l, i) => (
-              <g key={i}>
-                <line x1={chartLeft} y1={l.y} x2={chartRight} y2={l.y} stroke="#e5e7eb" strokeWidth="0.5" strokeDasharray={i === 0 ? "0" : "3 4"} />
-                <text x={chartLeft - 8} y={l.y + 3} textAnchor="end" fill="#9ca3af" fontSize="9" fontFamily="JetBrains Mono, monospace">{l.label}</text>
-              </g>
-            ))}
-
-            {areaPath && <path d={areaPath} fill="url(#areaFill)" className="animate-area-fade" />}
-            {linePath && <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" className="animate-trend-draw" />}
+            {gridDays.map((dia) => {
+              const y = dayToY(dia)
+              const isRef = dia === 1 || dia === 5 || dia === 10 || dia === 15 || dia === 20 || dia === 25 || dia === 30
+              return (
+                <g key={`grid-${dia}`}>
+                  <line
+                    x1={chartLeft} y1={y} x2={chartRight} y2={y}
+                    stroke={isRef ? '#d1d5db' : '#f3f4f6'}
+                    strokeWidth={isRef ? 0.6 : 0.3}
+                  />
+                  {isRef && (
+                    <text x={chartLeft - 6} y={y + 3} textAnchor="end" fill="#9ca3af" fontSize="8" fontFamily="JetBrains Mono, monospace">
+                      {dia}
+                    </text>
+                  )}
+                </g>
+              )
+            })}
 
             {barData.map((bar) => {
               const hov = hoveredBar === bar.index
               const barX = bar.cx - barW / 2
+              const topDayY = dayToY(bar.daysInMonth)
+              const bottomDayY = dayToY(1)
+              const fullH = bottomDayY - topDayY
+
               return (
                 <g key={bar.index} onMouseEnter={() => setHoveredBar(bar.index)} onMouseLeave={() => setHoveredBar(null)} style={{ cursor: 'pointer' }}>
-                  <rect x={barX - 3} y={chartTop} width={barW + 6} height={chartH} fill="transparent" />
+                  <rect x={barX - 2} y={chartTop} width={barW + 4} height={chartH} fill="transparent" />
+
                   <rect
-                    x={barX} y={chartBottom - Math.max(bar.h, 50)} width={barW} height={Math.max(bar.h, 50)} rx="3"
-                    fill={hov ? 'rgba(59,130,246,0.35)' : 'rgba(59,130,246,0.15)'}
-                    stroke={hov ? '#3b82f6' : 'rgba(59,130,246,0.3)'}
-                    strokeWidth={hov ? 1.5 : 0.5}
-                    className="animate-chart-grow"
-                    style={{ transformOrigin: `${bar.cx}px ${chartBottom}px`, animationDelay: `${bar.index * 0.1}s`, transition: 'all 0.2s', opacity: hoveredBar !== null && !hov ? 0.4 : 1 }}
+                    x={barX} y={topDayY} width={barW} height={fullH} rx="4"
+                    fill={hov ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.04)'}
+                    stroke={hov ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.15)'}
+                    strokeWidth={hov ? 1.2 : 0.5}
+                    style={{ transition: 'all 0.2s', opacity: hoveredBar !== null && !hov ? 0.4 : 1 }}
                   />
 
                   {Array.from({ length: bar.daysInMonth }, (_, i) => i + 1).map((dia) => {
-                    const minH = 50
-                    const effectiveH = Math.max(bar.h, minH)
-                    const baseY = chartBottom - effectiveH
-                    const dayY = baseY + ((dia - 1) / (bar.daysInMonth - 1 || 1)) * effectiveH
+                    const y = dayToY(dia)
                     const temInscricao = bar.diasComInscricao.find(d => d.dia === dia)
                     return (
                       <g key={`d-${bar.index}-${dia}`}>
-                        <line
-                          x1={barX + 2} y1={dayY} x2={barX + barW - 2} y2={dayY}
-                          stroke={temInscricao ? (hov ? '#2563eb' : '#3b82f6') : '#e5e7eb'}
-                          strokeWidth={temInscricao ? 2.5 : 0.5}
-                          strokeLinecap="round"
-                          opacity={temInscricao ? (hov ? 1 : 0.7) : (hov ? 0.4 : 0.2)}
-                          style={{ transition: 'all 0.2s' }}
-                        />
-                        {temInscricao && (
-                          <circle cx={barX + barW / 2} cy={dayY} r={hov ? 2.5 : 2} fill="#2563eb" opacity={hov ? 1 : 0.8} />
+                        {temInscricao ? (
+                          <>
+                            <line
+                              x1={barX + 3} y1={y} x2={barX + barW - 3} y2={y}
+                              stroke={hov ? '#2563eb' : '#3b82f6'} strokeWidth={2.5} strokeLinecap="round"
+                              opacity={hov ? 1 : 0.7}
+                              style={{ transition: 'all 0.2s' }}
+                            />
+                            <circle cx={bar.cx} cy={y} r={hov ? 4 : 3} fill="#2563eb" opacity={hov ? 1 : 0.85} style={{ transition: 'all 0.2s' }} />
+                            {temInscricao.count > 1 && (
+                              <text x={barX + barW + 5} y={y + 3} fill="#2563eb" fontSize="8" fontWeight="700" fontFamily="JetBrains Mono, monospace" opacity={hov ? 1 : 0.6}>
+                                {temInscricao.count}x
+                              </text>
+                            )}
+                          </>
+                        ) : (
+                          <line
+                            x1={barX + 6} y1={y} x2={barX + barW - 6} y2={y}
+                            stroke="#e5e7eb" strokeWidth={0.4} strokeLinecap="round"
+                            opacity={hov ? 0.6 : 0.25}
+                          />
                         )}
                       </g>
                     )
                   })}
 
-                  {bar.h > 8 && (
-                    <text x={bar.cx} y={bar.cy - 6} textAnchor="middle" fill={hov ? '#1e40af' : '#6b7280'} fontSize={hov ? '11' : '9'} fontWeight="700" fontFamily="JetBrains Mono, monospace" style={{ transition: 'all 0.2s' }}>
-                      {bar.total}
-                    </text>
-                  )}
+                  <text x={bar.cx} y={topDayY - 10} textAnchor="middle" fill={hov ? '#1e40af' : '#6b7280'} fontSize={hov ? '13' : '11'} fontWeight="700" fontFamily="JetBrains Mono, monospace" style={{ transition: 'all 0.2s' }}>
+                    {bar.total}
+                  </text>
 
-                  <text x={bar.cx} y={chartBottom + 14} textAnchor="middle" fill={hov ? '#1e40af' : '#6b7280'} fontSize="10" fontWeight={hov ? '700' : '500'} fontFamily="JetBrains Mono, monospace" style={{ transition: 'all 0.2s' }}>
+                  <text x={bar.cx} y={chartBottom + 16} textAnchor="middle" fill={hov ? '#1e40af' : '#6b7280'} fontSize="11" fontWeight={hov ? '700' : '500'} fontFamily="JetBrains Mono, monospace" style={{ transition: 'all 0.2s' }}>
                     {bar.mes}
                   </text>
 
-                  <circle cx={bar.cx} cy={bar.cy} r="3" fill="#10b981" stroke="white" strokeWidth="1.5" />
-
                   {hov && (
                     <>
-                      <line x1={chartLeft} y1={bar.cy} x2={chartRight} y2={bar.cy} stroke="#10b981" strokeWidth="0.5" strokeDasharray="4 3" opacity="0.4" />
-                      <line x1={bar.cx} y1={chartTop} x2={bar.cx} y2={chartBottom} stroke="#10b981" strokeWidth="0.5" strokeDasharray="4 3" opacity="0.4" />
-                      <circle cx={bar.cx} cy={bar.cy} r="5" fill="#10b981" stroke="white" strokeWidth="2" style={{ filter: 'drop-shadow(0 0 4px rgba(16,185,129,0.3))' }} />
+                      <line x1={chartLeft} y1={topDayY} x2={chartRight} y2={topDayY} stroke="#3b82f6" strokeWidth="0.4" strokeDasharray="4 3" opacity="0.3" />
+                      <line x1={chartLeft} y1={bottomDayY} x2={chartRight} y2={bottomDayY} stroke="#3b82f6" strokeWidth="0.4" strokeDasharray="4 3" opacity="0.3" />
+                      <line x1={bar.cx} y1={chartTop} x2={bar.cx} y2={chartBottom} stroke="#3b82f6" strokeWidth="0.4" strokeDasharray="4 3" opacity="0.2" />
                       <g className="animate-tooltip-pop">
-                        <rect x={bar.cx - 65} y={bar.cy - 66} width="130" height="58" rx="8" fill="#1e293b" style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))' }} />
-                        <polygon points={`${bar.cx - 4},${bar.cy - 8} ${bar.cx + 4},${bar.cy - 8} ${bar.cx},${bar.cy - 2}`} fill="#1e293b" />
-                        <text x={bar.cx} y={bar.cy - 48} textAnchor="middle" fill="#94a3b8" fontSize="9" fontWeight="600">{bar.mes} {bar.year}</text>
-                        <text x={bar.cx} y={bar.cy - 35} textAnchor="middle" fill="white" fontSize="10" fontFamily="JetBrains Mono, monospace">{bar.total} inscrito{bar.total !== 1 ? 's' : ''}</text>
+                        <rect x={bar.cx - 70} y={chartTop + 4} width="140" height={bar.diasComInscricao.length > 4 ? 80 : 50} rx="8" fill="#1e293b" style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))' }} />
+                        <polygon points={`${bar.cx - 4},${chartTop + 54} ${bar.cx + 4},${chartTop + 54} ${bar.cx},${chartTop + 60}`} fill="#1e293b" />
+                        <text x={bar.cx} y={chartTop + 24} textAnchor="middle" fill="#94a3b8" fontSize="9" fontWeight="600">{bar.mes} {bar.year}</text>
+                        <text x={bar.cx} y={chartTop + 40} textAnchor="middle" fill="white" fontSize="11" fontFamily="JetBrains Mono, monospace">{bar.total} inscrito{bar.total !== 1 ? 's' : ''}</text>
                         {bar.diasComInscricao.length > 0 && (
-                          <text x={bar.cx} y={bar.cy - 20} textAnchor="middle" fill="#60a5fa" fontSize="8" fontFamily="JetBrains Mono, monospace">
+                          <text x={bar.cx} y={chartTop + 56} textAnchor="middle" fill="#60a5fa" fontSize="8" fontFamily="JetBrains Mono, monospace">
                             dias: {bar.diasComInscricao.map(d => d.dia).join(', ')}
                           </text>
                         )}
@@ -1464,6 +1451,7 @@ function CrescimentoChart({ matriculas }) {
             })}
 
             <line x1={chartLeft} y1={chartBottom} x2={chartRight} y2={chartBottom} stroke="#d1d5db" strokeWidth="0.5" />
+            <text x={chartLeft - 6} y={chartTop - 2} textAnchor="end" fill="#9ca3af" fontSize="8" fontFamily="JetBrains Mono, monospace">Dia</text>
           </svg>
         </div>
       </div>
