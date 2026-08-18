@@ -1362,7 +1362,7 @@ function CrescimentoChart({ matriculas }) {
   const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#3b82f6', '#60a5fa', '#818cf8']
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+    <div className="lg:col-span-2 rounded-xl border border-gray-200 bg-white overflow-hidden">
       <div className="px-6 pt-6 pb-4">
         <h2 className="text-lg font-bold text-gray-900">Evolução de Inscrições</h2>
         <p className="text-sm text-gray-500 mt-0.5">Dias com inscrições nos últimos 6 meses</p>
@@ -1545,9 +1545,8 @@ function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento
 
       <StatsCards stats={stats} />
 
-      <CrescimentoChart matriculas={matriculas} />
-
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <CrescimentoChart matriculas={matriculas} />
 
         {/* Donut Chart */}
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
