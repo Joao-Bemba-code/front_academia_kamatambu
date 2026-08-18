@@ -1274,106 +1274,106 @@ function MatriculasRecentes({ matriculas, onEdit, onDelete, onView }) {
   )
 }
 
-// ========== CRESCIMENTO CHART (Modern) ==========
-function CrescimentoChart({ meses }) {
-  const [activePeriod, setActivePeriod] = useState('mes')
+// ========== CRESCIMENTO CHART (Modern Combo) ==========
+function CrescimentoChart({ matriculas }) {
   const [hoveredBar, setHoveredBar] = useState(null)
-  const [selectedMonthIdx, setSelectedMonthIdx] = useState(
-    meses && meses.length > 0 ? meses.length - 1 : 0
-  )
 
-  const periods = [
-    { key: 'dia', label: 'Dia' },
-    { key: 'mes', label: 'Mês' },
-    { key: 'ano', label: 'Ano' },
-  ]
+  const MONTHS_ORDER = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ']
+  const MONTH_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
 
-  const chartLeft = 50
-  const chartRight = 505
-  const chartTop = 15
-  const chartBottom = 205
-  const chartHeight = chartBottom - chartTop
-  const chartWidth = chartRight - chartLeft
+  const safeMatriculas = Array.isArray(matriculas) ? matriculas : []
 
-  const diasNoMes = (mesIdx) => {
-    const monthMap = { JAN: 0, FEV: 1, MAR: 2, ABR: 3, MAI: 4, JUN: 5, JUL: 6, AGO: 7, SET: 8, OUT: 9, NOV: 10, DEZ: 11 }
-    const mes = meses[mesIdx]
-    if (!mes) return 30
-    const mIdx = monthMap[mes.mes]
-    if (mIdx === undefined) return 30
-    return new Date(2025, mIdx + 1, 0).getDate()
+  const computeChartData = () => {
+    const now = new Date()
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+
+    const monthlyCounts = {}
+    const dailyByMonth = {}
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(sixMonthsAgo.getFullYear(), sixMonthsAgo.getMonth() + i, 1)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      const monthLabel = MONTH_SHORT[d.getMonth()]
+      const yearLabel = d.getFullYear()
+      monthlyCounts[key] = { mes: monthLabel.toUpperCase(), year: yearLabel, total: 0, key, monthIdx: d.getMonth() }
+      dailyByMonth[key] = {}
+    }
+
+    safeMatriculas.forEach(m => {
+      if (!m.Data_Matricula) return
+      const date = new Date(m.Data_Matricula)
+      if (isNaN(date.getTime())) return
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      if (monthlyCounts[key] !== undefined) {
+        monthlyCounts[key].total++
+        const dayNum = date.getDate()
+        dailyByMonth[key][dayNum] = (dailyByMonth[key][dayNum] || 0) + 1
+      }
+    })
+
+    const months = Object.values(monthlyCounts)
+
+    let cumSum = 0
+    const dataPoints = months.map((m, i) => {
+      cumSum += m.total
+      const daysInMonth = new Date(m.year, m.monthIdx + 1, 0).getDate()
+      const dailyData = []
+      let dayCum = cumSum - m.total
+      for (let d = 1; d <= daysInMonth; d++) {
+        dayCum += (dailyByMonth[m.key][d] || 0)
+        dailyData.push({ day: d, monthly: dailyByMonth[m.key][d] || 0, cumulative: dayCum })
+      }
+      return { ...m, index: i, cumTotal: cumSum, dailyData }
+    })
+
+    return dataPoints
   }
 
-  const distribuirDias = (total, numDias) => {
-    const result = []
-    let restante = total
-    const weights = []
-    for (let d = 0; d < numDias; d++) {
-      const dayOfWeek = (d + 4) % 7
-      weights.push(dayOfWeek < 5 ? 1.3 + Math.random() * 0.4 : 0.5 + Math.random() * 0.3)
-    }
-    const totalWeight = weights.reduce((s, w) => s + w, 0)
-    for (let d = 0; d < numDias; d++) {
-      const val = d === numDias - 1 ? restante : Math.max(0, Math.round((weights[d] / totalWeight) * total))
-      result.push(Math.max(0, val))
-      restante -= result[d]
-    }
-    return result
-  }
+  const dataPoints = computeChartData()
+  const totalMatriculas = dataPoints.reduce((s, d) => s + d.total, 0)
+  const maxMonthly = Math.max(...dataPoints.map(d => d.total), 1)
+  const maxCumulative = Math.max(...dataPoints.map(d => d.cumTotal), 1)
 
-  let chartData = []
-  let xLabel = ''
-  let yLabel = 'Matrículas'
-
-  if (activePeriod === 'mes') {
-    chartData = meses.map((m, i) => ({ label: m.mes, value: m.total || 0, index: i }))
-    xLabel = 'Meses'
-  } else if (activePeriod === 'dia') {
-    const safeIdx = Math.min(selectedMonthIdx, meses.length - 1)
-    const mesSelecionado = meses[safeIdx]
-    if (mesSelecionado) {
-      const numDias = diasNoMes(safeIdx)
-      const dias = distribuirDias(mesSelecionado.total || 0, numDias)
-      chartData = dias.map((v, i) => ({ label: `${i + 1}`, value: v, index: i }))
-    }
-    xLabel = 'Dias'
-  } else {
-    const totalAno = meses.reduce((s, m) => s + (m.total || 0), 0)
-    chartData = [{ label: 'Total', value: totalAno, index: 0 }]
-    xLabel = 'Ano'
-  }
-
-  const maxVal = Math.max(...chartData.map(d => d.value), 1)
-  const totalInscricoes = meses.reduce((sum, m) => sum + (m.total || 0), 0)
-
-  const prevMonth = meses.length >= 2 ? meses[meses.length - 2]?.total || 0 : 0
-  const currMonth = meses.length >= 1 ? meses[meses.length - 1]?.total || 0 : 0
+  const prevMonth = dataPoints.length >= 2 ? dataPoints[dataPoints.length - 2]?.total || 0 : 0
+  const currMonth = dataPoints.length >= 1 ? dataPoints[dataPoints.length - 1]?.total || 0 : 0
   const pctChange = prevMonth > 0 ? Math.round(((currMonth - prevMonth) / prevMonth) * 100) : (currMonth > 0 ? 100 : 0)
 
-  const maxBars = activePeriod === 'dia' ? 31 : 6
-  const barW = Math.min(48, Math.max(activePeriod === 'dia' ? 10 : 24, chartWidth / Math.min(chartData.length, maxBars) * (activePeriod === 'dia' ? 0.7 : 0.55)))
-  const spacing = chartWidth / Math.min(chartData.length, maxBars)
+  const chartLeft = 55
+  const chartRight = 510
+  const chartTop = 20
+  const chartBottom = 200
+  const chartHeight = chartBottom - chartTop
+  const chartWidth = chartRight - chartLeft
+  const rightAxisX = chartRight + 35
 
-  const barData = chartData.map((item, index) => {
+  const barW = Math.min(50, Math.max(28, chartWidth / dataPoints.length * 0.5))
+  const spacing = chartWidth / dataPoints.length
+
+  const barData = dataPoints.map((item, index) => {
     const x = chartLeft + index * spacing + (spacing - barW) / 2
-    const h = maxVal > 0 ? (item.value / maxVal) * chartHeight : 0
+    const h = (item.total / maxMonthly) * chartHeight
     const cx = x + barW / 2
     const cy = chartBottom - h
-    return { ...item, x, cx, cy, h, index }
+    const cumY = chartBottom - (item.cumTotal / maxCumulative) * chartHeight
+    return { ...item, x, cx, cy, h, cumY, index }
   })
 
-  const trendPoints = barData.map(b => `${b.cx},${b.cy}`).join(' ')
-  const areaPoints = barData.length > 1
+  const trendPoints = barData.map(b => `${b.cx},${b.cumY}`).join(' ')
+  const areaPoints = barData.length > 0
+    ? `${barData[0].cx},${chartBottom} ${barData.map(b => `${b.cx},${b.cumY}`).join(' ')} ${barData[barData.length - 1].cx},${chartBottom}`
+    : ''
+
+  const barAreaPoints = barData.length > 0
     ? `${barData[0].cx},${chartBottom} ${barData.map(b => `${b.cx},${b.cy}`).join(' ')} ${barData[barData.length - 1].cx},${chartBottom}`
     : ''
 
   const gridLines = [0, 0.25, 0.5, 0.75, 1].map(pct => ({
     y: chartTop + chartHeight * (1 - pct),
-    label: Math.round(maxVal * pct),
+    leftLabel: Math.round(maxMonthly * pct),
+    rightLabel: Math.round(maxCumulative * pct),
   }))
 
   return (
-    <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+    <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
       <div className="mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h4 className="text-base font-bold text-gray-900 flex items-center gap-2">
@@ -1382,16 +1382,9 @@ function CrescimentoChart({ meses }) {
             </span>
             Crescimento de Matrículas
           </h4>
-          <p className="text-sm text-gray-500 mt-1 ml-10">
-            {activePeriod === 'dia'
-              ? `Ingressos por dia — ${meses[Math.min(selectedMonthIdx, meses.length - 1)]?.mes || ''}`
-              : activePeriod === 'ano'
-                ? 'Total anual de ingressos'
-                : 'Ingressos nos últimos 6 meses'
-            }
-          </p>
+          <p className="text-sm text-gray-500 mt-1 ml-10">Visão completa — ingressos e acumulado</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
             pctChange >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
           }`}>
@@ -1404,138 +1397,115 @@ function CrescimentoChart({ meses }) {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 7l-5 5-5-5M17 17l-5-5-5 5" />
               </svg>
             )}
-            {pctChange >= 0 ? '+' : ''}{pctChange}% vs anterior
+            {pctChange >= 0 ? '+' : ''}{pctChange}%
           </span>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <div className="flex items-center gap-1 bg-gray-50 rounded-xl p-1 w-fit">
-          {periods.map(p => (
-            <button
-              key={p.key}
-              onClick={() => { setActivePeriod(p.key); setHoveredBar(null) }}
-              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                activePeriod === p.key
-                  ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-emerald-100'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
+      <div className="flex flex-wrap items-center gap-4 mb-4 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-sm bg-gradient-to-b from-emerald-400 to-emerald-600"></span>
+          <span className="text-gray-600 font-medium">Ingressos / mês</span>
         </div>
-
-        {activePeriod === 'dia' && meses.length > 1 && (
-          <div className="flex items-center gap-1 bg-gray-50 rounded-xl p-1 w-fit animate-fade-in-up">
-            {meses.map((m, i) => (
-              <button
-                key={m.mes}
-                onClick={() => { setSelectedMonthIdx(i); setHoveredBar(null) }}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                  selectedMonthIdx === i
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-white'
-                }`}
-              >
-                {m.mes}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-0.5 bg-amber-500 rounded-full"></span>
+          <span className="text-gray-600 font-medium">Acumulado</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-sm bg-gradient-to-b from-blue-400 to-blue-600 opacity-40"></span>
+          <span className="text-gray-600 font-medium">Área diária</span>
+        </div>
       </div>
 
-      <div className="relative h-64 w-full">
-        <svg viewBox="0 0 530 225" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+      <div className="relative h-72 w-full">
+        <svg viewBox="-5 0 570 230" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
           <defs>
-            <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="cBarGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#34d399" />
               <stop offset="100%" stopColor="#059669" />
             </linearGradient>
-            <linearGradient id="barGradHover" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="cBarGradHover" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#6ee7b7" />
               <stop offset="100%" stopColor="#34d399" />
             </linearGradient>
-            <linearGradient id="barGradDia" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#60a5fa" />
-              <stop offset="100%" stopColor="#2563eb" />
+            <linearGradient id="cCumAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.10" />
+              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.01" />
             </linearGradient>
-            <linearGradient id="barGradDiaHover" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#93c5fd" />
-              <stop offset="100%" stopColor="#60a5fa" />
+            <linearGradient id="cBarAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#059669" stopOpacity="0.06" />
+              <stop offset="100%" stopColor="#059669" stopOpacity="0.01" />
             </linearGradient>
-            <linearGradient id="barGradAno" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#a78bfa" />
-              <stop offset="100%" stopColor="#7c3aed" />
-            </linearGradient>
-            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={activePeriod === 'dia' ? '#2563eb' : activePeriod === 'ano' ? '#7c3aed' : '#059669'} stopOpacity="0.12" />
-              <stop offset="100%" stopColor={activePeriod === 'dia' ? '#2563eb' : activePeriod === 'ano' ? '#7c3aed' : '#059669'} stopOpacity="0.01" />
-            </linearGradient>
-            <filter id="barShadow" x="-20%" y="-10%" width="140%" height="130%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#059669" floodOpacity="0.15" />
+            <filter id="cBarShadow" x="-20%" y="-10%" width="140%" height="130%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#059669" floodOpacity="0.18" />
             </filter>
-            <filter id="tooltipShadow" x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#000" floodOpacity="0.1" />
+            <filter id="cTooltipShadow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="#000" floodOpacity="0.12" />
             </filter>
+            <clipPath id="chartClip">
+              <rect x={chartLeft} y={chartTop} width={chartWidth} height={chartHeight} />
+            </clipPath>
           </defs>
 
           {gridLines.map((line, i) => (
-            <g key={i}>
+            <g key={`grid-${i}`}>
               <line
                 x1={chartLeft} y1={line.y} x2={chartRight} y2={line.y}
-                stroke="#f1f5f9" strokeWidth="1" strokeDasharray={i === 0 ? "0" : "4 3"}
+                stroke="#f1f5f9" strokeWidth="1" strokeDasharray={i === 0 ? "0" : "3 4"}
               />
               <text
                 x={chartLeft - 8} y={line.y + 3.5}
-                textAnchor="end" fill="#94a3b8" fontSize="10" fontWeight="500"
+                textAnchor="end" fill="#94a3b8" fontSize="9" fontWeight="500"
               >
-                {line.label}
+                {line.leftLabel}
+              </text>
+              <text
+                x={rightAxisX} y={line.y + 3.5}
+                textAnchor="start" fill="#d4a017" fontSize="9" fontWeight="500" opacity="0.7"
+              >
+                {line.rightLabel}
               </text>
             </g>
           ))}
 
-          {barData.length > 1 && (
-            <polygon
-              points={areaPoints}
-              fill="url(#areaGrad)"
-              className="animate-area-fade"
-              key={`area-${activePeriod}-${selectedMonthIdx}`}
-            />
-          )}
+          <text x={chartLeft - 8} y={chartTop - 8} textAnchor="end" fill="#64748b" fontSize="8" fontWeight="600" letterSpacing="0.5">MÊS</text>
+          <text x={rightAxisX} y={chartTop - 8} textAnchor="start" fill="#d4a017" fontSize="8" fontWeight="600" letterSpacing="0.5" opacity="0.7">ACUM.</text>
+
+          <g clipPath="url(#chartClip)">
+            {barData.length > 0 && (
+              <polygon points={barAreaPoints} fill="url(#cBarAreaGrad)" className="animate-area-fade" />
+            )}
+            {barData.length > 0 && (
+              <polygon points={areaPoints} fill="url(#cCumAreaGrad)" className="animate-area-fade" style={{ animationDelay: '0.4s' }} />
+            )}
+          </g>
 
           {barData.length > 1 && (
             <polyline
               points={trendPoints}
               fill="none"
-              stroke={activePeriod === 'dia' ? '#2563eb' : activePeriod === 'ano' ? '#7c3aed' : '#059669'}
+              stroke="#f59e0b"
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
               className="animate-trend-draw"
-              key={`trend-${activePeriod}-${selectedMonthIdx}`}
+              strokeDasharray="6 3"
             />
           )}
 
           {barData.map((bar) => {
             const isHovered = hoveredBar === bar.index
-            const gradFill = activePeriod === 'dia'
-              ? (isHovered ? 'url(#barGradDiaHover)' : 'url(#barGradDia)')
-              : activePeriod === 'ano'
-                ? 'url(#barGradAno)'
-                : (isHovered ? 'url(#barGradHover)' : 'url(#barGrad)')
-            const lineColor = activePeriod === 'dia' ? '#2563eb' : activePeriod === 'ano' ? '#7c3aed' : '#059669'
             return (
               <g
-                key={`${activePeriod}-${selectedMonthIdx}-${bar.label}-${bar.index}`}
+                key={`bar-${bar.index}`}
                 onMouseEnter={() => setHoveredBar(bar.index)}
                 onMouseLeave={() => setHoveredBar(null)}
                 style={{ cursor: 'pointer' }}
               >
                 <rect
-                  x={bar.x - 2}
+                  x={bar.x - 4}
                   y={chartTop}
-                  width={barW + 4}
+                  width={barW + 8}
                   height={chartHeight}
                   fill="transparent"
                 />
@@ -1543,100 +1513,101 @@ function CrescimentoChart({ meses }) {
                   x={bar.x}
                   y={bar.cy}
                   width={barW}
-                  height={bar.h}
-                  rx={barW > 20 ? 5 : 3}
-                  fill={gradFill}
-                  filter={isHovered ? 'url(#barShadow)' : undefined}
+                  height={Math.max(bar.h, 1)}
+                  rx="5"
+                  fill={isHovered ? 'url(#cBarGradHover)' : 'url(#cBarGrad)'}
+                  filter={isHovered ? 'url(#cBarShadow)' : undefined}
                   className="animate-chart-grow"
                   style={{
                     transformOrigin: `${bar.cx}px ${chartBottom}px`,
-                    animationDelay: `${bar.index * 0.02}s`,
+                    animationDelay: `${bar.index * 0.1}s`,
                     transition: 'opacity 0.2s ease',
                     opacity: hoveredBar !== null && !isHovered ? 0.4 : 1,
                   }}
                 />
-                {(activePeriod === 'mes' || activePeriod === 'ano' || (activePeriod === 'dia' && isHovered)) && bar.h > 0 && (
+
+                {bar.h > 4 && (
                   <text
-                    x={bar.cx} y={bar.cy - 6}
+                    x={bar.cx} y={bar.cy - 7}
                     textAnchor="middle"
-                    fill={isHovered ? lineColor : '#6b7280'}
-                    fontSize={isHovered ? '11' : '9'}
+                    fill={isHovered ? '#047857' : '#6b7280'}
+                    fontSize={isHovered ? '12' : '10'}
                     fontWeight="700"
-                    style={{
-                      transition: 'all 0.2s ease',
-                    }}
+                    style={{ transition: 'all 0.2s ease' }}
                   >
-                    {bar.value}
+                    {bar.total}
                   </text>
                 )}
+
                 <text
-                  x={bar.cx} y={chartBottom + 16}
+                  x={bar.cx} y={chartBottom + 15}
                   textAnchor="middle"
-                  fill={isHovered ? lineColor : '#64748b'}
-                  fontSize={activePeriod === 'dia' ? '8' : '10.5'}
+                  fill={isHovered ? '#047857' : '#64748b'}
+                  fontSize="10.5"
                   fontWeight={isHovered ? '700' : '500'}
                   style={{ transition: 'all 0.2s ease' }}
                 >
-                  {activePeriod === 'dia' && parseInt(bar.label) % 5 !== 1 && parseInt(bar.label) !== chartData.length ? '' : bar.label}
+                  {bar.mes}
                 </text>
 
-                {isHovered && bar.h > 0 && (
-                  <g className="animate-tooltip-pop">
-                    <rect
-                      x={bar.cx - 55} y={bar.cy - 52}
-                      width="110" height="38" rx="10"
-                      fill="white"
-                      filter="url(#tooltipShadow)"
-                      stroke="#e5e7eb" strokeWidth="1"
-                    />
-                    <polygon
-                      points={`${bar.cx - 5},${bar.cy - 14} ${bar.cx + 5},${bar.cy - 14} ${bar.cx},${bar.cy - 8}`}
-                      fill="white" stroke="#e5e7eb" strokeWidth="1"
-                    />
-                    <rect x={bar.cx - 55} y={bar.cy - 15} width="110" height="1" fill="#e5e7eb" />
-                    <text x={bar.cx} y={bar.cy - 32} textAnchor="middle" fill="#94a3b8" fontSize="9" fontWeight="500">
-                      {activePeriod === 'dia' ? `Dia ${bar.label}` : bar.label}
-                    </text>
-                    <text x={bar.cx} y={bar.cy - 20} textAnchor="middle" fill="#0f172a" fontSize="12" fontWeight="700">
-                      {bar.value} ingresso{bar.value !== 1 ? 's' : ''}
-                    </text>
-                  </g>
-                )}
+                <circle
+                  cx={bar.cx} cy={bar.cumY} r={isHovered ? 5 : 3.5}
+                  fill="#f59e0b"
+                  stroke="white"
+                  strokeWidth="2"
+                  style={{ transition: 'r 0.2s ease' }}
+                />
 
                 {isHovered && (
-                  <line
-                    x1={bar.cx} y1={bar.cy} x2={bar.cx} y2={chartBottom}
-                    stroke={lineColor} strokeWidth="1" strokeDasharray="3 3" opacity="0.3"
-                  />
+                  <>
+                    <line
+                      x1={bar.cx} y1={bar.cy} x2={bar.cx} y2={chartBottom}
+                      stroke="#059669" strokeWidth="1" strokeDasharray="3 3" opacity="0.25"
+                    />
+                    <g className="animate-tooltip-pop">
+                      <rect
+                        x={bar.cx - 70} y={Math.min(bar.cy, bar.cumY) - 72}
+                        width="140" height="58" rx="12"
+                        fill="white"
+                        filter="url(#cTooltipShadow)"
+                        stroke="#e5e7eb" strokeWidth="1"
+                      />
+                      <polygon
+                        points={`${bar.cx - 5},${Math.min(bar.cy, bar.cumY) - 14} ${bar.cx + 5},${Math.min(bar.cy, bar.cumY) - 14} ${bar.cx},${Math.min(bar.cy, bar.cumY) - 8}`}
+                        fill="white" stroke="#e5e7eb" strokeWidth="1"
+                      />
+                      <line x1={bar.cx - 70} y1={Math.min(bar.cy, bar.cumY) - 15} x2={bar.cx + 70} y2={Math.min(bar.cy, bar.cumY) - 15} stroke="#e5e7eb" strokeWidth="1" />
+                      <text x={bar.cx} y={Math.min(bar.cy, bar.cumY) - 56} textAnchor="middle" fill="#94a3b8" fontSize="9" fontWeight="500">
+                        {bar.mes} {bar.year}
+                      </text>
+                      <text x={bar.cx} y={Math.min(bar.cy, bar.cumY) - 42} textAnchor="middle" fill="#059669" fontSize="11" fontWeight="700">
+                        {bar.total} ingresso{bar.total !== 1 ? 's' : ''}
+                      </text>
+                      <text x={bar.cx} y={Math.min(bar.cy, bar.cumY) - 28} textAnchor="middle" fill="#d97706" fontSize="10" fontWeight="600">
+                        Acumulado: {bar.cumTotal}
+                      </text>
+                    </g>
+                  </>
+                )}
+
+                {isHovered && bar.h > 0 && (
+                  <circle cx={bar.cx} cy={bar.cy} r="3" fill="#059669" stroke="white" strokeWidth="1.5" className="animate-pulse-dot" />
                 )}
               </g>
             )
           })}
 
-          {barData.length > 0 && barData.map((bar, i) => (
-            i === barData.length - 1 && bar.h > 0 ? (
-              <circle
-                key={`dot-${activePeriod}-${selectedMonthIdx}`}
-                cx={bar.cx} cy={bar.cy} r="4"
-                fill={activePeriod === 'dia' ? '#2563eb' : activePeriod === 'ano' ? '#7c3aed' : '#059669'}
-                stroke="white" strokeWidth="2"
-                className="animate-pulse-dot"
-              />
-            ) : null
-          ))}
+          <line x1={chartLeft} y1={chartBottom} x2={chartRight} y2={chartBottom} stroke="#e2e8f0" strokeWidth="1" />
         </svg>
       </div>
 
-      <div className="mt-4 flex items-center justify-between text-xs text-gray-400">
-        <span>Total: <span className="font-semibold text-gray-600">{totalInscricoes}</span> matrículas</span>
-        <span>
-          {activePeriod === 'dia'
-            ? `Dia: ${chartData.length} dias`
-            : activePeriod === 'ano'
-              ? `Ano: ${meses.length} meses`
-              : `Período: ${meses.length > 0 ? `${meses[0].mes} – ${meses[meses.length - 1].mes}` : '—'}`
-          }
-        </span>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
+        <div className="flex items-center gap-4">
+          <span>Total: <span className="font-bold text-emerald-600">{totalMatriculas}</span> matrículas</span>
+          <span className="text-gray-300">|</span>
+          <span>Período: <span className="font-medium text-gray-600">{dataPoints.length > 0 ? `${dataPoints[0].mes} – ${dataPoints[dataPoints.length - 1].mes}` : '—'}</span></span>
+        </div>
+        <span className="text-gray-300">Dados reais</span>
       </div>
     </div>
   )
@@ -1681,7 +1652,7 @@ function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento
       <StatsCards stats={stats} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <CrescimentoChart meses={meses} />
+        <CrescimentoChart matriculas={matriculas} />
 
         {/* Donut Chart */}
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
