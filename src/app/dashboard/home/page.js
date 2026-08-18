@@ -1315,14 +1315,14 @@ function CrescimentoChart({ matriculas }) {
   const dataPoints = computeChartData()
   const maxDays = 31
 
-  const chartLeft = 56
-  const chartRight = 860
-  const chartTop = 8
-  const chartBottom = 960
+  const chartLeft = 52
+  const chartRight = 848
+  const chartTop = 20
+  const chartBottom = 920
   const chartH = chartBottom - chartTop
   const chartW = chartRight - chartLeft
   const spacing = chartW / dataPoints.length
-  const barW = Math.min(70, Math.max(36, spacing * 0.42))
+  const barW = Math.min(80, Math.max(48, spacing * 0.4))
 
   const dayToY = (dia) => {
     return chartBottom - ((dia - 1) / (maxDays - 1)) * chartH
@@ -1345,52 +1345,58 @@ function CrescimentoChart({ matriculas }) {
     if (allDots.length < 2) return ''
     let d = `M ${allDots[0].x} ${allDots[0].y}`
     for (let i = 0; i < allDots.length - 1; i++) {
-      const p0 = allDots[i === 0 ? i : i - 1]
       const p1 = allDots[i]
       const p2 = allDots[i + 1]
-      const p3 = allDots[i + 2 < allDots.length ? i + 2 : i + 1]
       const sameBar = p1.bar.index === p2.bar.index
-      const t = sameBar ? 0.15 : 0.35
-      const dx = (p2.x - p1.x) * t
-      const dy = (p2.y - p1.y) * t
-      const cp1x = p1.x + (sameBar ? 0 : dx)
-      const cp1y = p1.y + dy
-      const cp2x = p2.x - (sameBar ? 0 : dx)
-      const cp2y = p2.y - dy
+      const t = sameBar ? 0.2 : 0.35
+      const cp1x = p1.x + (p2.x - p1.x) * t
+      const cp1y = p1.y + (p2.y - p1.y) * t
+      const cp2x = p2.x - (p2.x - p1.x) * t
+      const cp2y = p2.y - (p2.y - p1.y) * t
       d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`
     }
     return d
   })()
 
   const gridDays = Array.from({ length: maxDays }, (_, i) => i + 1)
+  const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#3b82f6', '#60a5fa', '#818cf8']
 
   return (
-    <div className="lg:col-span-2 rounded-xl border border-gray-200 bg-white overflow-hidden">
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
       <div className="px-6 pt-6 pb-4">
         <h2 className="text-lg font-bold text-gray-900">Evolução de Inscrições</h2>
         <p className="text-sm text-gray-500 mt-0.5">Dias com inscrições nos últimos 6 meses</p>
       </div>
 
-      <div className="relative px-5 pb-5 overflow-x-auto">
-        <div className="relative border-l border-b border-gray-200" style={{ minWidth: 800, height: 800, maxHeight: '75vh', overflowY: 'auto' }}>
+      <div className="relative px-5 pb-6 overflow-x-auto">
+        <div className="relative border-l-2 border-b-2 border-gray-300" style={{ height: 620 }}>
           <svg
             ref={svgRef}
-            viewBox="0 0 900 970"
+            viewBox="0 0 900 940"
             className="w-full h-full"
             preserveAspectRatio="xMidYMid meet"
             onMouseLeave={() => setHoveredBar(null)}
           >
+            <defs>
+              <linearGradient id="waveStroke" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#6366f1" />
+                <stop offset="50%" stopColor="#a78bfa" />
+                <stop offset="100%" stopColor="#6366f1" />
+              </linearGradient>
+              <linearGradient id="waveFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#818cf8" stopOpacity="0.12" />
+                <stop offset="100%" stopColor="#818cf8" stopOpacity="0.01" />
+              </linearGradient>
+              <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+
             {gridDays.map((dia) => {
               const y = dayToY(dia)
-              const isRef = dia % 5 === 0 || dia === 1
+              const isRef = dia === 1 || dia === 7 || dia === 14 || dia === 21 || dia === 28 || dia === 31
               return (
                 <g key={`grid-${dia}`}>
-                  <line
-                    x1={chartLeft} y1={y} x2={chartRight} y2={y}
-                    stroke={isRef ? '#d1d5db' : '#f3f4f6'}
-                    strokeWidth={isRef ? 0.6 : 0.3}
-                  />
-                  <text x={chartLeft - 5} y={y + 3} textAnchor="end" fill={isRef ? '#9ca3af' : '#d1d5db'} fontSize={isRef ? '8' : '7'} fontFamily="JetBrains Mono, monospace" fontWeight={isRef ? '600' : '400'}>
+                  <line x1={chartLeft} y1={y} x2={chartRight} y2={y} stroke={isRef ? '#cbd5e1' : '#f1f5f9'} strokeWidth={isRef ? 0.8 : 0.3} />
+                  <text x={chartLeft - 7} y={y + 4} textAnchor="end" fill={isRef ? '#64748b' : '#cbd5e1'} fontSize={isRef ? '12' : '9'} fontFamily="JetBrains Mono, monospace" fontWeight={isRef ? '700' : '400'}>
                     {dia}
                   </text>
                 </g>
@@ -1398,35 +1404,21 @@ function CrescimentoChart({ matriculas }) {
             })}
 
             {wavePath && (
-              <>
-                <defs>
-                  <linearGradient id="waveFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#818cf8" stopOpacity="0.08" />
-                    <stop offset="100%" stopColor="#818cf8" stopOpacity="0.01" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d={`${wavePath} L ${allDots[allDots.length - 1].x},${chartBottom} L ${allDots[0].x},${chartBottom} Z`}
-                  fill="url(#waveFill)" opacity="0.6"
-                />
-                <path
-                  d={wavePath}
-                  fill="none"
-                  stroke="url(#waveStroke)"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="animate-trend-draw"
-                  style={{ filter: 'drop-shadow(0 0 3px rgba(129,140,248,0.3))' }}
-                />
-                <defs>
-                  <linearGradient id="waveStroke" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#6366f1" />
-                    <stop offset="50%" stopColor="#818cf8" />
-                    <stop offset="100%" stopColor="#6366f1" />
-                  </linearGradient>
-                </defs>
-              </>
+              <path
+                d={`${wavePath} L ${allDots[allDots.length - 1].x},${chartBottom} L ${allDots[0].x},${chartBottom} Z`}
+                fill="url(#waveFill)"
+              />
+            )}
+            {wavePath && (
+              <path
+                d={wavePath}
+                fill="none"
+                stroke="url(#waveStroke)"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                filter="url(#glow)"
+              />
             )}
 
             {barData.map((bar) => {
@@ -1435,70 +1427,68 @@ function CrescimentoChart({ matriculas }) {
               const topDayY = dayToY(bar.daysInMonth)
               const bottomDayY = dayToY(1)
               const fullH = bottomDayY - topDayY
+              const colColor = COLORS[bar.index % COLORS.length]
 
               return (
                 <g key={bar.index} onMouseEnter={() => setHoveredBar(bar.index)} onMouseLeave={() => setHoveredBar(null)} style={{ cursor: 'pointer' }}>
-                  <rect x={barX - 2} y={chartTop} width={barW + 4} height={chartH} fill="transparent" />
+                  <rect x={barX - 4} y={chartTop} width={barW + 8} height={chartH} fill="transparent" />
 
                   <rect
-                    x={barX} y={topDayY} width={barW} height={fullH} rx="4"
-                    fill={hov ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.04)'}
-                    stroke={hov ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.15)'}
-                    strokeWidth={hov ? 1.2 : 0.5}
-                    style={{ transition: 'all 0.2s', opacity: hoveredBar !== null && !hov ? 0.4 : 1 }}
+                    x={barX} y={topDayY} width={barW} height={fullH} rx="6"
+                    fill={hov ? `${colColor}15` : `${colColor}08`}
+                    stroke={hov ? `${colColor}50` : `${colColor}20`}
+                    strokeWidth={hov ? 1.5 : 0.7}
+                    style={{ transition: 'all 0.2s', opacity: hoveredBar !== null && !hov ? 0.3 : 1 }}
                   />
 
-                  {Array.from({ length: bar.daysInMonth }, (_, i) => i + 1).map((dia) => {
-                    const y = dayToY(dia)
-                    const temInscricao = bar.diasComInscricao.find(d => d.dia === dia)
+                  {bar.diasComInscricao.map((d) => {
+                    const y = dayToY(d.dia)
                     return (
-                      <g key={`d-${bar.index}-${dia}`}>
-                        {temInscricao ? (
-                          <>
-                            <line
-                              x1={barX + 3} y1={y} x2={barX + barW - 3} y2={y}
-                              stroke={hov ? '#2563eb' : '#3b82f6'} strokeWidth={2.5} strokeLinecap="round"
-                              opacity={hov ? 1 : 0.7}
-                              style={{ transition: 'all 0.2s' }}
-                            />
-                            <circle cx={bar.cx} cy={y} r={hov ? 4 : 3} fill="#2563eb" opacity={hov ? 1 : 0.85} style={{ transition: 'all 0.2s' }} />
-                            {temInscricao.count > 1 && (
-                              <text x={barX + barW + 5} y={y + 3} fill="#2563eb" fontSize="8" fontWeight="700" fontFamily="JetBrains Mono, monospace" opacity={hov ? 1 : 0.6}>
-                                {temInscricao.count}x
-                              </text>
-                            )}
-                          </>
-                        ) : (
-                          <line
-                            x1={barX + 6} y1={y} x2={barX + barW - 6} y2={y}
-                            stroke="#e5e7eb" strokeWidth={0.4} strokeLinecap="round"
-                            opacity={hov ? 0.6 : 0.25}
-                          />
+                      <g key={`d-${bar.index}-${d.dia}`}>
+                        <line
+                          x1={barX + 4} y1={y} x2={barX + barW - 4} y2={y}
+                          stroke={colColor} strokeWidth={3.5} strokeLinecap="round"
+                          opacity={hov ? 1 : 0.6}
+                        />
+                        <circle
+                          cx={bar.cx} cy={y}
+                          r={hov ? 7 : 5.5}
+                          fill={colColor} stroke="white" strokeWidth="2"
+                          opacity={hov ? 1 : 0.9}
+                        />
+                        {d.count > 1 && (
+                          <text x={barX + barW + 8} y={y + 4} fill={colColor} fontSize="11" fontWeight="800" fontFamily="JetBrains Mono, monospace" opacity={hov ? 1 : 0.7}>
+                            {d.count}x
+                          </text>
                         )}
                       </g>
                     )
                   })}
 
-                  <text x={bar.cx} y={topDayY - 10} textAnchor="middle" fill={hov ? '#1e40af' : '#6b7280'} fontSize={hov ? '13' : '11'} fontWeight="700" fontFamily="JetBrains Mono, monospace" style={{ transition: 'all 0.2s' }}>
+                  <text x={bar.cx} y={topDayY - 16} textAnchor="middle" fill={hov ? colColor : '#6b7280'} fontSize={hov ? '16' : '13'} fontWeight="800" fontFamily="JetBrains Mono, monospace" style={{ transition: 'all 0.2s' }}>
                     {bar.total}
                   </text>
 
-                  <text x={bar.cx} y={chartBottom + 16} textAnchor="middle" fill={hov ? '#1e40af' : '#6b7280'} fontSize="11" fontWeight={hov ? '700' : '500'} fontFamily="JetBrains Mono, monospace" style={{ transition: 'all 0.2s' }}>
+                  <rect x={bar.cx - 32} y={chartBottom + 10} width="64" height="30" rx="8" fill={hov ? colColor : '#f1f5f9'} style={{ transition: 'all 0.25s' }} />
+                  <text x={bar.cx} y={chartBottom + 30} textAnchor="middle" fill={hov ? 'white' : '#374151'} fontSize="13" fontWeight="800" fontFamily="JetBrains Mono, monospace" letterSpacing="1" style={{ transition: 'all 0.25s' }}>
                     {bar.mes}
+                  </text>
+                  <text x={bar.cx} y={chartBottom + 50} textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="JetBrains Mono, monospace">
+                    {bar.year}
                   </text>
 
                   {hov && (
                     <>
-                      <line x1={chartLeft} y1={topDayY} x2={chartRight} y2={topDayY} stroke="#3b82f6" strokeWidth="0.4" strokeDasharray="4 3" opacity="0.3" />
-                      <line x1={chartLeft} y1={bottomDayY} x2={chartRight} y2={bottomDayY} stroke="#3b82f6" strokeWidth="0.4" strokeDasharray="4 3" opacity="0.3" />
-                      <line x1={bar.cx} y1={chartTop} x2={bar.cx} y2={chartBottom} stroke="#3b82f6" strokeWidth="0.4" strokeDasharray="4 3" opacity="0.2" />
+                      <line x1={chartLeft} y1={topDayY} x2={chartRight} y2={topDayY} stroke={colColor} strokeWidth="0.5" strokeDasharray="6 4" opacity="0.3" />
+                      <line x1={chartLeft} y1={bottomDayY} x2={chartRight} y2={bottomDayY} stroke={colColor} strokeWidth="0.5" strokeDasharray="6 4" opacity="0.3" />
+                      <line x1={bar.cx} y1={chartTop} x2={bar.cx} y2={chartBottom} stroke={colColor} strokeWidth="0.5" strokeDasharray="6 4" opacity="0.2" />
                       <g className="animate-tooltip-pop">
-                        <rect x={bar.cx - 70} y={chartTop + 4} width="140" height={bar.diasComInscricao.length > 4 ? 80 : 50} rx="8" fill="#1e293b" style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))' }} />
-                        <polygon points={`${bar.cx - 4},${chartTop + 54} ${bar.cx + 4},${chartTop + 54} ${bar.cx},${chartTop + 60}`} fill="#1e293b" />
-                        <text x={bar.cx} y={chartTop + 24} textAnchor="middle" fill="#94a3b8" fontSize="9" fontWeight="600">{bar.mes} {bar.year}</text>
-                        <text x={bar.cx} y={chartTop + 40} textAnchor="middle" fill="white" fontSize="11" fontFamily="JetBrains Mono, monospace">{bar.total} inscrito{bar.total !== 1 ? 's' : ''}</text>
+                        <rect x={bar.cx - 80} y={chartTop - 2} width="160" height={52 + (bar.diasComInscricao.length > 0 ? 16 : 0)} rx="10" fill="#1e293b" style={{ filter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.3))' }} />
+                        <polygon points={`${bar.cx - 5},${chartTop + 50 + (bar.diasComInscricao.length > 0 ? 16 : 0)} ${bar.cx + 5},${chartTop + 50 + (bar.diasComInscricao.length > 0 ? 16 : 0)} ${bar.cx},${chartTop + 58 + (bar.diasComInscricao.length > 0 ? 16 : 0)}`} fill="#1e293b" />
+                        <text x={bar.cx} y={chartTop + 22} textAnchor="middle" fill="#94a3b8" fontSize="11" fontWeight="600">{bar.mes} {bar.year}</text>
+                        <text x={bar.cx} y={chartTop + 40} textAnchor="middle" fill="white" fontSize="14" fontWeight="700" fontFamily="JetBrains Mono, monospace">{bar.total} inscrito{bar.total !== 1 ? 's' : ''}</text>
                         {bar.diasComInscricao.length > 0 && (
-                          <text x={bar.cx} y={chartTop + 56} textAnchor="middle" fill="#60a5fa" fontSize="8" fontFamily="JetBrains Mono, monospace">
+                          <text x={bar.cx} y={chartTop + 56} textAnchor="middle" fill="#a5b4fc" fontSize="10" fontFamily="JetBrains Mono, monospace">
                             dias: {bar.diasComInscricao.map(d => d.dia).join(', ')}
                           </text>
                         )}
@@ -1509,8 +1499,7 @@ function CrescimentoChart({ matriculas }) {
               )
             })}
 
-            <line x1={chartLeft} y1={chartBottom} x2={chartRight} y2={chartBottom} stroke="#d1d5db" strokeWidth="0.5" />
-            <text x={chartLeft - 5} y={chartTop - 2} textAnchor="end" fill="#9ca3af" fontSize="7" fontWeight="600" fontFamily="JetBrains Mono, monospace">Dia</text>
+            <line x1={chartLeft} y1={chartBottom} x2={chartRight} y2={chartBottom} stroke="#94a3b8" strokeWidth="1" />
           </svg>
         </div>
       </div>
@@ -1556,8 +1545,9 @@ function DashboardTab({ stats, matriculas, onEdit, onDelete, onView, crescimento
 
       <StatsCards stats={stats} />
 
+      <CrescimentoChart matriculas={matriculas} />
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <CrescimentoChart matriculas={matriculas} />
 
         {/* Donut Chart */}
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
