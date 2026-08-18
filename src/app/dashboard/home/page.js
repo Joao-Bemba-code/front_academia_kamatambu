@@ -1315,14 +1315,14 @@ function CrescimentoChart({ matriculas }) {
   const dataPoints = computeChartData()
   const maxDays = 31
 
-  const chartLeft = 48
-  const chartRight = 740
+  const chartLeft = 56
+  const chartRight = 860
   const chartTop = 8
   const chartBottom = 960
   const chartH = chartBottom - chartTop
   const chartW = chartRight - chartLeft
   const spacing = chartW / dataPoints.length
-  const barW = Math.min(60, Math.max(32, spacing * 0.45))
+  const barW = Math.min(70, Math.max(36, spacing * 0.42))
 
   const dayToY = (dia) => {
     return chartBottom - ((dia - 1) / (maxDays - 1)) * chartH
@@ -1332,6 +1332,35 @@ function CrescimentoChart({ matriculas }) {
     const cx = chartLeft + i * spacing + spacing / 2
     return { ...item, cx, index: i }
   })
+
+  const allDots = []
+  barData.forEach(bar => {
+    bar.diasComInscricao.forEach(d => {
+      allDots.push({ x: bar.cx, y: dayToY(d.dia), dia: d.dia, mes: bar.mes, bar })
+    })
+  })
+  allDots.sort((a, b) => a.x - b.x || a.dia - b.dia)
+
+  const wavePath = (() => {
+    if (allDots.length < 2) return ''
+    let d = `M ${allDots[0].x} ${allDots[0].y}`
+    for (let i = 0; i < allDots.length - 1; i++) {
+      const p0 = allDots[i === 0 ? i : i - 1]
+      const p1 = allDots[i]
+      const p2 = allDots[i + 1]
+      const p3 = allDots[i + 2 < allDots.length ? i + 2 : i + 1]
+      const sameBar = p1.bar.index === p2.bar.index
+      const t = sameBar ? 0.15 : 0.35
+      const dx = (p2.x - p1.x) * t
+      const dy = (p2.y - p1.y) * t
+      const cp1x = p1.x + (sameBar ? 0 : dx)
+      const cp1y = p1.y + dy
+      const cp2x = p2.x - (sameBar ? 0 : dx)
+      const cp2y = p2.y - dy
+      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`
+    }
+    return d
+  })()
 
   const gridDays = Array.from({ length: maxDays }, (_, i) => i + 1)
 
@@ -1343,10 +1372,10 @@ function CrescimentoChart({ matriculas }) {
       </div>
 
       <div className="relative px-5 pb-5 overflow-x-auto">
-        <div className="relative border-l border-b border-gray-200" style={{ minWidth: 700, height: 800, maxHeight: '75vh', overflowY: 'auto' }}>
+        <div className="relative border-l border-b border-gray-200" style={{ minWidth: 800, height: 800, maxHeight: '75vh', overflowY: 'auto' }}>
           <svg
             ref={svgRef}
-            viewBox="0 0 780 970"
+            viewBox="0 0 900 970"
             className="w-full h-full"
             preserveAspectRatio="xMidYMid meet"
             onMouseLeave={() => setHoveredBar(null)}
@@ -1367,6 +1396,38 @@ function CrescimentoChart({ matriculas }) {
                 </g>
               )
             })}
+
+            {wavePath && (
+              <>
+                <defs>
+                  <linearGradient id="waveFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#818cf8" stopOpacity="0.08" />
+                    <stop offset="100%" stopColor="#818cf8" stopOpacity="0.01" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d={`${wavePath} L ${allDots[allDots.length - 1].x},${chartBottom} L ${allDots[0].x},${chartBottom} Z`}
+                  fill="url(#waveFill)" opacity="0.6"
+                />
+                <path
+                  d={wavePath}
+                  fill="none"
+                  stroke="url(#waveStroke)"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="animate-trend-draw"
+                  style={{ filter: 'drop-shadow(0 0 3px rgba(129,140,248,0.3))' }}
+                />
+                <defs>
+                  <linearGradient id="waveStroke" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#6366f1" />
+                    <stop offset="50%" stopColor="#818cf8" />
+                    <stop offset="100%" stopColor="#6366f1" />
+                  </linearGradient>
+                </defs>
+              </>
+            )}
 
             {barData.map((bar) => {
               const hov = hoveredBar === bar.index
