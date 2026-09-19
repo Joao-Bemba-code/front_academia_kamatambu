@@ -4447,6 +4447,16 @@ export default function DashboardHome() {
 
       y = doc.lastAutoTable.finalY + 15
 
+      const pageHeight = doc.internal.pageSize.getHeight()
+      const footerSafe = pageHeight - 18
+
+      let pageNum = 1
+      if (y + 42 > footerSafe) {
+        doc.addPage()
+        pageNum = 2
+        y = 20
+      }
+
       doc.setFontSize(9)
       doc.setFont('helvetica', 'italic')
       doc.setTextColor(...PDF_COLORS.gray)
@@ -4482,7 +4492,7 @@ export default function DashboardHome() {
       doc.text(obsLines, lm + 16, y + 6)
       y += 18
 
-      addPDFFooter(doc, 1)
+      addPDFFooter(doc, pageNum)
 
       const nomeArquivo = matricula.Nome ? matricula.Nome.replace(/\s/g, '_') : 'Formando'
       doc.save(`Comprovativo_Matricula_${nomeArquivo}.pdf`)
