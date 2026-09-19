@@ -4463,6 +4463,24 @@ export default function DashboardHome() {
 
       doc.line(rm - 50, y, rm, y)
       doc.text('Assinatura do Formando', rm - 25, y + 5, { align: 'center' })
+      y += 14
+
+      doc.setFillColor(...PDF_COLORS.primaryLight)
+      doc.roundedRect(lm, y, rm - lm, 16, 2, 2, 'F')
+      doc.setDrawColor(...PDF_COLORS.primary)
+      doc.setLineWidth(0.3)
+      doc.roundedRect(lm, y, rm - lm, 16, 2, 2, 'S')
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...PDF_COLORS.primary)
+      doc.text('OBS:', lm + 4, y + 6)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...PDF_COLORS.dark)
+      doc.setFontSize(7.5)
+      const obsText = 'O presente comprovativo atesta a matrícula do formando e não serve como certificado de conclusão do curso. O original deve ser apresentado na secretaria sempre que solicitado.'
+      const obsLines = doc.splitTextToSize(obsText, rm - lm - 22)
+      doc.text(obsLines, lm + 16, y + 6)
+      y += 18
 
       addPDFFooter(doc, 1)
 
