@@ -4423,19 +4423,11 @@ export default function DashboardHome() {
         head: [['Campo', 'Valor']],
         body: [
           ['Nº de Matrícula', `AK-${String(matricula.id).padStart(5, '0')}`],
-          ['Nome', matricula.Nome || '-'],
           ['Encarregado', matricula.Encarregado || '-'],
-          ['Curso', matricula.Curso || '-'],
-          ['Turma', matricula.Turma || '-'],
-          ['Módulo', `${matricula.Modulo || 1}o`],
           ['Estado Civil', matricula.Estado_Civil || '-'],
           ['Género', matricula.Genero || '-'],
           ['Data de Nascimento', matricula.Nascimento ? new Date(matricula.Nascimento).toLocaleDateString('pt-PT') : '-'],
-          ['Morada', matricula.Morada || '-'],
-          ['BI/Cédula', matricula.BI_Cedula || '-'],
-          ['Telefone', matricula.Telefone || '-'],
-          ['Status', matricula.Status || 'Inscrito'],
-          ['Data de Matrícula', matricula.Data_Matricula ? new Date(matricula.Data_Matricula).toLocaleDateString('pt-PT') : '-']
+          ['Morada', matricula.Morada || '-']
         ],
         ...TABLE_BASE,
         columnStyles: {
@@ -4446,16 +4438,6 @@ export default function DashboardHome() {
       })
 
       y = doc.lastAutoTable.finalY + 15
-
-      const pageHeight = doc.internal.pageSize.getHeight()
-      const footerSafe = pageHeight - 18
-
-      let pageNum = 1
-      if (y + 42 > footerSafe) {
-        doc.addPage()
-        pageNum = 2
-        y = 20
-      }
 
       doc.setFontSize(9)
       doc.setFont('helvetica', 'italic')
@@ -4476,23 +4458,22 @@ export default function DashboardHome() {
       y += 14
 
       doc.setFillColor(...PDF_COLORS.primaryLight)
-      doc.roundedRect(lm, y, rm - lm, 16, 2, 2, 'F')
+      doc.roundedRect(lm, y, rm - lm, 22, 2, 2, 'F')
       doc.setDrawColor(...PDF_COLORS.primary)
       doc.setLineWidth(0.3)
-      doc.roundedRect(lm, y, rm - lm, 16, 2, 2, 'S')
+      doc.roundedRect(lm, y, rm - lm, 22, 2, 2, 'S')
       doc.setFontSize(7)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...PDF_COLORS.primary)
       doc.text('OBS:', lm + 4, y + 6)
+      doc.setFontSize(7)
       doc.setFont('helvetica', 'normal')
-      doc.setTextColor(...PDF_COLORS.dark)
-      doc.setFontSize(7.5)
-      const obsText = 'O presente comprovativo atesta a matrícula do formando e não serve como certificado de conclusão do curso. O original deve ser apresentado na secretaria sempre que solicitado.'
-      const obsLines = doc.splitTextToSize(obsText, rm - lm - 22)
-      doc.text(obsLines, lm + 16, y + 6)
-      y += 18
+      doc.setTextColor(...PDF_COLORS.grayLight)
+      doc.text('________________________________________________', lm + 4, y + 12)
+      doc.text('________________________________________________', lm + 4, y + 18)
+      y += 24
 
-      addPDFFooter(doc, pageNum)
+      addPDFFooter(doc, 1)
 
       const nomeArquivo = matricula.Nome ? matricula.Nome.replace(/\s/g, '_') : 'Formando'
       doc.save(`Comprovativo_Matricula_${nomeArquivo}.pdf`)
