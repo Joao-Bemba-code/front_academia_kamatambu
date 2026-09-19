@@ -1318,7 +1318,7 @@ function CrescimentoChart({ matriculas }) {
   const chartLeft = 52
   const chartRight = 680
   const chartTop = 20
-  const chartBottom = 560
+  const chartBottom = 520
   const chartH = chartBottom - chartTop
   const chartW = chartRight - chartLeft
   const spacing = chartW / dataPoints.length
@@ -1707,7 +1707,7 @@ function FormadorDashboard({ turmas, matriculas, notas, userNome, onView }) {
 }
 
 // ========== MATRÍCULAS TAB ==========
-function MatriculasTab({ matriculas, loading, onEdit, onDelete, onView, onCreate, cursosList, turmasList, onGeneratePDF }) {
+function MatriculasTab({ matriculas, loading, onEdit, onDelete, onView, onCreate, cursosList, turmasList, onGeneratePDF, onDownloadComprovativo }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCurso, setFilterCurso] = useState('')
   const [filterTurma, setFilterTurma] = useState('')
@@ -1833,6 +1833,7 @@ function MatriculasTab({ matriculas, loading, onEdit, onDelete, onView, onCreate
                     <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right">
                       <div className="flex items-center justify-end gap-0.5 sm:gap-1">
                         <button onClick={() => onView(student)} className="rounded p-0.5 sm:p-1 text-blue-600 hover:bg-blue-50" title="Visualizar"><Eye className="size-3 sm:size-3.5 lg:size-4" /></button>
+                        <button onClick={() => onDownloadComprovativo && onDownloadComprovativo(student)} className="rounded p-0.5 sm:p-1 text-[#006c49] hover:bg-[#006c49]/10" title="Baixar Comprovativo de Matrícula"><FileDown className="size-3 sm:size-3.5 lg:size-4" /></button>
                         <button onClick={() => onEdit(student)} className="rounded p-0.5 sm:p-1 text-green-600 hover:bg-green-50" title="Editar"><Edit className="size-3 sm:size-3.5 lg:size-4" /></button>
                         <button onClick={() => onDelete(student.id)} className="rounded p-0.5 sm:p-1 text-red-600 hover:bg-red-50" title="Excluir"><Trash2 className="size-3 sm:size-3.5 lg:size-4" /></button>
                       </div>
@@ -4357,6 +4358,124 @@ export default function DashboardHome() {
     }
   }
 
+  // ========== COMPROVATIVO DE MATRÍCULA (por formando) ==========
+  const generateComprovativoMatriculaPDF = async (matricula) => {
+    if (!matricula) { showToast('Sem dados de matrícula para gerar comprovativo', 'warning'); return }
+    try {
+      const doc = new jsPDF('portrait', 'mm', 'a4')
+      const lm = 14
+      const rm = doc.internal.pageSize.getWidth() - 14
+      const pageWidth = doc.internal.pageSize.getWidth()
+
+      const startY = await addPDFHeader(doc, 'COMPROVATIVO DE MATRÍCULA', [
+        { label: 'Formando', value: matricula.Nome },
+        { label: 'Curso', value: matricula.Curso },
+        { label: 'Turma', value: matricula.Turma }
+      ])
+
+      let y = startY
+
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text(`Ref: AK-MAT-${String(matricula.id).padStart(5, '0')}`, lm, y)
+      doc.text(`Emitido em: ${new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' })}`, rm, y, { align: 'right' })
+      y += 10
+
+      // Box dados pessoais
+      doc.setFillColor(...PDF_COLORS.primaryLight)
+      doc.roundedRect(lm, y, rm - lm, 46, 2, 2, 'F')
+      doc.setDrawColor(...PDF_COLORS.primary)
+      doc.setLineWidth(0.3)
+      doc.roundedRect(lm, y, rm - lm, 46, 2, 2, 'S')
+      y += 8
+
+      const drawField = (label, value, fx, fy) => {
+        doc.setFontSize(7)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(...PDF_COLORS.gray)
+        doc.text(label.toUpperCase(), fx, fy)
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...PDF_COLORS.dark)
+        doc.text(String(value || '-'), fx, fy + 5)
+      }
+
+      drawField('Nome', matricula.Nome, lm + 5, y)
+      drawField('Curso', matricula.Curso, lm + 5, y + 9)
+      drawField('Turma', matricula.Turma, lm + 5, y + 18)
+      drawField('BI/Cédula', matricula.BI_Cedula, lm + 95, y)
+      drawField('Telefone', matricula.Telefone, lm + 95, y + 9)
+      drawField('Data de Matrícula', matricula.Data_Matricula ? new Date(matricula.Data_Matricula).toLocaleDateString('pt-PT') : '-', lm + 95, y + 18)
+      drawField('Status', matricula.Status || 'Inscrito', lm + 5, y + 27)
+      drawField('Módulo', `${matricula.Modulo || 1}o`, lm + 95, y + 27)
+      y += 48
+
+      // Detalhes
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...PDF_COLORS.dark)
+      doc.text('Dados da Matrícula', lm, y)
+      y += 4
+
+      autoTable(doc, {
+        startY: y,
+        head: [['Campo', 'Valor']],
+        body: [
+          ['Nº de Matrícula', `AK-${String(matricula.id).padStart(5, '0')}`],
+          ['Nome', matricula.Nome || '-'],
+          ['Encarregado', matricula.Encarregado || '-'],
+          ['Curso', matricula.Curso || '-'],
+          ['Turma', matricula.Turma || '-'],
+          ['Módulo', `${matricula.Modulo || 1}o`],
+          ['Estado Civil', matricula.Estado_Civil || '-'],
+          ['Género', matricula.Genero || '-'],
+          ['Data de Nascimento', matricula.Nascimento ? new Date(matricula.Nascimento).toLocaleDateString('pt-PT') : '-'],
+          ['Morada', matricula.Morada || '-'],
+          ['BI/Cédula', matricula.BI_Cedula || '-'],
+          ['Telefone', matricula.Telefone || '-'],
+          ['Status', matricula.Status || 'Inscrito'],
+          ['Data de Matrícula', matricula.Data_Matricula ? new Date(matricula.Data_Matricula).toLocaleDateString('pt-PT') : '-']
+        ],
+        ...TABLE_BASE,
+        columnStyles: {
+          0: { cellWidth: 50, fontStyle: 'bold', halign: 'left' },
+          1: { cellWidth: 120, halign: 'left' }
+        },
+        margin: { left: lm, right: 14 }
+      })
+
+      y = doc.lastAutoTable.finalY + 15
+
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'italic')
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text('Este comprovativo confirma a matrícula do formando na Academia Kamatambu.', pageWidth / 2, y, { align: 'center' })
+      y += 12
+
+      doc.setDrawColor(...PDF_COLORS.grayLighter)
+      doc.setLineWidth(0.3)
+      doc.line(lm, y, lm + 50, y)
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text('Assinatura do Responsável', lm + 25, y + 5, { align: 'center' })
+
+      doc.line(rm - 50, y, rm, y)
+      doc.text('Assinatura do Formando', rm - 25, y + 5, { align: 'center' })
+
+      addPDFFooter(doc, 1)
+
+      const nomeArquivo = matricula.Nome ? matricula.Nome.replace(/\s/g, '_') : 'Formando'
+      doc.save(`Comprovativo_Matricula_${nomeArquivo}.pdf`)
+      showToast('Comprovativo de matrícula gerado com sucesso!', 'success')
+
+    } catch (error) {
+      console.error('Erro ao gerar comprovativo de matrícula:', error)
+      showToast('Erro ao gerar comprovativo de matrícula', 'error')
+    }
+  }
+
   // ========== NOTA DE COBRANÇA (por formando com dívida) ==========
   const generateNotaCobrancaPDF = async (divida) => {
     if (!divida) { showToast('Sem dados de dívida para gerar nota', 'warning'); return }
@@ -5440,7 +5559,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
       case 'dashboard':
         return <DashboardTab stats={stats} matriculas={matriculas} onEdit={(data) => handleOpenModal('matriculas', data)} onDelete={(id) => handleConfirmDelete(id, 'matriculas')} onView={(data) => handleOpenModal('view', data, 'matriculas')} crescimento={crescimento} inscricoesPorCurso={inscricoesPorCurso} onGeneratePDF={generateRelatorioGeral} />
       case 'matriculas':
-        return <MatriculasTab matriculas={matriculas} loading={loading.matriculas} onEdit={(data) => handleOpenModal('matriculas', data)} onDelete={(id) => handleConfirmDelete(id, 'matriculas')} onView={(data) => handleOpenModal('view', data, 'matriculas')} onCreate={() => handleOpenModal('matriculas')} cursosList={cursosList} turmasList={turmasList} onGeneratePDF={generateMatriculasPDF} />
+        return <MatriculasTab matriculas={matriculas} loading={loading.matriculas} onEdit={(data) => handleOpenModal('matriculas', data)} onDelete={(id) => handleConfirmDelete(id, 'matriculas')} onView={(data) => handleOpenModal('view', data, 'matriculas')} onCreate={() => handleOpenModal('matriculas')} cursosList={cursosList} turmasList={turmasList} onGeneratePDF={generateMatriculasPDF} onDownloadComprovativo={generateComprovativoMatriculaPDF} />
       case 'turmas':
         return <TurmasTab turmas={turmas} loading={loading.turmas} onEdit={(data) => handleOpenModal('turmas', data)} onDelete={(id) => handleConfirmDelete(id, 'turmas')} onView={(data) => handleOpenModal('view', data, 'turmas')} onCreate={() => handleOpenModal('turmas')} cursosList={cursosList} formadoresList={formadoresList} onGeneratePDF={generateTurmasPDF} matriculas={matriculas} />
       case 'cursos':
