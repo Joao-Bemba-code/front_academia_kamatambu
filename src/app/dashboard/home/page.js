@@ -392,6 +392,10 @@ function ViewModal({ isOpen, onClose, data, type }) {
           <p className="text-lg sm:text-xl font-bold text-[#006c49]">{formatarMoeda(data.Valor)}</p>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Cobrança</p>
+          <p className="text-sm sm:text-base text-gray-900 capitalize">{data.Tipo_Cobranca === 'hora' ? 'Por hora' : 'Por dia'} — {data.Duracao ? `${parseFloat(data.Duracao).toLocaleString('pt-PT')} ${data.Tipo_Cobranca === 'hora' ? 'hora(s)' : 'dia(s)'}` : '-'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
           <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
           <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${getStatusColor(data.Status)}`}>
             {data.Status || 'pendente'}
@@ -445,6 +449,14 @@ function ViewModal({ isOpen, onClose, data, type }) {
             <MapPin className="size-3 sm:size-4 text-gray-400 shrink-0" />
             <span className="break-words">{data.Localizacao || 'Não informada'}</span>
           </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Preço/Hora</p>
+          <p className="text-sm sm:text-base text-gray-900 font-semibold">{formatarMoeda(data.Preco_Hora)}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Preço/Dia</p>
+          <p className="text-sm sm:text-base text-gray-900 font-semibold">{formatarMoeda(data.Preco_Dia)}</p>
         </div>
         <div className="space-y-0.5 sm:space-y-1">
           <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
@@ -2832,6 +2844,22 @@ function TesourariaTab({
     return `Kz ${parseFloat(valor || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`
   }
 
+  const recalcularValorAluguer = () => {
+    const salaEl = document.getElementById('aluguer-sala-id')
+    const tipoEl = document.getElementById('aluguer-tipo-cobranca')
+    const durEl = document.getElementById('aluguer-duracao')
+    const valorEl = document.getElementById('aluguer-valor')
+    const rotuloEl = document.getElementById('aluguer-duracao-rotulo')
+    if (!salaEl || !valorEl) return
+    const sala = salas.find(s => s.id === parseInt(salaEl.value))
+    const tipo = tipoEl ? tipoEl.value : 'dia'
+    if (rotuloEl) rotuloEl.textContent = tipo === 'hora' ? 'Duração (horas) *' : 'Duração (dias) *'
+    if (!sala) { valorEl.value = ''; return }
+    const preco = tipo === 'hora' ? parseFloat(sala.Preco_Hora || 0) : parseFloat(sala.Preco_Dia || 0)
+    const duracao = durEl && parseFloat(durEl.value) > 0 ? parseFloat(durEl.value) : 1
+    valorEl.value = (preco * duracao).toFixed(2)
+  }
+
   const tiposUnicos = [...new Set(pagamentos?.map(p => p.tipo).filter(Boolean) || [])]
   const statusUnicos = [...new Set(pagamentos?.map(p => p.status).filter(Boolean) || [])]
   const cursosUnicosMat = [...new Set(matriculas?.map(m => m.Curso).filter(Boolean) || [])]
@@ -3395,13 +3423,15 @@ function TesourariaTab({
                     <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Sala</th>
                     <th className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Capacidade</th>
                     <th className="hidden lg:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Localização</th>
+                    <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Preço/Hora</th>
+                    <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Preço/Dia</th>
                     <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Status</th>
                     <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#c5c6cd]/50">
                   {loading ? (
-                    <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500"><Loader2 className="size-5 sm:size-6 animate-spin mx-auto" /></td></tr>
+                    <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-500"><Loader2 className="size-5 sm:size-6 animate-spin mx-auto" /></td></tr>
                   ) : filteredSalas.length > 0 ? (
                     filteredSalas.map((sala) => (
                       <tr key={sala.id} className="transition-colors hover:bg-[#f7f9fb]">
@@ -3418,6 +3448,8 @@ function TesourariaTab({
                         </td>
                         <td className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c]">{sala.Capacidade || 0} lugares</td>
                         <td className="hidden lg:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c]">{sala.Localizacao || '—'}</td>
+                        <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 font-semibold text-[#006c49]">{formatarMoeda(sala.Preco_Hora)}</td>
+                        <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 font-semibold text-[#006c49]">{formatarMoeda(sala.Preco_Dia)}</td>
                         <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
                           <span className={`rounded-full px-1.5 sm:px-2 lg:px-3 py-0.5 text-[7px] sm:text-[9px] lg:text-[11px] font-bold uppercase tracking-tighter ${getSalaStatusBadge(sala.Status)}`}>
                             {sala.Status || 'Disponível'}
@@ -3434,7 +3466,7 @@ function TesourariaTab({
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
                         <div className="flex flex-col items-center gap-2">
                           <Building2 className="size-8 text-gray-300" />
                           <p>Nenhuma sala registada</p>
@@ -5986,6 +6018,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
 
       if (type === 'alugueres') {
         if (data.Valor) data.Valor = parseFloat(data.Valor)
+        if (data.Duracao) data.Duracao = parseFloat(data.Duracao)
         if (data.sala_id) data.sala_id = parseInt(data.sala_id) || null
         else data.sala_id = null
       }
@@ -6043,6 +6076,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
 
       if (type === 'alugueres') {
         if (data.Valor) data.Valor = parseFloat(data.Valor)
+        if (data.Duracao) data.Duracao = parseFloat(data.Duracao)
         if (data.sala_id) data.sala_id = parseInt(data.sala_id) || null
         else data.sala_id = null
       }
@@ -6376,10 +6410,12 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Cliente *</label><input name="Cliente" defaultValue={modalData?.Cliente} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required placeholder="Nome do cliente que aluga a sala" /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Telefone</label><input name="Telefone" defaultValue={modalData?.Telefone} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" placeholder="Ex: 923 000 000" /></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Sala *</label><select name="Sala" required defaultValue={modalData?.Sala || ''} onChange={(e) => { const sala = salas.find(s => s.Nome === e.target.value); const el = document.getElementById('hidden-sala-id'); if (el) el.value = sala ? sala.id : '' }} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione uma sala</option>{salas && salas.length > 0 ? salas.map(s => <option key={s.id} value={s.Nome}>{s.Nome}{s.Localizacao ? ` - ${s.Localizacao}` : ''}</option>) : <option value="" disabled>Nenhuma sala registada</option>}</select><input id="hidden-sala-id" name="sala_id" type="hidden" defaultValue={modalData?.sala_id || ''} /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Sala *</label><select name="Sala" required defaultValue={modalData?.Sala || ''} onChange={(e) => { const sala = salas.find(s => s.Nome === e.target.value); const el = document.getElementById('aluguer-sala-id'); if (el) el.value = sala ? sala.id : ''; recalcularValorAluguer() }} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione uma sala</option>{salas && salas.length > 0 ? salas.map(s => <option key={s.id} value={s.Nome}>{s.Nome}{s.Localizacao ? ` - ${s.Localizacao}` : ''} — h:{parseFloat(s.Preco_Hora || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })} / d:{parseFloat(s.Preco_Dia || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })} Kz</option>) : <option value="" disabled>Nenhuma sala registada</option>}</select><input id="aluguer-sala-id" name="sala_id" type="hidden" defaultValue={modalData?.sala_id || ''} /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Tipo de Cobrança *</label><select id="aluguer-tipo-cobranca" name="Tipo_Cobranca" defaultValue={modalData?.Tipo_Cobranca || 'dia'} onChange={recalcularValorAluguer} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="hora">Por hora</option><option value="dia">Por dia</option></select></div>
+            <div><label id="aluguer-duracao-rotulo" className="text-xs sm:text-sm font-medium text-gray-700">Duração (dias) *</label><input id="aluguer-duracao" type="number" step="0.01" min="0.01" name="Duracao" defaultValue={modalData?.Duracao || 1} onChange={recalcularValorAluguer} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data de Início *</label><input type="date" name="Data_Inicio" defaultValue={modalData?.Data_Inicio || new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data de Fim *</label><input type="date" name="Data_Fim" defaultValue={modalData?.Data_Fim || new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Valor (Kz) *</label><input type="number" step="0.01" name="Valor" defaultValue={modalData?.Valor} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Valor (Kz)</label><input id="aluguer-valor" type="number" step="0.01" name="Valor" readOnly tabIndex={-1} defaultValue={modalData?.Valor || ''} placeholder="Calculado automaticamente" className="mt-1 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-500" /><p className="mt-1 text-[10px] text-gray-400">Total = preço (hora/dia) da sala × duração. Preenchido automaticamente.</p></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Forma de Pagamento *</label><select name="Forma_Pagamento" defaultValue={modalData?.Forma_Pagamento || 'dinheiro'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="dinheiro">Dinheiro</option><option value="transferencia">Transferência</option><option value="deposito">Depósito</option><option value="multicaixa">Multicaixa</option></select></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Status</label><select name="Status" defaultValue={modalData?.Status || 'pendente'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="pendente">Pendente</option><option value="pago">Pago</option><option value="parcial">Parcial</option><option value="cancelado">Cancelado</option></select></div>
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Observação</label><textarea name="Observacao" defaultValue={modalData?.Observacao} rows="2" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
@@ -6391,6 +6427,8 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Nome da Sala *</label><input name="Nome" defaultValue={modalData?.Nome} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required placeholder="Ex: Sala 1" /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Capacidade</label><input type="number" min="1" name="Capacidade" defaultValue={modalData?.Capacidade || 20} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Localização</label><input name="Localizacao" defaultValue={modalData?.Localizacao} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" placeholder="Ex: 1º andar" /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Preço/Hora (Kz)</label><input type="number" step="0.01" min="0" name="Preco_Hora" defaultValue={modalData?.Preco_Hora || 0} placeholder="0.00" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Preço/Dia (Kz)</label><input type="number" step="0.01" min="0" name="Preco_Dia" defaultValue={modalData?.Preco_Dia || 0} placeholder="0.00" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Status</label><select name="Status" defaultValue={modalData?.Status || 'Disponível'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="Disponível">Disponível</option><option value="Ocupada">Ocupada</option><option value="Em manutenção">Em manutenção</option></select></div>
           </div>
         )}
