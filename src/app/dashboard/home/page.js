@@ -2703,7 +2703,8 @@ function TesourariaTab({
   onCreateSala,
   onEditSala,
   onDeleteSala,
-  onViewSala
+  onViewSala,
+  onRecalcularValorAluguer
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterTipo, setFilterTipo] = useState('')
@@ -2842,22 +2843,6 @@ function TesourariaTab({
 
   const formatarMoeda = (valor) => {
     return `Kz ${parseFloat(valor || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`
-  }
-
-  const recalcularValorAluguer = () => {
-    const salaEl = document.getElementById('aluguer-sala-id')
-    const tipoEl = document.getElementById('aluguer-tipo-cobranca')
-    const durEl = document.getElementById('aluguer-duracao')
-    const valorEl = document.getElementById('aluguer-valor')
-    const rotuloEl = document.getElementById('aluguer-duracao-rotulo')
-    if (!salaEl || !valorEl) return
-    const sala = salas.find(s => s.id === parseInt(salaEl.value))
-    const tipo = tipoEl ? tipoEl.value : 'dia'
-    if (rotuloEl) rotuloEl.textContent = tipo === 'hora' ? 'Duração (horas) *' : 'Duração (dias) *'
-    if (!sala) { valorEl.value = ''; return }
-    const preco = tipo === 'hora' ? parseFloat(sala.Preco_Hora || 0) : parseFloat(sala.Preco_Dia || 0)
-    const duracao = durEl && parseFloat(durEl.value) > 0 ? parseFloat(durEl.value) : 1
-    valorEl.value = (preco * duracao).toFixed(2)
   }
 
   const tiposUnicos = [...new Set(pagamentos?.map(p => p.tipo).filter(Boolean) || [])]
@@ -4153,6 +4138,31 @@ export default function DashboardHome() {
   const [showDropdown, setShowDropdown] = useState(false)
   const [pagoTipo, setPagoTipo] = useState('')
   const [aluguerSalaId, setAluguerSalaId] = useState('')
+
+  // ========== FUNÇÃO AUXILIAR: NOME ABREVIADO ==========
+  const getNomeFormando = (nome) => {
+    if (!nome) return ''
+    const partes = nome.trim().split(/\s+/)
+    if (partes.length <= 2) return nome
+    return `${partes[0]} ${partes[partes.length - 1]}`
+  }
+
+  // ========== FUNÇÃO AUXILIAR: RECALCULAR VALOR DO ALUGUER ==========
+  const recalcularValorAluguer = () => {
+    const salaEl = document.getElementById('aluguer-sala-id')
+    const tipoEl = document.getElementById('aluguer-tipo-cobranca')
+    const durEl = document.getElementById('aluguer-duracao')
+    const valorEl = document.getElementById('aluguer-valor')
+    const rotuloEl = document.getElementById('aluguer-duracao-rotulo')
+    if (!salaEl || !valorEl) return
+    const sala = salas.find(s => s.id === parseInt(salaEl.value))
+    const tipo = tipoEl ? tipoEl.value : 'dia'
+    if (rotuloEl) rotuloEl.textContent = tipo === 'hora' ? 'Duração (horas) *' : 'Duração (dias) *'
+    if (!sala) { valorEl.value = ''; return }
+    const preco = tipo === 'hora' ? parseFloat(sala.Preco_Hora || 0) : parseFloat(sala.Preco_Dia || 0)
+    const duracao = durEl && parseFloat(durEl.value) > 0 ? parseFloat(durEl.value) : 1
+    valorEl.value = (preco * duracao).toFixed(2)
+  }
 
   const uploadToBackend = async (base64Image) => {
     try {
@@ -5558,13 +5568,6 @@ export default function DashboardHome() {
   }
 
   // ========== GERAR BOLETIM (PDF DIRETO NO FRONT) ==========
-  const getNomeFormando = (nome) => {
-    if (!nome) return ''
-    const partes = nome.trim().split(/\s+/)
-    if (partes.length <= 2) return nome
-    return `${partes[0]} ${partes[partes.length - 1]}`
-  }
-
   const handleGerarBoletim = async (alunoId) => {
     try {
       const aluno = matriculas.find(m => m.id === alunoId)
@@ -6232,7 +6235,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
       case 'formadores':
         return <FormadoresTab formadores={formadores} loading={loading.formadores} onEdit={(data) => handleOpenModal('formadores', data)} onDelete={(id) => handleConfirmDelete(id, 'formadores')} onView={(data) => handleOpenModal('view', data, 'formadores')} onCreate={() => handleOpenModal('formadores')} onGeneratePDF={generateFormadoresPDF} />
       case 'tesouraria':
-        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} loadingMatriculas={loading.matriculas} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} saidas={saidas} onCreateSaida={() => handleOpenModal('saidas')} onEditSaida={(data) => handleOpenModal('saidas', data)} onDeleteSaida={(id) => handleConfirmDelete(id, 'saidas')} onViewSaida={(data) => handleOpenModal('view', data, 'saidas')} onGerarSaidaPDF={generateSaidaPDF} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} dividas={dividas} dividasLoading={dividasLoading} onGerarNotaCobranca={generateNotaCobrancaPDF} onGerarNotasCobrancaAll={generateNotasCobrancaAllPDF} onViewDivida={(data) => handleOpenModal('view', data, 'dividas')} salas={salas} alugueres={alugueres} onCreateAluguer={() => handleOpenModal('alugueres')} onEditAluguer={(data) => handleOpenModal('alugueres', data)} onDeleteAluguer={(id) => handleConfirmDelete(id, 'alugueres')} onViewAluguer={(data) => handleOpenModal('view', data, 'alugueres')} onGerarAluguerPDF={generateAluguerPDF} onCreateSala={() => handleOpenModal('salas')} onEditSala={(data) => handleOpenModal('salas', data)} onDeleteSala={(id) => handleConfirmDelete(id, 'salas')} onViewSala={(data) => handleOpenModal('view', data, 'salas')} />
+        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} loadingMatriculas={loading.matriculas} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} saidas={saidas} onCreateSaida={() => handleOpenModal('saidas')} onEditSaida={(data) => handleOpenModal('saidas', data)} onDeleteSaida={(id) => handleConfirmDelete(id, 'saidas')} onViewSaida={(data) => handleOpenModal('view', data, 'saidas')} onGerarSaidaPDF={generateSaidaPDF} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} dividas={dividas} dividasLoading={dividasLoading} onGerarNotaCobranca={generateNotaCobrancaPDF} onGerarNotasCobrancaAll={generateNotasCobrancaAllPDF} onViewDivida={(data) => handleOpenModal('view', data, 'dividas')} salas={salas} alugueres={alugueres} onCreateAluguer={() => handleOpenModal('alugueres')} onEditAluguer={(data) => handleOpenModal('alugueres', data)} onDeleteAluguer={(id) => handleConfirmDelete(id, 'alugueres')} onViewAluguer={(data) => handleOpenModal('view', data, 'alugueres')} onGerarAluguerPDF={generateAluguerPDF} onCreateSala={() => handleOpenModal('salas')} onEditSala={(data) => handleOpenModal('salas', data)} onDeleteSala={(id) => handleConfirmDelete(id, 'salas')} onViewSala={(data) => handleOpenModal('view', data, 'salas')} onRecalcularValorAluguer={recalcularValorAluguer} />
       case 'academico':
         return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} userTipo={userTipo} />
       case 'usuarios':
@@ -6265,7 +6268,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
         if (modalData) { handleUpdate(modalData.id, data, modalType) }
         else { handleCreate(data, modalType) }
       }} isLoading={modalLoading}>
-        {/* Formulários para cada tipo - mantido do código anterior */}
+        {/* Formulários para cada tipo */}
         {modalType === 'matriculas' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Nome *</label><input name="Nome" defaultValue={modalData?.Nome} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
@@ -6410,9 +6413,9 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Cliente *</label><input name="Cliente" defaultValue={modalData?.Cliente} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required placeholder="Nome do cliente que aluga a sala" /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Telefone</label><input name="Telefone" defaultValue={modalData?.Telefone} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" placeholder="Ex: 923 000 000" /></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Sala *</label><select name="Sala" required defaultValue={modalData?.Sala || ''} onChange={(e) => { const sala = salas.find(s => s.Nome === e.target.value); const el = document.getElementById('aluguer-sala-id'); if (el) el.value = sala ? sala.id : ''; recalcularValorAluguer() }} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione uma sala</option>{salas && salas.length > 0 ? salas.map(s => <option key={s.id} value={s.Nome}>{s.Nome}{s.Localizacao ? ` - ${s.Localizacao}` : ''} — h:{parseFloat(s.Preco_Hora || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })} / d:{parseFloat(s.Preco_Dia || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })} Kz</option>) : <option value="" disabled>Nenhuma sala registada</option>}</select><input id="aluguer-sala-id" name="sala_id" type="hidden" defaultValue={modalData?.sala_id || ''} /></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Tipo de Cobrança *</label><select id="aluguer-tipo-cobranca" name="Tipo_Cobranca" defaultValue={modalData?.Tipo_Cobranca || 'dia'} onChange={recalcularValorAluguer} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="hora">Por hora</option><option value="dia">Por dia</option></select></div>
-            <div><label id="aluguer-duracao-rotulo" className="text-xs sm:text-sm font-medium text-gray-700">Duração (dias) *</label><input id="aluguer-duracao" type="number" step="0.01" min="0.01" name="Duracao" defaultValue={modalData?.Duracao || 1} onChange={recalcularValorAluguer} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Sala *</label><select name="Sala" required defaultValue={modalData?.Sala || ''} onChange={(e) => { const sala = salas.find(s => s.Nome === e.target.value); const el = document.getElementById('aluguer-sala-id'); if (el) el.value = sala ? sala.id : ''; onRecalcularValorAluguer && onRecalcularValorAluguer() }} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione uma sala</option>{salas && salas.length > 0 ? salas.map(s => <option key={s.id} value={s.Nome}>{s.Nome}{s.Localizacao ? ` - ${s.Localizacao}` : ''} — h:{parseFloat(s.Preco_Hora || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })} / d:{parseFloat(s.Preco_Dia || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })} Kz</option>) : <option value="" disabled>Nenhuma sala registada</option>}</select><input id="aluguer-sala-id" name="sala_id" type="hidden" defaultValue={modalData?.sala_id || ''} /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Tipo de Cobrança *</label><select id="aluguer-tipo-cobranca" name="Tipo_Cobranca" defaultValue={modalData?.Tipo_Cobranca || 'dia'} onChange={() => onRecalcularValorAluguer && onRecalcularValorAluguer()} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="hora">Por hora</option><option value="dia">Por dia</option></select></div>
+            <div><label id="aluguer-duracao-rotulo" className="text-xs sm:text-sm font-medium text-gray-700">Duração (dias) *</label><input id="aluguer-duracao" type="number" step="0.01" min="0.01" name="Duracao" defaultValue={modalData?.Duracao || 1} onChange={() => onRecalcularValorAluguer && onRecalcularValorAluguer()} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data de Início *</label><input type="date" name="Data_Inicio" defaultValue={modalData?.Data_Inicio || new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data de Fim *</label><input type="date" name="Data_Fim" defaultValue={modalData?.Data_Fim || new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Valor (Kz)</label><input id="aluguer-valor" type="number" step="0.01" name="Valor" readOnly tabIndex={-1} defaultValue={modalData?.Valor || ''} placeholder="Calculado automaticamente" className="mt-1 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-500" /><p className="mt-1 text-[10px] text-gray-400">Total = preço (hora/dia) da sala × duração. Preenchido automaticamente.</p></div>
