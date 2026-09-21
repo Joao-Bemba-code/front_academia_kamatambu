@@ -57,7 +57,9 @@ import {
   Landmark,
   AlertTriangle,
   BookOpen as BookOpenIcon,
-  Shield
+  Shield,
+  DoorOpen,
+  Building2
 } from 'lucide-react'
 
 // ========== URL BASE DA API ==========
@@ -121,7 +123,10 @@ function ViewModal({ isOpen, onClose, data, type }) {
       'cancelado': 'bg-red-100 text-red-800',
       'aprovado': 'bg-green-100 text-green-800',
       'reprovado': 'bg-red-100 text-red-800',
-      'recuperacao': 'bg-yellow-100 text-yellow-800'
+      'recuperacao': 'bg-yellow-100 text-yellow-800',
+      'Disponível': 'bg-green-100 text-green-800',
+      'Ocupada': 'bg-orange-100 text-orange-800',
+      'Em manutenção': 'bg-gray-100 text-gray-700'
     }
     return colors[status] || 'bg-gray-100 text-gray-700'
   }
@@ -338,6 +343,114 @@ function ViewModal({ isOpen, onClose, data, type }) {
         <div className="space-y-0.5 sm:space-y-1 col-span-full">
           <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Observação</p>
           <p className="text-sm sm:text-base text-gray-900">{data.observacao || 'Nenhuma observação'}</p>
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderAluguerDetails = () => (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+        <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-[#006c49]/10 shrink-0">
+          <DoorOpen className="size-10 sm:size-12 text-[#006c49]" />
+        </div>
+        <div className="text-center sm:text-left">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900">{data.Cliente}</h3>
+          <p className="text-xs sm:text-sm text-gray-500">ID: {data.id}</p>
+          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${getStatusColor(data.Status)}`}>
+            {data.Status || 'pendente'}
+          </span>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</p>
+          <p className="text-sm sm:text-base text-gray-900 break-words">{data.Cliente}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Sala</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
+            <DoorOpen className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            <span className="break-words">{data.Sala || 'Não informada'}</span>
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
+            <Phone className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            <span className="break-words">{data.Telefone || 'Não informado'}</span>
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Período</p>
+          <p className="text-sm sm:text-base text-gray-900">
+            {data.Data_Inicio ? new Date(data.Data_Inicio).toLocaleDateString('pt-PT') : '—'} até {data.Data_Fim ? new Date(data.Data_Fim).toLocaleDateString('pt-PT') : '—'}
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</p>
+          <p className="text-lg sm:text-xl font-bold text-[#006c49]">{formatarMoeda(data.Valor)}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
+          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${getStatusColor(data.Status)}`}>
+            {data.Status || 'pendente'}
+          </span>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Forma de Pagamento</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.Forma_Pagamento || 'Dinheiro'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Registado por</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.Usuario_Criou || 'Não informado'}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1 col-span-full">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Observação</p>
+          <p className="text-sm sm:text-base text-gray-900">{data.Observacao || 'Nenhuma observação'}</p>
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderSalaDetails = () => (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+        <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-[#006c49]/10 shrink-0">
+          <Building2 className="size-10 sm:size-12 text-[#006c49]" />
+        </div>
+        <div className="text-center sm:text-left">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900">{data.Nome}</h3>
+          <p className="text-xs sm:text-sm text-gray-500">ID: {data.id}</p>
+          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${getStatusColor(data.Status)}`}>
+            {data.Status || 'Disponível'}
+          </span>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Nome da Sala</p>
+          <p className="text-sm sm:text-base text-gray-900 break-words">{data.Nome}</p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Capacidade</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2">
+            <UsersIcon className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            {data.Capacidade || 0} lugares
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Localização</p>
+          <p className="text-sm sm:text-base text-gray-900 flex items-center gap-2 break-words">
+            <MapPin className="size-3 sm:size-4 text-gray-400 shrink-0" />
+            <span className="break-words">{data.Localizacao || 'Não informada'}</span>
+          </p>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
+          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium ${getStatusColor(data.Status)}`}>
+            {data.Status || 'Disponível'}
+          </span>
         </div>
       </div>
     </div>
@@ -679,6 +792,10 @@ function ViewModal({ isOpen, onClose, data, type }) {
         return renderPagamentoDetails()
       case 'saidas':
         return renderSaidaDetails()
+      case 'alugueres':
+        return renderAluguerDetails()
+      case 'salas':
+        return renderSalaDetails()
       case 'dividas':
         return renderDividaDetails()
       case 'notas':
@@ -697,6 +814,8 @@ function ViewModal({ isOpen, onClose, data, type }) {
       case 'formadores': return 'Detalhes do Formador'
       case 'pagamentos': return 'Detalhes do Pagamento'
       case 'saidas': return 'Detalhes da Saída'
+      case 'alugueres': return 'Detalhes do Aluguer de Sala'
+      case 'salas': return 'Detalhes da Sala'
       case 'dividas': return 'Detalhes da Dívida'
       case 'notas': return 'Detalhes da Avaliação'
       default: return 'Detalhes'
@@ -2561,7 +2680,18 @@ function TesourariaTab({
   dividasLoading,
   onGerarNotaCobranca,
   onGerarNotasCobrancaAll,
-  onViewDivida
+  onViewDivida,
+  salas,
+  alugueres,
+  onCreateAluguer,
+  onEditAluguer,
+  onDeleteAluguer,
+  onViewAluguer,
+  onGerarAluguerPDF,
+  onCreateSala,
+  onEditSala,
+  onDeleteSala,
+  onViewSala
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterTipo, setFilterTipo] = useState('')
@@ -2571,6 +2701,9 @@ function TesourariaTab({
   const [activeSubTab, setActiveSubTab] = useState('entradas')
    const [searchSaida, setSearchSaida] = useState('')
    const [filteredSaidas, setFilteredSaidas] = useState([])
+   const [activeSalasTab, setActiveSalasTab] = useState('alugueres')
+   const [searchAluguer, setSearchAluguer] = useState('')
+   const [searchSala, setSearchSala] = useState('')
 
   // Search state for matrículas
   const [searchMatricula, setSearchMatricula] = useState('')
@@ -2637,6 +2770,34 @@ function TesourariaTab({
      )
    }, [dividas, searchTerm])
 
+   const filteredAlugueres = useMemo(() => {
+     let filtered = [...(alugueres || [])]
+     if (searchAluguer.trim()) {
+       const term = searchAluguer.toLowerCase().trim()
+       filtered = filtered.filter(a =>
+         (a.Cliente && a.Cliente.toLowerCase().includes(term)) ||
+         (a.Sala && a.Sala.toLowerCase().includes(term)) ||
+         (a.Status && a.Status.toLowerCase().includes(term)) ||
+         (a.Telefone && a.Telefone.includes(term)) ||
+         (a.id && String(a.id).includes(term))
+       )
+     }
+     return filtered
+   }, [alugueres, searchAluguer])
+
+   const filteredSalas = useMemo(() => {
+     let filtered = [...(salas || [])]
+     if (searchSala.trim()) {
+       const term = searchSala.toLowerCase().trim()
+       filtered = filtered.filter(s =>
+         (s.Nome && s.Nome.toLowerCase().includes(term)) ||
+         (s.Localizacao && s.Localizacao.toLowerCase().includes(term)) ||
+         (s.Status && s.Status.toLowerCase().includes(term))
+       )
+     }
+     return filtered
+   }, [salas, searchSala])
+
   const getStatusBadge = (status) => {
     const colors = { 'pago': 'bg-green-100 text-green-800', 'pendente': 'bg-yellow-100 text-yellow-800', 'parcial': 'bg-orange-100 text-orange-800', 'cancelado': 'bg-red-100 text-red-800' }
     return colors[status] || 'bg-gray-100 text-gray-700'
@@ -2662,6 +2823,11 @@ function TesourariaTab({
     return tipos[tipo] || tipo
   }
 
+  const getSalaStatusBadge = (status) => {
+    const colors = { 'Disponível': 'bg-green-100 text-green-800', 'Ocupada': 'bg-orange-100 text-orange-800', 'Em manutenção': 'bg-gray-100 text-gray-700' }
+    return colors[status] || 'bg-gray-100 text-gray-700'
+  }
+
   const formatarMoeda = (valor) => {
     return `Kz ${parseFloat(valor || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`
   }
@@ -2685,6 +2851,11 @@ function TesourariaTab({
       .reduce((acc, s) => acc + parseFloat(s.valor || 0), 0)
   }))
 
+  const alugueresPagas = (alugueres || []).filter(a => a.Status === 'pago')
+  const totalAluguelArrecadado = alugueresPagas.reduce((acc, a) => acc + parseFloat(a.Valor || 0), 0)
+  const totalAluguelPendente = (alugueres || []).filter(a => a.Status === 'pendente' || a.Status === 'parcial').reduce((acc, a) => acc + parseFloat(a.Valor || 0), 0)
+  const salasDisponiveis = (salas || []).filter(s => s.Status === 'Disponível').length
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -2700,6 +2871,16 @@ function TesourariaTab({
             <button onClick={onCreateSaida} className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-600/90 w-full sm:w-auto">
               <Plus className="size-3.5 sm:size-4" /> Nova Saída
             </button>
+          ) : activeSubTab === 'alugueres' ? (
+            activeSalasTab === 'salas' ? (
+              <button onClick={onCreateSala} className="flex items-center justify-center gap-2 rounded-lg bg-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#006c49]/90 w-full sm:w-auto">
+                <Plus className="size-3.5 sm:size-4" /> Nova Sala
+              </button>
+            ) : (
+              <button onClick={onCreateAluguer} className="flex items-center justify-center gap-2 rounded-lg bg-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#006c49]/90 w-full sm:w-auto">
+                <Plus className="size-3.5 sm:size-4" /> Novo Aluguer
+              </button>
+            )
           ) : (
             <button onClick={onCreate} className="flex items-center justify-center gap-2 rounded-lg bg-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#006c49]/90 w-full sm:w-auto">
               <Plus className="size-3.5 sm:size-4" /> Novo Pagamento
@@ -2723,6 +2904,9 @@ function TesourariaTab({
         </button>
         <button onClick={() => setActiveSubTab('dividas')} className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors border-b-2 ${activeSubTab === 'dividas' ? 'border-amber-600 text-amber-600' : 'border-transparent text-[#45474c] hover:text-[#091426]'}`}>
           <AlertTriangle className="size-4" /> Dívidas
+        </button>
+        <button onClick={() => setActiveSubTab('alugueres')} className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors border-b-2 ${activeSubTab === 'alugueres' ? 'border-[#006c49] text-[#006c49]' : 'border-transparent text-[#45474c] hover:text-[#091426]'}`}>
+          <DoorOpen className="size-4" /> Aluguer de Salas
         </button>
       </div>
 
@@ -3047,7 +3231,224 @@ function TesourariaTab({
           </table>
         </div>
       </div>
-      </>)}
+</>)} 
+
+      {activeSubTab === 'alugueres' && (<>
+        <div className="flex flex-wrap gap-1 sm:gap-2 border-b border-[#eceef0]">
+          <button onClick={() => setActiveSalasTab('alugueres')} className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors border-b-2 ${activeSalasTab === 'alugueres' ? 'border-[#006c49] text-[#006c49]' : 'border-transparent text-[#45474c] hover:text-[#091426]'}`}>
+            <DoorOpen className="size-4" /> Alugueres
+          </button>
+          <button onClick={() => setActiveSalasTab('salas')} className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors border-b-2 ${activeSalasTab === 'salas' ? 'border-[#006c49] text-[#006c49]' : 'border-transparent text-[#45474c] hover:text-[#091426]'}`}>
+            <Building2 className="size-4" /> Salas ({salas?.length || 0})
+          </button>
+        </div>
+
+        {activeSalasTab === 'alugueres' && (<>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+            <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#006c49]/10 border border-[#006c49]/20"><Wallet className="size-4 text-[#006c49]" /></div>
+                <p className="text-[10px] sm:text-xs font-medium text-gray-500">Arrecadado (pago)</p>
+              </div>
+              <p className="text-lg sm:text-xl font-bold text-[#006c49]">{formatarMoeda(totalAluguelArrecadado)}</p>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50 border border-amber-200"><Clock className="size-4 text-amber-600" /></div>
+                <p className="text-[10px] sm:text-xs font-medium text-gray-500">Em aberto</p>
+              </div>
+              <p className="text-lg sm:text-xl font-bold text-amber-600">{formatarMoeda(totalAluguelPendente)}</p>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 border border-blue-200"><CalendarDays className="size-4 text-blue-600" /></div>
+                <p className="text-[10px] sm:text-xs font-medium text-gray-500">Alugueres registados</p>
+              </div>
+              <p className="text-lg sm:text-xl font-bold text-[#091426]">{alugueres?.length || 0}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3 top-1/2 size-3.5 sm:size-4 -translate-y-1/2 text-[#45474c]" />
+              <input type="text" placeholder="Buscar por cliente, sala, estado..." value={searchAluguer} onChange={(e) => setSearchAluguer(e.target.value)} className="w-full rounded-lg border border-[#c5c6cd] bg-white py-1.5 sm:py-2 pl-8 sm:pl-10 pr-3 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
+            </div>
+          </div>
+
+          <div className="text-xs sm:text-sm text-[#45474c]">
+            {filteredAlugueres.length > 0 ? <span>Mostrando <strong>{filteredAlugueres.length}</strong> aluguer{(filteredAlugueres.length > 1 ? 'es' : '')} de sala</span> : <span>Nenhum aluguer encontrado</span>}
+          </div>
+
+          <div className="overflow-hidden rounded-xl border border-[#eceef0] bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-[10px] sm:text-xs lg:text-sm">
+                <thead className="bg-[#eceef0]">
+                  <tr>
+                    <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Cliente</th>
+                    <th className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Sala</th>
+                    <th className="hidden lg:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Período</th>
+                    <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Valor</th>
+                    <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Status</th>
+                    <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#c5c6cd]/50">
+                  {loading ? (
+                    <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500"><Loader2 className="size-5 sm:size-6 animate-spin mx-auto" /></td></tr>
+                  ) : filteredAlugueres.length > 0 ? (
+                    filteredAlugueres.map((aluguer) => (
+                      <tr key={aluguer.id} className="transition-colors hover:bg-[#f7f9fb]">
+                        <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
+                          <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
+                            <div className="flex h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 items-center justify-center rounded-full bg-[#eceef0] text-[8px] sm:text-[10px] lg:text-xs font-bold text-[#091426]">
+                              {aluguer.Cliente ? aluguer.Cliente.split(' ').map(n => n[0]).join('').slice(0, 2) : '?'}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[10px] sm:text-xs lg:text-sm font-semibold text-[#091426] truncate">{aluguer.Cliente}</p>
+                              <p className="text-[8px] sm:text-[10px] lg:text-[11px] text-[#45474c]">ID: {aluguer.id}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c]">
+                          <span className="inline-flex items-center gap-1"><DoorOpen className="size-3 text-[#006c49]" /> {aluguer.Sala}</span>
+                        </td>
+                        <td className="hidden lg:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c]">
+                          {aluguer.Data_Inicio ? new Date(aluguer.Data_Inicio).toLocaleDateString('pt-PT') : '—'} — {aluguer.Data_Fim ? new Date(aluguer.Data_Fim).toLocaleDateString('pt-PT') : '—'}
+                        </td>
+                        <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 font-semibold text-[#091426]">{formatarMoeda(aluguer.Valor)}</td>
+                        <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
+                          <span className={`rounded-full px-1.5 sm:px-2 lg:px-3 py-0.5 text-[7px] sm:text-[9px] lg:text-[11px] font-bold uppercase tracking-tighter ${getStatusBadge(aluguer.Status)}`}>
+                            {aluguer.Status || 'pendente'}
+                          </span>
+                        </td>
+                        <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right">
+                          <div className="flex items-center justify-end gap-0.5 sm:gap-1">
+                            <button onClick={() => onGerarAluguerPDF(aluguer)} className="rounded p-0.5 sm:p-1 text-purple-600 hover:bg-purple-50" title="Comprovante de Aluguer"><FileDown className="size-3 sm:size-3.5 lg:size-4" /></button>
+                            {String(aluguer.Status).toLowerCase() === 'pago' && (
+                              <button onClick={() => onGerarAluguerPDF(aluguer, 'pagamento')} className="rounded p-0.5 sm:p-1 text-emerald-600 hover:bg-emerald-50" title="Comprovante de Pagamento"><CheckCircle className="size-3 sm:size-3.5 lg:size-4" /></button>
+                            )}
+                            <button onClick={() => onViewAluguer(aluguer)} className="rounded p-0.5 sm:p-1 text-blue-600 hover:bg-blue-50" title="Visualizar"><Eye className="size-3 sm:size-3.5 lg:size-4" /></button>
+                            <button onClick={() => onEditAluguer(aluguer)} className="rounded p-0.5 sm:p-1 text-green-600 hover:bg-green-50" title="Editar"><Edit className="size-3 sm:size-3.5 lg:size-4" /></button>
+                            <button onClick={() => onDeleteAluguer(aluguer.id)} className="rounded p-0.5 sm:p-1 text-red-600 hover:bg-red-50" title="Excluir"><Trash2 className="size-3 sm:size-3.5 lg:size-4" /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                        <div className="flex flex-col items-center gap-2">
+                          <DoorOpen className="size-8 text-gray-300" />
+                          <p>Nenhum aluguer de sala encontrado</p>
+                          <p className="text-[10px] text-gray-400">Registre o aluguer de uma sala</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          </>)}
+ 
+        {activeSalasTab === 'salas' && (<>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+            <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#006c49]/10 border border-[#006c49]/20"><Building2 className="size-4 text-[#006c49]" /></div>
+                <p className="text-[10px] sm:text-xs font-medium text-gray-500">Total de Salas</p>
+              </div>
+              <p className="text-lg sm:text-xl font-bold text-[#091426]">{salas?.length || 0}</p>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-50 border border-green-200"><CheckCircle className="size-4 text-green-600" /></div>
+                <p className="text-[10px] sm:text-xs font-medium text-gray-500">Disponíveis</p>
+              </div>
+              <p className="text-lg sm:text-xl font-bold text-green-600">{salasDisponiveis}</p>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 border border-orange-200"><Clock className="size-4 text-orange-600" /></div>
+                <p className="text-[10px] sm:text-xs font-medium text-gray-500">Ocupadas</p>
+              </div>
+              <p className="text-lg sm:text-xl font-bold text-orange-600">{(salas || []).filter(s => s.Status === 'Ocupada').length}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3 top-1/2 size-3.5 sm:size-4 -translate-y-1/2 text-[#45474c]" />
+              <input type="text" placeholder="Buscar por nome, localização, estado..." value={searchSala} onChange={(e) => setSearchSala(e.target.value)} className="w-full rounded-lg border border-[#c5c6cd] bg-white py-1.5 sm:py-2 pl-8 sm:pl-10 pr-3 text-xs sm:text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#006c49]/20 focus:border-[#006c49]" />
+            </div>
+          </div>
+
+          <div className="text-xs sm:text-sm text-[#45474c]">
+            {filteredSalas.length > 0 ? <span>Mostrando <strong>{filteredSalas.length}</strong> sala{(filteredSalas.length > 1 ? 's' : '')}</span> : <span>Nenhuma sala encontrada</span>}
+          </div>
+
+          <div className="overflow-hidden rounded-xl border border-[#eceef0] bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-[10px] sm:text-xs lg:text-sm">
+                <thead className="bg-[#eceef0]">
+                  <tr>
+                    <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Sala</th>
+                    <th className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Capacidade</th>
+                    <th className="hidden lg:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Localização</th>
+                    <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Status</th>
+                    <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#c5c6cd]/50">
+                  {loading ? (
+                    <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500"><Loader2 className="size-5 sm:size-6 animate-spin mx-auto" /></td></tr>
+                  ) : filteredSalas.length > 0 ? (
+                    filteredSalas.map((sala) => (
+                      <tr key={sala.id} className="transition-colors hover:bg-[#f7f9fb]">
+                        <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
+                          <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
+                            <div className="flex h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 items-center justify-center rounded-full bg-[#eceef0] text-[8px] sm:text-[10px] lg:text-xs font-bold text-[#091426]">
+                              {sala.Nome ? sala.Nome.slice(0, 2).toUpperCase() : '?'}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[10px] sm:text-xs lg:text-sm font-semibold text-[#091426] truncate">{sala.Nome}</p>
+                              <p className="text-[8px] sm:text-[10px] lg:text-[11px] text-[#45474c]">ID: {sala.id}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c]">{sala.Capacidade || 0} lugares</td>
+                        <td className="hidden lg:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c]">{sala.Localizacao || '—'}</td>
+                        <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
+                          <span className={`rounded-full px-1.5 sm:px-2 lg:px-3 py-0.5 text-[7px] sm:text-[9px] lg:text-[11px] font-bold uppercase tracking-tighter ${getSalaStatusBadge(sala.Status)}`}>
+                            {sala.Status || 'Disponível'}
+                          </span>
+                        </td>
+                        <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right">
+                          <div className="flex items-center justify-end gap-0.5 sm:gap-1">
+                            <button onClick={() => onViewSala(sala)} className="rounded p-0.5 sm:p-1 text-blue-600 hover:bg-blue-50" title="Visualizar"><Eye className="size-3 sm:size-3.5 lg:size-4" /></button>
+                            <button onClick={() => onEditSala(sala)} className="rounded p-0.5 sm:p-1 text-green-600 hover:bg-green-50" title="Editar"><Edit className="size-3 sm:size-3.5 lg:size-4" /></button>
+                            <button onClick={() => onDeleteSala(sala.id)} className="rounded p-0.5 sm:p-1 text-red-600 hover:bg-red-50" title="Excluir"><Trash2 className="size-3 sm:size-3.5 lg:size-4" /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                        <div className="flex flex-col items-center gap-2">
+                          <Building2 className="size-8 text-gray-300" />
+                          <p>Nenhuma sala registada</p>
+                          <p className="text-[10px] text-gray-400">Registre as salas para utilizá-las nos alugueres</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          </>)}
+      </>)} 
 
       <MatriculasModal
         isOpen={showMatriculasModal}
@@ -3691,10 +4092,12 @@ export default function DashboardHome() {
   const [notas, setNotas] = useState([])
   const [criteriosAvaliacao, setCriteriosAvaliacao] = useState([])
   const [saidas, setSaidas] = useState([])
+  const [salas, setSalas] = useState([])
+  const [alugueres, setAlugueres] = useState([])
   const [stats, setStats] = useState([])
   const [statsFinanceiro, setStatsFinanceiro] = useState({})
   const [inadimplentes, setInadimplentes] = useState([])
-  const [loading, setLoading] = useState({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, saidas: false, notas: false, criterios: false })
+  const [loading, setLoading] = useState({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, saidas: false, salas: false, alugueres: false, notas: false, criterios: false })
   const [crescimento, setCrescimento] = useState([])
   const [inscricoesPorCurso, setInscricoesPorCurso] = useState([])
   const [cursosList, setCursosList] = useState([])
@@ -3717,6 +4120,7 @@ export default function DashboardHome() {
   const [studentSearchNotas, setStudentSearchNotas] = useState('')
   const [showDropdown, setShowDropdown] = useState(false)
   const [pagoTipo, setPagoTipo] = useState('')
+  const [aluguerSalaId, setAluguerSalaId] = useState('')
 
   const uploadToBackend = async (base64Image) => {
     try {
@@ -4258,6 +4662,24 @@ export default function DashboardHome() {
 
       let y = 68
 
+      // Aviso de documento não fiscal (evita qualquer semelhança com factura/recibo fiscal)
+      doc.setFillColor(254, 242, 242)
+      doc.roundedRect(lm, y, rm - lm, 13, 1.5, 1.5, 'F')
+      doc.setDrawColor(220, 38, 38)
+      doc.setLineWidth(0.3)
+      doc.roundedRect(lm, y, rm - lm, 13, 1.5, 1.5, 'S')
+      doc.setFontSize(7.5)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(185, 28, 28)
+      doc.text('DOCUMENTO NÃO FISCAL', lm + 4, y + 4.5)
+      doc.setFontSize(6.5)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(120, 53, 15)
+      const aviso = doc.splitTextToSize('Este comprovativo destina-se apenas a registo interno dos pagamentos da Academia Kamatambu. NÃO constitui nem substitui factura, recibo ou qualquer documento fiscal previsto na legislação da AGT (Administração Geral Tributária). Não serve de prova de pagamento para efeitos fiscais.', rm - lm - 8)
+      aviso.forEach((linha, idx) => doc.text(linha, lm + 4, y + 8 + idx * 3))
+
+      y += 19
+
       doc.setFontSize(8)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(...PDF_COLORS.gray)
@@ -4644,6 +5066,24 @@ export default function DashboardHome() {
 
       let y = 68
 
+      // Aviso de documento não fiscal (evita qualquer semelhança com factura/recibo fiscal)
+      doc.setFillColor(254, 242, 242)
+      doc.roundedRect(lm, y, rm - lm, 13, 1.5, 1.5, 'F')
+      doc.setDrawColor(220, 38, 38)
+      doc.setLineWidth(0.3)
+      doc.roundedRect(lm, y, rm - lm, 13, 1.5, 1.5, 'S')
+      doc.setFontSize(7.5)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(185, 28, 28)
+      doc.text('DOCUMENTO NÃO FISCAL', lm + 4, y + 4.5)
+      doc.setFontSize(6.5)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(120, 53, 15)
+      const aviso = doc.splitTextToSize('Este documento destina-se apenas a registo interno das saídas/despesas da Academia Kamatambu. NÃO constitui nem substitui factura, recibo ou qualquer documento fiscal previsto na legislação da AGT (Administração Geral Tributária). Não serve de prova de pagamento nem de dedução de IVA para efeitos fiscais.', rm - lm - 8)
+      aviso.forEach((linha, idx) => doc.text(linha, lm + 4, y + 8 + idx * 3))
+
+      y += 19
+
       doc.setFontSize(8)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(...PDF_COLORS.gray)
@@ -4739,6 +5179,172 @@ export default function DashboardHome() {
     }
   }
 
+  const generateAluguerPDF = async (aluguer, variante = 'emissao') => {
+    try {
+      const ehPagamento = variante === 'pagamento'
+      const valor = parseFloat(aluguer.Valor || 0)
+      const valorFmt = `Kz ${valor.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`
+      const statusLabel = { pago: 'PAGO', pendente: 'PENDENTE', parcial: 'PARCIAL', cancelado: 'CANCELADO' }[aluguer.Status] || String(aluguer.Status || '-').toUpperCase()
+      const corStatus = { pago: [0, 150, 0], pendente: [200, 150, 0], parcial: [220, 120, 0], cancelado: [200, 0, 0] }[aluguer.Status] || [100, 100, 100]
+      const formaLabel = { dinheiro: 'Dinheiro', transferencia: 'Transferência', deposito: 'Depósito', multicaixa: 'Multicaixa' }[aluguer.Forma_Pagamento] || aluguer.Forma_Pagamento || '-'
+      const nRef = `AK-ALU-${String(aluguer.id).padStart(4, '0')}`
+
+      const doc = new jsPDF('portrait', 'mm', 'a4')
+      const pageWidth = doc.internal.pageSize.getWidth()
+      const lm = 14
+      const rm = pageWidth - 14
+
+      const titulo = ehPagamento ? 'COMPROVANTE DE PAGAMENTO (ALUGUER DE SALA)' : 'COMPROVANTE DE ALUGUER DE SALA'
+      let y = await addPDFHeader(doc, titulo, [
+        { label: 'Sala', value: aluguer.Sala || '-' },
+        { label: ehPagamento ? 'Valor Recebido' : 'Valor', value: valorFmt }
+      ])
+
+      y += 4
+
+      // Aviso de documento não fiscal (evita qualquer semelhança com factura/recibo fiscal)
+      doc.setFillColor(254, 242, 242)
+      doc.roundedRect(lm, y, rm - lm, 13, 1.5, 1.5, 'F')
+      doc.setDrawColor(220, 38, 38)
+      doc.setLineWidth(0.3)
+      doc.roundedRect(lm, y, rm - lm, 13, 1.5, 1.5, 'S')
+      doc.setFontSize(7.5)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(185, 28, 28)
+      doc.text('DOCUMENTO NÃO FISCAL', lm + 4, y + 4.5)
+      doc.setFontSize(6.5)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(120, 53, 15)
+      const aviso = doc.splitTextToSize('Este comprovante destina-se apenas a registo interno do aluguer da sala. NÃO constitui nem substitui factura, recibo ou qualquer documento fiscal previsto na legislação da AGT (Administração Geral Tributária). Não serve de prova de pagamento para efeitos fiscais.', rm - lm - 8)
+      aviso.forEach((linha, idx) => doc.text(linha, lm + 4, y + 8 + idx * 3))
+
+      y += 19
+
+      doc.setFontSize(7.5)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text(`Nº Interno: ${nRef}`, lm, y)
+      doc.text(`Data: ${aluguer.createdAt ? new Date(aluguer.createdAt).toLocaleDateString('pt-PT') : new Date().toLocaleDateString('pt-PT')}`, rm, y, { align: 'right' })
+      y += 5
+
+      // Marca de água de estado
+      try {
+        doc.saveGraphicsState()
+        doc.setGState(new doc.GState({ opacity: 0.09 }))
+        doc.setFontSize(58)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...corStatus)
+        doc.text(statusLabel, pageWidth / 2, 150, { align: 'center', angle: 40 })
+        doc.restoreGraphicsState()
+      } catch (e) { /* gstate não suportado */ }
+
+      doc.setFillColor(240, 253, 244)
+      doc.roundedRect(lm, y, rm - lm, 50, 2, 2, 'F')
+      doc.setDrawColor(22, 163, 74)
+      doc.setLineWidth(0.3)
+      doc.roundedRect(lm, y, rm - lm, 50, 2, 2, 'S')
+      y += 8
+
+      const drawField = (label, value, fx, fy) => {
+        doc.setFontSize(7)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(...PDF_COLORS.gray)
+        doc.text(label.toUpperCase(), fx, fy)
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...PDF_COLORS.dark)
+        doc.text(String(value || '-'), fx, fy + 5)
+      }
+
+      drawField('Cliente', aluguer.Cliente, lm + 5, y)
+      drawField('Sala', aluguer.Sala, lm + 90, y)
+      y += 14
+
+      drawField('Período', `${aluguer.Data_Inicio ? new Date(aluguer.Data_Inicio).toLocaleDateString('pt-PT') : '-'} a ${aluguer.Data_Fim ? new Date(aluguer.Data_Fim).toLocaleDateString('pt-PT') : '-'}`, lm + 5, y)
+      drawField(ehPagamento ? 'Valor Recebido' : 'Valor Total', valorFmt, lm + 90, y)
+      y += 14
+
+      drawField('Telefone', aluguer.Telefone, lm + 5, y)
+      y += 2
+
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text('ESTADO', lm + 90, y)
+      y += 2
+
+      doc.setFillColor(...corStatus)
+      doc.roundedRect(lm + 90, y, 40, 8, 2, 2, 'F')
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(255, 255, 255)
+      doc.text(statusLabel, lm + 110, y + 5.5, { align: 'center' })
+
+      y += 18
+
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...PDF_COLORS.dark)
+      doc.text(ehPagamento ? 'Detalhes do Aluguer e Pagamento' : 'Detalhes do Aluguer', lm, y)
+      y += 2
+
+      autoTable(doc, {
+        startY: y,
+        head: [['Campo', 'Valor']],
+        body: [
+          ['Cliente', aluguer.Cliente || '-'],
+          ['Telefone', aluguer.Telefone || '-'],
+          ['Sala', aluguer.Sala || '-'],
+          ['Período', `${aluguer.Data_Inicio ? new Date(aluguer.Data_Inicio).toLocaleDateString('pt-PT') : '-'} até ${aluguer.Data_Fim ? new Date(aluguer.Data_Fim).toLocaleDateString('pt-PT') : '-'}`],
+          [ehPagamento ? 'Valor Recebido' : 'Valor', valorFmt],
+          ['Forma de Pagamento', formaLabel],
+          ['Estado', statusLabel],
+          ['Observação', aluguer.Observacao || '-']
+        ],
+        ...TABLE_BASE,
+        columnStyles: {
+          0: { cellWidth: 50, fontStyle: 'bold', halign: 'left' },
+          1: { cellWidth: 120, halign: 'left' }
+        },
+        margin: { left: lm, right: 14 }
+      })
+
+      y = doc.lastAutoTable.finalY + 12
+
+      doc.setFontSize(6.5)
+      doc.setFont('helvetica', 'italic')
+      doc.setTextColor(...PDF_COLORS.gray)
+      const nota = doc.splitTextToSize('Nota: documento interno de caracter comprovativo, de uso não fiscal. A facturação legal, quando aplicável, deve ser emitida por software certificado pela AGT.', rm - lm)
+      nota.forEach((linha, idx) => doc.text(linha, lm, y + idx * 3))
+      y += nota.length * 3 + 8
+
+      doc.setDrawColor(...PDF_COLORS.grayLighter)
+      doc.setLineWidth(0.3)
+      doc.line(lm, y, lm + 50, y)
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...PDF_COLORS.gray)
+      doc.text('Assinatura do Responsável', lm + 25, y + 5, { align: 'center' })
+
+      doc.line(rm - 50, y, rm, y)
+      doc.text('Assinatura do Cliente', rm - 25, y + 5, { align: 'center' })
+
+      addPDFFooter(doc, 1)
+
+      if (ehPagamento) {
+        doc.save(`Comprovante_Pagamento_Aluguer_${String(aluguer.id).padStart(4, '0')}.pdf`)
+        showToast('Comprovante de pagamento gerado com sucesso!', 'success')
+      } else {
+        doc.save(`Comprovante_Aluguer_${String(aluguer.id).padStart(4, '0')}.pdf`)
+        showToast('Comprovante de aluguer gerado com sucesso!', 'success')
+      }
+
+    } catch (error) {
+      console.error('Erro ao gerar comprovante de aluguer:', error)
+      showToast('Erro ao gerar comprovante de aluguer', 'error')
+    }
+  }
+
   const generateRelatorioFinanceiro = async () => {
     if (!pagamentos || pagamentos.length === 0) { showToast('Nenhum pagamento encontrado para gerar relatorio', 'warning'); return }
     try {
@@ -4809,7 +5415,7 @@ export default function DashboardHome() {
     try {
       const tipoUser = typeof window !== 'undefined' ? localStorage.getItem('userTipo') || 'admin' : 'admin'
       const ehFormadorLogado = tipoUser === 'formador'
-       setLoading({ matriculas: true, turmas: true, cursos: true, formadores: true, pagamentos: true, saidas: true, notas: true, criterios: true })
+       setLoading({ matriculas: true, turmas: true, cursos: true, formadores: true, pagamentos: true, saidas: true, salas: true, alugueres: true, notas: true, criterios: true })
        setDividasLoading(true)
       const token = localStorage.getItem('token')
 
@@ -4842,14 +5448,16 @@ export default function DashboardHome() {
         ])
       }
 
-      const [matriculasRes, turmasRes, cursosRes, formadoresRes, pagamentosRes, financeiroStatsRes, notasRes, criteriosRes, saidasRes, dividasRes] = await Promise.all([
+      const [matriculasRes, turmasRes, cursosRes, formadoresRes, pagamentosRes, financeiroStatsRes, notasRes, criteriosRes, saidasRes, dividasRes, salasRes, alugueresRes] = await Promise.all([
         apiFetch('/matriculas'), apiFetch('/turmas'), apiFetch('/cursos'), apiFetch('/formadores'),
         ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/pagamentos'),
         ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/pagamentos/financeiro/stats'),
         apiFetch('/academico/notas'),
         apiFetch('/criterios-avaliacao'),
         ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/saidas'),
-        ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/pagamentos/dividas')
+        ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/pagamentos/dividas'),
+        ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/salas'),
+        ehFormadorLogado ? Promise.resolve({ success: false }) : apiFetch('/alugueres')
       ])
 
       if (matriculasRes.success) setMatriculas(matriculasRes.data)
@@ -4864,6 +5472,8 @@ export default function DashboardHome() {
       if (notasRes.success) setNotas(notasRes.data)
       if (criteriosRes.success) setCriteriosAvaliacao(criteriosRes.data)
       if (saidasRes.success) setSaidas(saidasRes.data)
+      if (salasRes.success) setSalas(salasRes.data)
+      if (alugueresRes.success) setAlugueres(alugueresRes.data)
       if (dividasRes.success) {
         setDividas(dividasRes.data || [])
       }
@@ -4887,7 +5497,7 @@ export default function DashboardHome() {
       console.error('Erro ao carregar dados:', error)
       showToast('Erro ao carregar dados', 'error')
     } finally {
-      setLoading({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, saidas: false, notas: false, criterios: false })
+      setLoading({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, saidas: false, salas: false, alugueres: false, notas: false, criterios: false })
       setDividasLoading(false)
     }
   }
@@ -5374,6 +5984,12 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
         if (data.valor) data.valor = parseFloat(data.valor)
       }
 
+      if (type === 'alugueres') {
+        if (data.Valor) data.Valor = parseFloat(data.Valor)
+        if (data.sala_id) data.sala_id = parseInt(data.sala_id) || null
+        else data.sala_id = null
+      }
+
       if (fotoUrl) data.Foto_User = fotoUrl
       if (fotoCertificadoUrl) data.Foto_Certificado = fotoCertificadoUrl
 
@@ -5381,7 +5997,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
       const response = await apiFetch(endpoint, { method: 'POST', body: JSON.stringify(data) })
       
       if (response.success) {
-        showToast(response.message || `${type === 'notas' || type === 'academico' ? 'Avaliação' : type === 'saidas' ? 'Saída' : type.slice(0, -1)} criado com sucesso!`, 'success')
+        showToast(response.message || `${type === 'notas' || type === 'academico' ? 'Avaliação' : type === 'saidas' ? 'Saída' : type === 'salas' ? 'Sala' : type === 'alugueres' ? 'Aluguer' : type.slice(0, -1)} ${type === 'salas' ? 'criada' : 'criado'} com sucesso!`, 'success')
         setModalOpen(false); setFotoUrl(null); setFotoPreview(null); setFotoCertificadoUrl(null); setFotoCertificadoPreview(null); loadData()
       } else {
         console.error('Erro do backend:', response); showToast(response.message || 'Erro ao criar', 'error')
@@ -5425,6 +6041,12 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
         if (data.valor) data.valor = parseFloat(data.valor)
       }
 
+      if (type === 'alugueres') {
+        if (data.Valor) data.Valor = parseFloat(data.Valor)
+        if (data.sala_id) data.sala_id = parseInt(data.sala_id) || null
+        else data.sala_id = null
+      }
+
       if (fotoUrl) data.Foto_User = fotoUrl
       if (fotoCertificadoUrl) data.Foto_Certificado = fotoCertificadoUrl
 
@@ -5432,7 +6054,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
       const response = await apiFetch(endpoint, { method: 'PUT', body: JSON.stringify(data) })
       
       if (response.success) {
-        showToast(`${type === 'notas' || type === 'academico' ? 'Avaliação' : type === 'saidas' ? 'Saída' : type.slice(0, -1)} atualizado com sucesso!`, 'success')
+        showToast(`${type === 'notas' || type === 'academico' ? 'Avaliação' : type === 'saidas' ? 'Saída' : type === 'salas' ? 'Sala' : type === 'alugueres' ? 'Aluguer' : type.slice(0, -1)} ${type === 'salas' ? 'atualizada' : 'atualizado'} com sucesso!`, 'success')
         setModalOpen(false); setFotoUrl(null); setFotoPreview(null); setFotoCertificadoUrl(null); setFotoCertificadoPreview(null); loadData()
       } else {
         console.error('Erro do backend:', response); showToast(response.message || 'Erro ao atualizar', 'error')
@@ -5449,8 +6071,8 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
       const endpoint = type === 'notas' || type === 'academico' ? `/academico/notas/${id}` : `/${type}/${id}`
       const response = await apiFetch(endpoint, { method: 'DELETE' })
       if (response.success) {
-        const label = type === 'notas' || type === 'academico' ? 'Avaliação' : type.slice(0, -1)
-        showToast(`${label} deletado com sucesso!`, 'success')
+        const label = type === 'notas' || type === 'academico' ? 'Avaliação' : type === 'salas' ? 'Sala' : type.slice(0, -1)
+        showToast(`${label} ${type === 'salas' ? 'deletada' : 'deletado'} com sucesso!`, 'success')
         setConfirmModal({ open: false, id: null, type: '' })
         loadData()
       } else {
@@ -5576,7 +6198,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
       case 'formadores':
         return <FormadoresTab formadores={formadores} loading={loading.formadores} onEdit={(data) => handleOpenModal('formadores', data)} onDelete={(id) => handleConfirmDelete(id, 'formadores')} onView={(data) => handleOpenModal('view', data, 'formadores')} onCreate={() => handleOpenModal('formadores')} onGeneratePDF={generateFormadoresPDF} />
       case 'tesouraria':
-        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} loadingMatriculas={loading.matriculas} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} saidas={saidas} onCreateSaida={() => handleOpenModal('saidas')} onEditSaida={(data) => handleOpenModal('saidas', data)} onDeleteSaida={(id) => handleConfirmDelete(id, 'saidas')} onViewSaida={(data) => handleOpenModal('view', data, 'saidas')} onGerarSaidaPDF={generateSaidaPDF} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} dividas={dividas} dividasLoading={dividasLoading} onGerarNotaCobranca={generateNotaCobrancaPDF} onGerarNotasCobrancaAll={generateNotasCobrancaAllPDF} onViewDivida={(data) => handleOpenModal('view', data, 'dividas')} />
+        return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} loadingMatriculas={loading.matriculas} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} saidas={saidas} onCreateSaida={() => handleOpenModal('saidas')} onEditSaida={(data) => handleOpenModal('saidas', data)} onDeleteSaida={(id) => handleConfirmDelete(id, 'saidas')} onViewSaida={(data) => handleOpenModal('view', data, 'saidas')} onGerarSaidaPDF={generateSaidaPDF} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} dividas={dividas} dividasLoading={dividasLoading} onGerarNotaCobranca={generateNotaCobrancaPDF} onGerarNotasCobrancaAll={generateNotasCobrancaAllPDF} onViewDivida={(data) => handleOpenModal('view', data, 'dividas')} salas={salas} alugueres={alugueres} onCreateAluguer={() => handleOpenModal('alugueres')} onEditAluguer={(data) => handleOpenModal('alugueres', data)} onDeleteAluguer={(id) => handleConfirmDelete(id, 'alugueres')} onViewAluguer={(data) => handleOpenModal('view', data, 'alugueres')} onGerarAluguerPDF={generateAluguerPDF} onCreateSala={() => handleOpenModal('salas')} onEditSala={(data) => handleOpenModal('salas', data)} onDeleteSala={(id) => handleConfirmDelete(id, 'salas')} onViewSala={(data) => handleOpenModal('view', data, 'salas')} />
       case 'academico':
         return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} userTipo={userTipo} />
       case 'usuarios':
@@ -5600,9 +6222,9 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <ConfirmModal isOpen={confirmModal.open} onClose={() => setConfirmModal({ open: false, id: null, type: '' })} onConfirm={handleDelete} title="Confirmar exclusão" message={`Tem certeza que deseja excluir este ${confirmModal.type ? confirmModal.type.slice(0, -1) : 'item'}? Esta ação não pode ser desfeita.`} isLoading={modalLoading} />
+      <ConfirmModal isOpen={confirmModal.open} onClose={() => setConfirmModal({ open: false, id: null, type: '' })} onConfirm={handleDelete} title="Confirmar exclusão" message={`Tem certeza que deseja excluir ${confirmModal.type === 'salas' ? 'esta' : 'este'} ${confirmModal.type ? (confirmModal.type === 'salas' ? 'sala' : confirmModal.type.slice(0, -1)) : 'item'}? Esta ação não pode ser desfeita.`} isLoading={modalLoading} />
 
-      <FormModal isOpen={modalOpen && modalType !== 'view'} onClose={handleCloseModal} title={modalData ? `Editar ${modalType.slice(0, -1)}` : `Novo ${modalType.slice(0, -1)}`} onSubmit={(e) => {
+      <FormModal isOpen={modalOpen && modalType !== 'view'} onClose={handleCloseModal} title={modalData ? `Editar ${modalType === 'salas' ? 'Sala' : modalType.slice(0, -1)}` : `${modalType === 'salas' ? 'Nova' : 'Novo'} ${modalType === 'salas' ? 'Sala' : modalType.slice(0, -1)}`} onSubmit={(e) => {
         e.preventDefault()
         const formData = new FormData(e.target)
         const data = Object.fromEntries(formData.entries())
@@ -5747,6 +6369,29 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Status</label><select name="status" defaultValue={modalData?.status || 'pago'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="pago">Pago</option><option value="pendente">Pendente</option><option value="cancelado">Cancelado</option></select></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Forma de Pagamento</label><select name="forma_pagamento" defaultValue={modalData?.forma_pagamento || 'dinheiro'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="dinheiro">Dinheiro</option><option value="transferencia">Transferência</option><option value="deposito">Depósito</option><option value="multicaixa">Multicaixa</option></select></div>
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Observação</label><textarea name="observacao" defaultValue={modalData?.observacao} rows="2" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+          </div>
+        )}
+
+        {modalType === 'alugueres' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Cliente *</label><input name="Cliente" defaultValue={modalData?.Cliente} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required placeholder="Nome do cliente que aluga a sala" /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Telefone</label><input name="Telefone" defaultValue={modalData?.Telefone} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" placeholder="Ex: 923 000 000" /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Sala *</label><select name="Sala" required defaultValue={modalData?.Sala || ''} onChange={(e) => { const sala = salas.find(s => s.Nome === e.target.value); const el = document.getElementById('hidden-sala-id'); if (el) el.value = sala ? sala.id : '' }} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione uma sala</option>{salas && salas.length > 0 ? salas.map(s => <option key={s.id} value={s.Nome}>{s.Nome}{s.Localizacao ? ` - ${s.Localizacao}` : ''}</option>) : <option value="" disabled>Nenhuma sala registada</option>}</select><input id="hidden-sala-id" name="sala_id" type="hidden" defaultValue={modalData?.sala_id || ''} /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data de Início *</label><input type="date" name="Data_Inicio" defaultValue={modalData?.Data_Inicio || new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data de Fim *</label><input type="date" name="Data_Fim" defaultValue={modalData?.Data_Fim || new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Valor (Kz) *</label><input type="number" step="0.01" name="Valor" defaultValue={modalData?.Valor} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Forma de Pagamento *</label><select name="Forma_Pagamento" defaultValue={modalData?.Forma_Pagamento || 'dinheiro'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="dinheiro">Dinheiro</option><option value="transferencia">Transferência</option><option value="deposito">Depósito</option><option value="multicaixa">Multicaixa</option></select></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Status</label><select name="Status" defaultValue={modalData?.Status || 'pendente'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="pendente">Pendente</option><option value="pago">Pago</option><option value="parcial">Parcial</option><option value="cancelado">Cancelado</option></select></div>
+            <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Observação</label><textarea name="Observacao" defaultValue={modalData?.Observacao} rows="2" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+          </div>
+        )}
+
+        {modalType === 'salas' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Nome da Sala *</label><input name="Nome" defaultValue={modalData?.Nome} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required placeholder="Ex: Sala 1" /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Capacidade</label><input type="number" min="1" name="Capacidade" defaultValue={modalData?.Capacidade || 20} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Localização</label><input name="Localizacao" defaultValue={modalData?.Localizacao} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" placeholder="Ex: 1º andar" /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Status</label><select name="Status" defaultValue={modalData?.Status || 'Disponível'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="Disponível">Disponível</option><option value="Ocupada">Ocupada</option><option value="Em manutenção">Em manutenção</option></select></div>
           </div>
         )}
 
