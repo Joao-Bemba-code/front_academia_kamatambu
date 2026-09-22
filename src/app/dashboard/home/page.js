@@ -126,6 +126,7 @@ function ViewModal({ isOpen, onClose, data, type }) {
       'recuperacao': 'bg-yellow-100 text-yellow-800',
       'Disponível': 'bg-green-100 text-green-800',
       'Ocupada': 'bg-orange-100 text-orange-800',
+      'Reservada': 'bg-blue-100 text-blue-800',
       'Em manutenção': 'bg-gray-100 text-gray-700'
     }
     return colors[status] || 'bg-gray-100 text-gray-700'
@@ -2853,7 +2854,7 @@ function TesourariaTab({
   }
 
   const getSalaStatusBadge = (status) => {
-    const colors = { 'Disponível': 'bg-green-100 text-green-800', 'Ocupada': 'bg-orange-100 text-orange-800', 'Em manutenção': 'bg-gray-100 text-gray-700' }
+    const colors = { 'Disponível': 'bg-green-100 text-green-800', 'Ocupada': 'bg-orange-100 text-orange-800', 'Reservada': 'bg-blue-100 text-blue-800', 'Em manutenção': 'bg-gray-100 text-gray-700' }
     return colors[status] || 'bg-gray-100 text-gray-700'
   }
 
@@ -3395,6 +3396,13 @@ function TesourariaTab({
                 <p className="text-[10px] sm:text-xs font-medium text-gray-500">Disponíveis</p>
               </div>
               <p className="text-lg sm:text-xl font-bold text-green-600">{salasDisponiveis}</p>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 border border-blue-200"><BookOpen className="size-4 text-blue-600" /></div>
+                <p className="text-[10px] sm:text-xs font-medium text-gray-500">Reservadas</p>
+              </div>
+              <p className="text-lg sm:text-xl font-bold text-blue-600">{(salas || []).filter(s => s.Status === 'Reservada').length}</p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm">
               <div className="flex items-center gap-2.5 mb-2">
@@ -5488,7 +5496,7 @@ export default function DashboardHome() {
     if (!temDados) { showToast('Nenhum dado encontrado para o filtro selecionado', 'warning'); return }
 
     try {
-      const doc = new jsPDF('landscape', 'mm', 'a4')
+      const doc = new jsPDF('portrait', 'mm', 'a4')
       const s = statsFinanceiro || {}
       const fmt = (v) => `Kz ${parseFloat(v || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`
       const pagosMes = listaPagamentos.filter(p => (p.status || '').toLowerCase() === 'pago')
@@ -5521,6 +5529,7 @@ export default function DashboardHome() {
           ],
           theme: 'grid',
           ...TABLE_BASE,
+          margin: { left: 14, right: 14 },
           pageBreak: 'auto',
           columnStyles: {
             0: { cellWidth: 90, fontStyle: 'bold', halign: 'left', fillColor: [246, 250, 248], textColor: [9, 20, 38] },
@@ -5549,9 +5558,10 @@ export default function DashboardHome() {
           head: [pagHead],
           body: pagBody, theme: 'striped',
           ...TABLE_BASE,
+          margin: { left: 14, right: 14 },
           columnStyles: comFormandos
-            ? { 0: { cellWidth: 10 }, 1: { cellWidth: 32 }, 2: { cellWidth: 28 }, 3: { cellWidth: 20 }, 4: { cellWidth: 22 }, 5: { cellWidth: 24 }, 6: { cellWidth: 18 }, 7: { cellWidth: 22 } }
-            : { 0: { cellWidth: 10 }, 1: { cellWidth: 40 }, 2: { cellWidth: 40 }, 3: { cellWidth: 40 }, 4: { cellWidth: 30 }, 5: { cellWidth: 35 } },
+            ? { 0: { cellWidth: 8 }, 1: { cellWidth: 30 }, 2: { cellWidth: 26 }, 3: { cellWidth: 18 }, 4: { cellWidth: 20 }, 5: { cellWidth: 22 }, 6: { cellWidth: 16 }, 7: { cellWidth: 20 } }
+            : { 0: { cellWidth: 8 }, 1: { cellWidth: 32 }, 2: { cellWidth: 32 }, 3: { cellWidth: 32 }, 4: { cellWidth: 24 }, 5: { cellWidth: 30 } },
           didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
         })
         y = doc.lastAutoTable.finalY + 10
@@ -5573,7 +5583,8 @@ export default function DashboardHome() {
           ]),
           theme: 'striped',
           ...TABLE_BASE,
-          columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 70 }, 2: { cellWidth: 22 }, 3: { cellWidth: 24 }, 4: { cellWidth: 24 }, 5: { cellWidth: 18 }, 6: { cellWidth: 22 } },
+          margin: { left: 14, right: 14 },
+          columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 52 }, 2: { cellWidth: 18 }, 3: { cellWidth: 20 }, 4: { cellWidth: 20 }, 5: { cellWidth: 16 }, 6: { cellWidth: 20 } },
           didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
         })
         y = doc.lastAutoTable.finalY + 10
@@ -5596,9 +5607,10 @@ export default function DashboardHome() {
           head: [inadHead],
           body: inadBody, theme: 'striped',
           ...TABLE_BASE,
+          margin: { left: 14, right: 14 },
           columnStyles: comFormandos
-            ? { 0: { cellWidth: 10 }, 1: { cellWidth: 60 }, 2: { cellWidth: 50 }, 3: { cellWidth: 30 }, 4: { cellWidth: 24 }, 5: { cellWidth: 22 } }
-            : { 0: { cellWidth: 10 }, 1: { cellWidth: 60 }, 2: { cellWidth: 40 }, 3: { cellWidth: 30 } },
+            ? { 0: { cellWidth: 8 }, 1: { cellWidth: 44 }, 2: { cellWidth: 40 }, 3: { cellWidth: 24 }, 4: { cellWidth: 20 }, 5: { cellWidth: 18 } }
+            : { 0: { cellWidth: 8 }, 1: { cellWidth: 50 }, 2: { cellWidth: 36 }, 3: { cellWidth: 28 } },
           didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
         })
       }
@@ -6620,7 +6632,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Localização</label><input name="Localizacao" defaultValue={modalData?.Localizacao} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" placeholder="Ex: 1º andar" /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Preço/Hora (Kz)</label><input type="number" step="0.01" min="0" name="Preco_Hora" defaultValue={modalData?.Preco_Hora || 0} placeholder="0.00" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Preço/Dia (Kz)</label><input type="number" step="0.01" min="0" name="Preco_Dia" defaultValue={modalData?.Preco_Dia || 0} placeholder="0.00" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Status</label><select name="Status" defaultValue={modalData?.Status || 'Disponível'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="Disponível">Disponível</option><option value="Ocupada">Ocupada</option><option value="Em manutenção">Em manutenção</option></select></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Status</label><select name="Status" defaultValue={modalData?.Status || 'Disponível'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="Disponível">Disponível</option><option value="Reservada">Reservada</option><option value="Ocupada">Ocupada</option><option value="Em manutenção">Em manutenção</option></select></div>
           </div>
         )}
 
