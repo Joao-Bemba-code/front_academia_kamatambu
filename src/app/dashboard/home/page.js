@@ -2717,6 +2717,22 @@ function TesourariaTab({
    const [activeSalasTab, setActiveSalasTab] = useState('alugueres')
    const [searchAluguer, setSearchAluguer] = useState('')
    const [searchSala, setSearchSala] = useState('')
+   const [showReportModal, setShowReportModal] = useState(false)
+   const [reportFilters, setReportFilters] = useState({ month: 'all', resumo: true, pagamentos: true, saidas: true, inadimplentes: true, formandos: true })
+
+   const mesesDisponiveis = useMemo(() => {
+     const meses = new Set()
+     ;(pagamentos || []).forEach(p => { if (p.data_pagamento) meses.add(p.data_pagamento.substring(0, 7)) })
+     ;(saidas || []).forEach(sa => { if (sa.data_saida) meses.add(sa.data_saida.substring(0, 7)) })
+     return [...meses].sort().reverse()
+   }, [pagamentos, saidas])
+
+   const mesLabel = (m) => {
+     if (!m || m === 'all') return 'Todos os meses'
+     const partes = m.split('-')
+     const nome = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, 1).toLocaleDateString('pt-PT', { month: 'long' })
+     return `${nome.charAt(0).toUpperCase()}${nome.slice(1)} ${partes[0]}`
+   }
 
   // Search state for matrículas
   const [searchMatricula, setSearchMatricula] = useState('')
@@ -2877,7 +2893,7 @@ function TesourariaTab({
           <p className="text-[10px] sm:text-xs lg:text-sm text-[#45474c] mt-0.5">Gestão financeira e pagamentos da academia</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <button onClick={onGeneratePDF} className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto">
+          <button onClick={() => setShowReportModal(true)} className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto">
             <FileDown className="size-3.5 sm:size-4" /> <span>Relatório</span>
           </button>
           {activeSubTab === 'saidas' ? (
@@ -3475,6 +3491,71 @@ function TesourariaTab({
         onEdit={onEditMatricula}
         onDelete={onDeleteMatricula}
       />
+
+      {showReportModal && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setShowReportModal(false)}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-[#091426]">Filtrar Relatório</h3>
+                <p className="text-[10px] sm:text-xs text-[#45474c]">Escolha o período e as secções do relatório</p>
+              </div>
+              <button onClick={() => setShowReportModal(false)} className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100"><X className="size-4" /></button>
+            </div>
+
+            <label className="block text-[11px] sm:text-xs font-medium text-gray-700 mb-1">Período (Mês)</label>
+            <select
+              value={reportFilters.month}
+              onChange={(e) => setReportFilters(f => ({ ...f, month: e.target.value }))}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs sm:text-sm text-gray-900 mb-4"
+            >
+              <option value="all">Todos os meses</option>
+              {mesesDisponiveis.map(m => <option key={m} value={m}>{mesLabel(m)}</option>)}
+            </select>
+
+            <p className="text-[11px] sm:text-xs font-medium text-gray-700 mb-2">Secções do relatório</p>
+            <div className="space-y-2 mb-5">
+              {[
+                { key: 'resumo', label: 'Resumo da Gestão Financeira', desc: 'Total arrecadado, saldo, saídas, inadimplência, etc.' },
+                { key: 'pagamentos', label: 'Pagamentos', desc: 'Lista de todos os pagamentos da academia' },
+                { key: 'saidas', label: 'Saídas / Despesas', desc: 'Lista de todas as saídas' },
+                { key: 'inadimplentes', label: 'Inadimplentes', desc: 'Alunos com pagamentos em atraso' }
+              ].map(item => (
+                <label key={item.key} className={`flex items-start gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${reportFilters[item.key] ? 'border-[#006c49] bg-[#006c49]/5' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+                  <input
+                    type="checkbox"
+                    checked={reportFilters[item.key]}
+                    onChange={(e) => setReportFilters(f => ({ ...f, [item.key]: e.target.checked }))}
+                    className="mt-0.5 h-4 w-4 accent-[#006c49]"
+                  />
+                  <div>
+                    <p className="text-xs sm:text-sm font-medium text-[#091426]">{item.label}</p>
+                    <p className="text-[10px] sm:text-[11px] text-[#45474c]">{item.desc}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+
+            <label className={`flex items-start gap-3 rounded-xl border p-3 cursor-pointer transition-colors mb-4 ${reportFilters.formandos ? 'border-[#006c49] bg-[#006c49]/5' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+              <input
+                type="checkbox"
+                checked={reportFilters.formandos}
+                onChange={(e) => setReportFilters(f => ({ ...f, formandos: e.target.checked }))}
+                className="mt-0.5 h-4 w-4 accent-[#006c49]"
+              />
+              <div>
+                <p className="text-xs sm:text-sm font-medium text-[#091426]">Incluir nomes dos formandos</p>
+                <p className="text-[10px] sm:text-[11px] text-[#45474c]">Ao desmarcar, os nomes ficam ocultos — apenas as informações de pagamento e finanças</p>
+              </div>
+            </label>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button onClick={() => setShowReportModal(false)} className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">Cancelar</button>
+              <button onClick={() => { onGeneratePDF({ sections: reportFilters, month: reportFilters.month, incluirFormandos: reportFilters.formandos }); setShowReportModal(false) }} className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors">Gerar Relatório</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -5387,36 +5468,143 @@ export default function DashboardHome() {
     }
   }
 
-  const generateRelatorioFinanceiro = async () => {
-    if (!pagamentos || pagamentos.length === 0) { showToast('Nenhum pagamento encontrado para gerar relatorio', 'warning'); return }
+  const generateRelatorioFinanceiro = async (opts = {}) => {
+    const sections = opts.sections || {}
+    const includeResumo = sections.resumo !== false
+    const includePagamentos = sections.pagamentos !== false
+    const includeSaidas = sections.saidas !== false
+    const includeInadimplentes = sections.inadimplentes !== false
+    const comFormandos = opts.incluirFormandos !== false
+    const month = opts.month || 'all'
+
+    let listaPagamentos = Array.isArray(pagamentos) ? pagamentos : []
+    let listaSaidas = Array.isArray(saidas) ? saidas : []
+    if (month !== 'all') {
+      listaPagamentos = listaPagamentos.filter(p => (p.data_pagamento || '').substring(0, 7) === month)
+      listaSaidas = listaSaidas.filter(sa => (sa.data_saida || '').substring(0, 7) === month)
+    }
+    const listaInadimplentes = Array.isArray(inadimplentes) ? inadimplentes : []
+    const temDados = includeResumo || listaPagamentos.length > 0 || listaSaidas.length > 0 || (includeInadimplentes && listaInadimplentes.length > 0)
+    if (!temDados) { showToast('Nenhum dado encontrado para o filtro selecionado', 'warning'); return }
+
     try {
       const doc = new jsPDF('landscape', 'mm', 'a4')
-      const totalArrecadado = pagamentos.reduce((s, p) => s + parseFloat(p.valor || 0), 0)
-      const pagos = pagamentos.filter(p => p.status === 'pago' || p.status === 'Pago').length
-      const pendentes = pagamentos.filter(p => p.status === 'pendente').length
-      const startY = await addPDFHeader(doc, 'RELATÓRIO FINANCEIRO', [
-        { label: 'Pagamentos', value: pagamentos.length },
-        { label: 'Pago', value: pagos },
-        { label: 'Pendente', value: pendentes },
-        { label: 'Total Arrecadado', value: `Kz ${totalArrecadado.toLocaleString('pt-PT')}` },
-      ])
-      const tableData = pagamentos.map((p, index) => [
-        index + 1, p.aluno || '-', p.curso || '-',
-        p.tipo || '-', p.forma_pagamento || '-',
-        `Kz ${parseFloat(p.valor || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`,
-        p.status || '-',
-        p.data_pagamento ? new Date(p.data_pagamento).toLocaleDateString('pt-PT') : '-'
-      ])
-      autoTable(doc, {
-        startY,
-        head: [['No', 'Formando', 'Curso', 'Tipo', 'Forma Pagamento', 'Valor (Kz)', 'Status', 'Data']],
-        body: tableData, theme: 'striped',
-        ...TABLE_BASE,
-        columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 32 }, 2: { cellWidth: 28 }, 3: { cellWidth: 20 }, 4: { cellWidth: 22 }, 5: { cellWidth: 24 }, 6: { cellWidth: 18 }, 7: { cellWidth: 22 } },
-        didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
-      })
-      doc.save('relatorio_financeiro_academia_kamatambu.pdf')
-      showToast('Relatório financeiro gerado com sucesso!', 'success')
+      const s = statsFinanceiro || {}
+      const fmt = (v) => `Kz ${parseFloat(v || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`
+      const pagosMes = listaPagamentos.filter(p => (p.status || '').toLowerCase() === 'pago')
+      const arrecadado = month !== 'all' ? pagosMes.reduce((acc, p) => acc + parseFloat(p.valor || 0), 0) : (s.totalArrecadado || 0)
+      const dinheiro = month !== 'all' ? pagosMes.filter(p => !p.forma_pagamento || p.forma_pagamento === 'dinheiro' || p.forma_pagamento === '').reduce((acc, p) => acc + parseFloat(p.valor || 0), 0) : (s.totalDinheiro || 0)
+      const saidasTotal = month !== 'all' ? listaSaidas.filter(sa => (sa.status || '').toLowerCase() === 'pago').reduce((acc, sa) => acc + parseFloat(sa.valor || 0), 0) : (s.totalSaidas || 0)
+      const saldo = month !== 'all' ? arrecadado - saidasTotal : (s.saldoCaixa || 0)
+
+      let y = await addPDFHeader(doc, 'RELATÓRIO DE GESTÃO FINANCEIRA', [])
+
+      if (includeResumo) {
+        y += 4
+        doc.setFontSize(11)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...PDF_COLORS.dark)
+        doc.text('Resumo da Gestão Financeira', 14, y)
+        y += 4
+        autoTable(doc, {
+          startY: y,
+          head: [['Indicador', 'Valor']],
+          body: [
+            ['Total Arrecadado', fmt(arrecadado)],
+            ['Dinheiro Recebido', fmt(dinheiro)],
+            ['Total Saídas', fmt(saidasTotal)],
+            ['Saldo em Caixa', fmt(saldo)],
+            ['Total em Atraso', fmt(s.totalAtraso)],
+            ['Inadimplentes', `${s.inadimplentes || 0}`],
+            ['Previsão Mês', fmt(s.previsaoMes)],
+            ['Taxa Inadimplência', `${s.taxaInadimplencia || 0}%`]
+          ],
+          theme: 'grid',
+          ...TABLE_BASE,
+          pageBreak: 'auto',
+          columnStyles: {
+            0: { cellWidth: 90, fontStyle: 'bold', halign: 'left', fillColor: [246, 250, 248], textColor: [9, 20, 38] },
+            1: { cellWidth: 65, halign: 'right', fontStyle: 'bold', textColor: [0, 108, 73] }
+          },
+          didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
+        })
+        y = doc.lastAutoTable.finalY + 10
+      }
+
+      if (includePagamentos && listaPagamentos.length > 0) {
+        y += 4
+        doc.setFontSize(11)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...PDF_COLORS.dark)
+        doc.text(`Pagamentos (${listaPagamentos.length})`, 14, y)
+        y += 4
+        const pagHead = comFormandos
+          ? ['No', 'Formando', 'Curso', 'Tipo', 'Forma Pagamento', 'Valor (Kz)', 'Status', 'Data']
+          : ['No', 'Tipo', 'Forma Pagamento', 'Valor (Kz)', 'Status', 'Data']
+        const pagBody = listaPagamentos.map((p, index) => comFormandos
+          ? [index + 1, p.aluno || '-', p.curso || '-', p.tipo || '-', p.forma_pagamento || '-', fmt(p.valor), p.status || '-', p.data_pagamento ? new Date(p.data_pagamento).toLocaleDateString('pt-PT') : '-']
+          : [index + 1, p.tipo || '-', p.forma_pagamento || '-', fmt(p.valor), p.status || '-', p.data_pagamento ? new Date(p.data_pagamento).toLocaleDateString('pt-PT') : '-'])
+        autoTable(doc, {
+          startY: y,
+          head: [pagHead],
+          body: pagBody, theme: 'striped',
+          ...TABLE_BASE,
+          columnStyles: comFormandos
+            ? { 0: { cellWidth: 10 }, 1: { cellWidth: 32 }, 2: { cellWidth: 28 }, 3: { cellWidth: 20 }, 4: { cellWidth: 22 }, 5: { cellWidth: 24 }, 6: { cellWidth: 18 }, 7: { cellWidth: 22 } }
+            : { 0: { cellWidth: 10 }, 1: { cellWidth: 40 }, 2: { cellWidth: 40 }, 3: { cellWidth: 40 }, 4: { cellWidth: 30 }, 5: { cellWidth: 35 } },
+          didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
+        })
+        y = doc.lastAutoTable.finalY + 10
+      }
+
+      if (includeSaidas && listaSaidas.length > 0) {
+        doc.setFontSize(11)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...PDF_COLORS.dark)
+        doc.text(`Saídas / Despesas (${listaSaidas.filter(sa => (sa.status || '').toLowerCase() === 'pago').length} pagas)`, 14, y)
+        y += 4
+        autoTable(doc, {
+          startY: y,
+          head: [['No', 'Descrição', 'Tipo', 'Forma Pagamento', 'Valor (Kz)', 'Status', 'Data']],
+          body: listaSaidas.map((sa, index) => [
+            index + 1, sa.descricao || '-', sa.tipo || '-',
+            sa.forma_pagamento || '-', fmt(sa.valor), sa.status || '-',
+            sa.data_saida ? new Date(sa.data_saida).toLocaleDateString('pt-PT') : '-'
+          ]),
+          theme: 'striped',
+          ...TABLE_BASE,
+          columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 70 }, 2: { cellWidth: 22 }, 3: { cellWidth: 24 }, 4: { cellWidth: 24 }, 5: { cellWidth: 18 }, 6: { cellWidth: 22 } },
+          didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
+        })
+        y = doc.lastAutoTable.finalY + 10
+      }
+
+      if (includeInadimplentes && listaInadimplentes.length > 0) {
+        doc.setFontSize(11)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...PDF_COLORS.dark)
+        doc.text(`Inadimplentes (${listaInadimplentes.length})`, 14, y)
+        y += 4
+        const inadHead = comFormandos
+          ? ['No', 'Formando', 'Curso', 'Dívida (Kz)', 'Dias em Atraso', 'Pag. em Falta']
+          : ['No', 'Dívida (Kz)', 'Dias em Atraso', 'Pag. em Falta']
+        const inadBody = listaInadimplentes.map((i, index) => comFormandos
+          ? [index + 1, i.nome || '-', i.curso || '-', fmt(i.debito), i.dias_atraso ? `${i.dias_atraso} dias` : '-', i.qtd_pagamentos || 1]
+          : [index + 1, fmt(i.debito), i.dias_atraso ? `${i.dias_atraso} dias` : '-', i.qtd_pagamentos || 1])
+        autoTable(doc, {
+          startY: y,
+          head: [inadHead],
+          body: inadBody, theme: 'striped',
+          ...TABLE_BASE,
+          columnStyles: comFormandos
+            ? { 0: { cellWidth: 10 }, 1: { cellWidth: 60 }, 2: { cellWidth: 50 }, 3: { cellWidth: 30 }, 4: { cellWidth: 24 }, 5: { cellWidth: 22 } }
+            : { 0: { cellWidth: 10 }, 1: { cellWidth: 60 }, 2: { cellWidth: 40 }, 3: { cellWidth: 30 } },
+          didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
+        })
+      }
+
+      doc.save(`relatorio_gestao_financeira_${month === 'all' ? 'completo' : month}.pdf`)
+      showToast('Relatório de gestão financeira gerado com sucesso!', 'success')
     } catch (error) {
       console.error('Erro ao gerar relatorio financeiro:', error); showToast('Erro ao gerar relatorio financeiro', 'error')
     }
@@ -6413,9 +6601,9 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="col-span-full"><label className="text-xs sm:text-sm font-medium text-gray-700">Cliente *</label><input name="Cliente" defaultValue={modalData?.Cliente} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required placeholder="Nome do cliente que aluga a sala" /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Telefone</label><input name="Telefone" defaultValue={modalData?.Telefone} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" placeholder="Ex: 923 000 000" /></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Sala *</label><select name="Sala" required defaultValue={modalData?.Sala || ''} onChange={(e) => { const sala = salas.find(s => s.Nome === e.target.value); const el = document.getElementById('aluguer-sala-id'); if (el) el.value = sala ? sala.id : ''; onRecalcularValorAluguer && onRecalcularValorAluguer() }} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione uma sala</option>{salas && salas.length > 0 ? salas.map(s => <option key={s.id} value={s.Nome}>{s.Nome}{s.Localizacao ? ` - ${s.Localizacao}` : ''} — h:{parseFloat(s.Preco_Hora || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })} / d:{parseFloat(s.Preco_Dia || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })} Kz</option>) : <option value="" disabled>Nenhuma sala registada</option>}</select><input id="aluguer-sala-id" name="sala_id" type="hidden" defaultValue={modalData?.sala_id || ''} /></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Tipo de Cobrança *</label><select id="aluguer-tipo-cobranca" name="Tipo_Cobranca" defaultValue={modalData?.Tipo_Cobranca || 'dia'} onChange={() => onRecalcularValorAluguer && onRecalcularValorAluguer()} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="hora">Por hora</option><option value="dia">Por dia</option></select></div>
-            <div><label id="aluguer-duracao-rotulo" className="text-xs sm:text-sm font-medium text-gray-700">Duração (dias) *</label><input id="aluguer-duracao" type="number" step="0.01" min="0.01" name="Duracao" defaultValue={modalData?.Duracao || 1} onChange={() => onRecalcularValorAluguer && onRecalcularValorAluguer()} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Sala *</label><select name="Sala" required defaultValue={modalData?.Sala || ''} onChange={(e) => { const sala = salas.find(s => s.Nome === e.target.value); const el = document.getElementById('aluguer-sala-id'); if (el) el.value = sala ? sala.id : ''; recalcularValorAluguer() }} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="">Selecione uma sala</option>{salas && salas.length > 0 ? salas.map(s => <option key={s.id} value={s.Nome}>{s.Nome}{s.Localizacao ? ` - ${s.Localizacao}` : ''} — h:{parseFloat(s.Preco_Hora || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })} / d:{parseFloat(s.Preco_Dia || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })} Kz</option>) : <option value="" disabled>Nenhuma sala registada</option>}</select><input id="aluguer-sala-id" name="sala_id" type="hidden" defaultValue={modalData?.sala_id || ''} /></div>
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Tipo de Cobrança *</label><select id="aluguer-tipo-cobranca" name="Tipo_Cobranca" defaultValue={modalData?.Tipo_Cobranca || 'dia'} onChange={() => recalcularValorAluguer()} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required><option value="hora">Por hora</option><option value="dia">Por dia</option></select></div>
+            <div><label id="aluguer-duracao-rotulo" className="text-xs sm:text-sm font-medium text-gray-700">Duração (dias) *</label><input id="aluguer-duracao" type="number" step="0.01" min="0.01" name="Duracao" defaultValue={modalData?.Duracao || 1} onChange={() => recalcularValorAluguer()} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data de Início *</label><input type="date" name="Data_Inicio" defaultValue={modalData?.Data_Inicio || new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data de Fim *</label><input type="date" name="Data_Fim" defaultValue={modalData?.Data_Fim || new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
             <div><label className="text-xs sm:text-sm font-medium text-gray-700">Valor (Kz)</label><input id="aluguer-valor" type="number" step="0.01" name="Valor" readOnly tabIndex={-1} defaultValue={modalData?.Valor || ''} placeholder="Calculado automaticamente" className="mt-1 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-500" /><p className="mt-1 text-[10px] text-gray-400">Total = preço (hora/dia) da sala × duração. Preenchido automaticamente.</p></div>
