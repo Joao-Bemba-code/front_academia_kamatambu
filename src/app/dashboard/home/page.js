@@ -6493,7 +6493,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
                       <div className="flex items-start gap-2">
                         <Info className="size-4 shrink-0 mt-0.5 text-blue-600" />
                         <p className="text-[10px] sm:text-xs text-blue-800">
-                          Este curso tem <strong>{modulos} módulos</strong>. Ao confirmar a matrícula, o sistema gera automaticamente as <strong>{modulos} mensalidades</strong> mensais. O vencimento é no dia 5 de cada mês; a partir do dia 6 do próprio mês é considerada dívida. Gerir pagamentos e ver dívidas em <strong>Tesouraria &gt; Dívidas</strong>.
+                          Este curso tem <strong>{modulos} módulos</strong> com pagamento mensal. As mensalidades <strong>não são geradas automaticamente</strong>: registe cada pagamento na <strong>Tesouraria</strong> e acompanhe as dívidas em <strong>Tesouraria &gt; Dívidas</strong>.
                         </p>
                       </div>
                     </div>
@@ -6504,8 +6504,8 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
                     <div className="flex items-start gap-2">
                       <Info className="size-4 shrink-0 mt-0.5 text-blue-600" />
                       <p className="text-[10px] sm:text-xs text-blue-800">
-                        Cursos com mais de um módulo e <strong>paga mensal</strong> geram <strong>mensalidades automáticas</strong> de cada mês. O vencimento é no dia 5; a partir do dia 6 do próprio mês é considerada dívida. As dívidas são controladas em <strong>Tesouraria &gt; Dívidas</strong>.
-                      </p>
+                          As mensalidades deste curso são registadas <strong>manualmente</strong> na <strong>Tesouraria</strong>. O vencimento é no dia 5 de cada mês; a partir do dia 6 do próprio mês é considerada dívida. As dívidas são controladas em <strong>Tesouraria &gt; Dívidas</strong>.
+                        </p>
                     </div>
                   </div>
                 )
