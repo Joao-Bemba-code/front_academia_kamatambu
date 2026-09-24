@@ -2440,7 +2440,7 @@ function formatKz(valor) {
   return `Kz ${parseFloat(valor || 0).toLocaleString('pt-PT', { maximumFractionDigits: 0 })}`
 }
 
-function GraficoInadimplencia({ inadimplentes }) {
+function GraficoInadimplencia({ inadimplentes, dividas, onGerarNotaCobranca }) {
   const [hoveredSlice, setHoveredSlice] = useState(null)
 
   const dados = inadimplentes || []
@@ -2448,11 +2448,51 @@ function GraficoInadimplencia({ inadimplentes }) {
   const totalDebito = dados.reduce((sum, d) => sum + (d.debito || 0), 0)
   const maxDebito = Math.max(...dados.map(d => d.debito || 0), 1)
 
+  // Função para encontrar a dívida correspondente ao inadimplente
+  const encontrarDivida = (nomeInadimplente) => {
+    if (!dividas || !Array.isArray(dividas)) return null
+    // Normaliza o nome para comparação (remove acentos e espaços extras)
+    const normalizar = (str) => {
+      if (!str) return ''
+      return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+    }
+    const nomeNorm = normalizar(nomeInadimplente)
+    return dividas.find(d => normalizar(d.aluno) === nomeNorm) || null
+  }
+
+  const handleBaixarNota = (inadimplente) => {
+    const divida = encontrarDivida(inadimplente.nome)
+    if (divida) {
+      onGerarNotaCobranca(divida)
+    } else {
+      // Fallback: cria uma estrutura de divida a partir dos dados do inadimplente
+      const dividaFallback = {
+        id: inadimplente.id || 'temp',
+        aluno: inadimplente.nome,
+        curso: inadimplente.curso || 'Não informado',
+        turma: inadimplente.turma || 'Não informado',
+        telefone: inadimplente.telefone || 'Não informado',
+        modulos_curso: inadimplente.modulos_curso || 1,
+        total_divida: inadimplente.debito || 0,
+        total_meses_devidos: inadimplente.qtd_pagamentos || 1,
+        meses: [{
+          id: 1,
+          label: 'Mensalidade em atraso',
+          data_vencimento: null,
+          valor: inadimplente.debito || 0,
+          acrescimo: 0,
+          vencida: true
+        }]
+      }
+      onGerarNotaCobranca(dividaFallback)
+    }
+  }
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
       <div className="mb-4">
         <h4 className="text-sm font-bold text-gray-900">Inadimplência</h4>
-        <p className="text-[11px] text-gray-500">Alunos com debitos pendentes</p>
+        <p className="text-[11px] text-gray-500">Alunos com débitos pendentes</p>
       </div>
       {dados.length > 0 ? (
         <>
@@ -2492,14 +2532,24 @@ function GraficoInadimplencia({ inadimplentes }) {
               </div>
             </div>
           </div>
-          <div className="space-y-2.5">
+          <div className="space-y-2.5 max-h-64 overflow-y-auto">
             {dados.map((aluno, index) => {
               const pct = maxDebito > 0 ? (aluno.debito / maxDebito) * 100 : 0
+              const temDividaDetalhada = encontrarDivida(aluno.nome) !== null
               return (
                 <div key={index} className="animate-fade-in-up" style={{ animationDelay: `${index * 0.08}s` }}>
-                  <div className="flex justify-between text-xs mb-1">
+                  <div className="flex justify-between items-center text-xs mb-1">
                     <span className="font-medium text-gray-700 truncate mr-2">{aluno.nome}</span>
-                    <span className="text-red-600 font-bold shrink-0">{formatKz(aluno.debito)}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-red-600 font-bold">{formatKz(aluno.debito)}</span>
+                      <button
+                        onClick={() => handleBaixarNota(aluno)}
+                        className="rounded p-1 text-purple-600 hover:bg-purple-50 transition-colors"
+                        title="Baixar Nota de Cobrança"
+                      >
+                        <FileDown className="size-3.5" />
+                      </button>
+                    </div>
                   </div>
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
                     <div
@@ -2507,7 +2557,12 @@ function GraficoInadimplencia({ inadimplentes }) {
                       style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: donutColors[index % donutColors.length] }}
                     />
                   </div>
-                  <p className="text-[9px] text-gray-400 mt-0.5">{aluno.dias_atraso} dias em atraso</p>
+                  <div className="flex justify-between items-center mt-0.5">
+                    <p className="text-[9px] text-gray-400">{aluno.dias_atraso} dias em atraso</p>
+                    {!temDividaDetalhada && (
+                      <span className="text-[8px] text-amber-500">dados parciais</span>
+                    )}
+                  </div>
                 </div>
               )
             })}
@@ -2922,7 +2977,11 @@ function TesourariaTab({
       <FinanceiroResumo stats={stats} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
         <GraficoReceitas dados={stats?.graficoReceitas} />
-        <GraficoInadimplencia inadimplentes={inadimplentes} />
+        <GraficoInadimplencia 
+          inadimplentes={inadimplentes} 
+          dividas={dividas} 
+          onGerarNotaCobranca={onGerarNotaCobranca} 
+        />
       </div>
 
       <div className="flex flex-wrap gap-1 sm:gap-2 border-b border-[#eceef0]">
