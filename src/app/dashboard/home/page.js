@@ -2443,7 +2443,7 @@ function formatKz(valor) {
 function GraficoInadimplencia({ inadimplentes }) {
   const [hoveredSlice, setHoveredSlice] = useState(null)
 
-  const dados = inadimplentes?.slice(0, 6) || []
+  const dados = inadimplentes || []
   const donutColors = ['#dc2626', '#ea580c', '#ca8a04', '#6366f1', '#8b5cf6', '#ec4899']
   const totalDebito = dados.reduce((sum, d) => sum + (d.debito || 0), 0)
   const maxDebito = Math.max(...dados.map(d => d.debito || 0), 1)
