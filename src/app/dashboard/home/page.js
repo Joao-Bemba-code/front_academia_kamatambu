@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
@@ -4606,11 +4606,28 @@ export default function DashboardHome() {
     return y + 4
   }
 
+  const addPDFWatermark = (doc, texto = 'KAMATAMBU') => {
+    const w = doc.internal.pageSize.getWidth()
+    const h = doc.internal.pageSize.getHeight()
+    try { doc.saveGraphicsState() } catch (e) { }
+    try { if (doc.GState) doc.setGState(new doc.GState({ opacity: 0.06 })) } catch (e) { }
+    doc.setFontSize(Math.min(w, h) * 0.15)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...PDF_COLORS.primary)
+    doc.text(texto, w / 2, h / 2, { align: 'center', angle: 45 })
+    try { doc.setGState(new doc.GState({ opacity: 1 })) } catch (e) { }
+    doc.setTextColor(0, 0, 0)
+    doc.setFontSize(10)
+    try { doc.restoreGraphicsState() } catch (e) { }
+  }
+
   const addPDFFooter = (doc, pageNum) => {
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
     const lm = 14
     const rm = pageWidth - 14
+
+    addPDFWatermark(doc)
 
     doc.setDrawColor(...PDF_COLORS.grayLighter)
     doc.setLineWidth(0.15)
@@ -4630,6 +4647,15 @@ export default function DashboardHome() {
     doc.setFontSize(6)
     doc.setTextColor(...PDF_COLORS.grayLighter)
     doc.text('Academia Kamatambu | Plataforma de Gestão Académica', pageWidth / 2, pageHeight - 6, { align: 'center' })
+  }
+
+  const finalizarPDF = (doc, filename) => {
+    const total = doc.internal.getNumberOfPages()
+    for (let i = 1; i <= total; i++) {
+      doc.setPage(i)
+      addPDFFooter(doc, i)
+    }
+    doc.save(filename)
   }
 
   const TABLE_BASE = {
@@ -5835,34 +5861,98 @@ export default function DashboardHome() {
     } finally { setModalLoading(false) }
   }
 
-  const gerarRelatorioEstoquePDF = () => {
-    const doc = new jsPDF()
-    doc.setFontSize(16)
-    doc.text('Relatório de Estoque', 14, 16)
-    doc.setFontSize(9)
-    doc.text(`Gerado em ${new Date().toLocaleDateString('pt-PT')}`, 14, 21)
-    doc.setFontSize(11)
-    doc.text(`Produtos: ${produtos.length} | Valor: Kz ${parseFloat(estoqueResumo.valor_stock || 0).toLocaleString('pt-PT', { maximumFractionDigits: 0 })}`, 14, 27)
+  const gerarRelatorioEstoquePDF = async () => {
+    try {
+      const doc = new jsPDF('landscape', 'mm', 'a4')
+      const listaProdutos = produtos || []
+      const listaMovimentos = movimentos || []
+      const valorStock = parseFloat(estoqueResumo?.valor_stock || 0)
 
-    autoTable(doc, {
-      startY: 31,
-      head: [['Produto', 'Categoria', 'Unidade', 'Stock', 'Mínimo', 'Custo', 'Valor']],
-      body: produtos.map(p => [p.nome, p.categoria || 'Geral', p.unidade, p.stock_atual, p.stock_minimo, `Kz ${parseFloat(p.preco_custo || 0).toFixed(2)}`, `Kz ${parseFloat(p.valor_total || 0).toFixed(2)}`]),
-      styles: { fontSize: 8 }
-    })
+      const startY = await addPDFHeader(doc, 'RELATÓRIO DE ESTOQUE', [
+        { label: 'Produtos', value: listaProdutos.length },
+        { label: 'Valor em Stock', value: `Kz ${valorStock.toLocaleString('pt-PT', { maximumFractionDigits: 0 })}` },
+        { label: 'Stock Baixo', value: (estoqueResumo?.abaixo_minimo ?? 0) },
+        { label: 'Requisições Pendentes', value: (requisicoes || []).filter(r => r.estado === 'pendente').length },
+      ])
 
-    const fimProdutos = doc.lastAutoTable.finalY
-    doc.setFontSize(12)
-    doc.text('Movimentos', 14, fimProdutos + 8)
-    autoTable(doc, {
-      startY: fimProdutos + 11,
-      head: [['Data', 'Produto', 'Tipo', 'Qtd.', 'Valor', 'Motivo']],
-      body: movimentos.slice(0, 100).map(m => [(m.data_movimento || '').substring(0, 10), m.produto_nome, m.tipo, m.quantidade, `Kz ${Math.abs(parseFloat(m.valor_total || 0)).toFixed(2)}`, m.motivo || '-']),
-      styles: { fontSize: 8 }
-    })
+      const sectionTitle = (titulo) => {
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...PDF_COLORS.primary)
+        doc.text(titulo.toUpperCase(), 14, startY + 2)
+        doc.setDrawColor(...PDF_COLORS.grayLighter)
+        doc.setLineWidth(0.2)
+        doc.line(14, startY + 3.5, doc.internal.pageSize.getWidth() - 14, startY + 3.5)
+        return startY + 7
+      }
 
-    doc.save('relatorio-estoque.pdf')
-    showToast('Relatório gerado com sucesso!', 'success')
+      autoTable(doc, {
+        startY: sectionTitle('Inventário de Produtos'),
+        head: [['#', 'Produto', 'Código', 'Categoria', 'Unid.', 'Stock', 'Mínimo', 'Custo (Kz)', 'Valor (Kz)', 'Estado']],
+        body: listaProdutos.map((p, i) => [
+          i + 1,
+          p.nome || '-',
+          p.codigo || '-',
+          p.categoria || 'Geral',
+          p.unidade || 'un',
+          p.stock_atual ?? 0,
+          p.stock_minimo ?? 0,
+          parseFloat(p.preco_custo || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          parseFloat(p.valor_total || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          p.ativo === false ? 'Inactivo' : (Number(p.stock_atual || 0) <= Number(p.stock_minimo || 0) ? 'Baixo' : 'Normal'),
+        ]),
+        theme: 'striped',
+        ...TABLE_BASE,
+        columnStyles: {
+          0: { cellWidth: 8 }, 1: { cellWidth: 40 }, 2: { cellWidth: 22 }, 3: { cellWidth: 24 },
+          4: { cellWidth: 12 }, 5: { cellWidth: 14 }, 6: { cellWidth: 14 }, 7: { cellWidth: 22 },
+          8: { cellWidth: 24 }, 9: { cellWidth: 16 },
+        },
+        didParseCell: (d) => {
+          if (d.section === 'body' && d.column.index === 9) {
+            if (d.cell.raw[0] === 'Baixo') d.cell.styles.textColor = [180, 83, 9]
+            if (d.cell.raw[0] === 'Inactivo') d.cell.styles.textColor = [150, 150, 150]
+          }
+        },
+        didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
+      })
+
+      if (listaMovimentos.length > 0) {
+        const yMov = doc.lastAutoTable.finalY + 10
+        autoTable(doc, {
+          startY: yMov > 40 ? sectionTitle('Movimentos de Stock') : yMov,
+          head: [['Data', 'Produto', 'Tipo', 'Qtd.', 'Valor (Kz)', 'Motivo', 'Documento']],
+          body: listaMovimentos.slice(0, 200).map(m => [
+            (m.data_movimento || '').substring(0, 10),
+            m.produto_nome || '-',
+            m.tipo || '-',
+            m.quantidade ?? 0,
+            Math.abs(parseFloat(m.valor_total || 0)).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            m.motivo || '-',
+            m.documento || '-',
+          ]),
+          theme: 'striped',
+          ...TABLE_BASE,
+          columnStyles: {
+            0: { cellWidth: 22 }, 1: { cellWidth: 48 }, 2: { cellWidth: 20 }, 3: { cellWidth: 16 },
+            4: { cellWidth: 26 }, 5: { cellWidth: 40 }, 6: { cellWidth: 30 },
+          },
+          didParseCell: (d) => {
+            if (d.section === 'body' && d.column.index === 2) {
+              if (d.cell.raw[0] === 'saida' || d.cell.raw[0] === 'perda') d.cell.styles.textColor = [185, 28, 28]
+              if (d.cell.raw[0] === 'entrada' || d.cell.raw[0] === 'devolucao') d.cell.styles.textColor = [0, 108, 73]
+            }
+          },
+          didDrawPage: (d) => { addPDFFooter(doc, d.pageNumber) },
+        })
+      }
+
+      finalizarPDF(doc, 'relatorio_estoque_academia_kamatambu.pdf')
+      showToast('Relatório gerado com sucesso!', 'success')
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error)
+      showToast('Erro ao gerar relatório', 'error')
+    }
   }
 
   const loadData = async () => {
@@ -6632,7 +6722,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
         case 'academico':
           return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} userTipo={userTipo} />
         case 'estoque':
-          return <EstoqueTab produtos={produtos} movimentos={movimentos} requisicoes={requisicoes} resumo={estoqueResumo} loading={loading.estoque} isAdmin={false} onCriarRequisicao={handleCriarRequisicao} onCancelarRequisicao={(r) => handleDecidirRequisicao(r, 'cancelar')} onGerarPDF={gerarRelatorioEstoquePDF} />
+          return <EstoqueTab produtos={produtos} movimentos={movimentos} requisicoes={requisicoes} resumo={estoqueResumo} loading={loading.estoque} isAdmin={false} podeAprovar={false} onCriarRequisicao={handleCriarRequisicao} onCancelarRequisicao={(r) => handleDecidirRequisicao(r, 'cancelar')} onGerarPDF={gerarRelatorioEstoquePDF} />
         case 'dashboard':
         default:
           return <FormadorDashboard turmas={turmas} matriculas={matriculas} notas={notas} userNome={userNome} onView={(data) => handleOpenModal('view', data, 'turmas')} />
@@ -6655,7 +6745,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
       case 'academico':
         return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} userTipo={userTipo} />
       case 'estoque':
-        return <EstoqueTab produtos={produtos} movimentos={movimentos} requisicoes={requisicoes} resumo={estoqueResumo} loading={loading.estoque} isAdmin={isAdmin} onCreateProduto={handleEstoqueSubmit} onDeleteProduto={handleEliminarProduto} onRegistarMovimento={handleRegistarMovimento} onCriarRequisicao={handleCriarRequisicao} onAprovarRequisicao={(r) => handleDecidirRequisicao(r, 'aprovar')} onRejeitarRequisicao={(r) => handleDecidirRequisicao(r, 'rejeitar')} onCancelarRequisicao={(r) => handleDecidirRequisicao(r, 'cancelar')} onGerarPDF={gerarRelatorioEstoquePDF} />
+        return <EstoqueTab produtos={produtos} movimentos={movimentos} requisicoes={requisicoes} resumo={estoqueResumo} loading={loading.estoque} isAdmin={isAdmin} podeAprovar={isAdmin || userTipo === 'tesouraria'} onCreateProduto={handleEstoqueSubmit} onDeleteProduto={handleEliminarProduto} onRegistarMovimento={handleRegistarMovimento} onCriarRequisicao={handleCriarRequisicao} onAprovarRequisicao={(r) => handleDecidirRequisicao(r, 'aprovar')} onRejeitarRequisicao={(r) => handleDecidirRequisicao(r, 'rejeitar')} onCancelarRequisicao={(r) => handleDecidirRequisicao(r, 'cancelar')} onGerarPDF={gerarRelatorioEstoquePDF} />
       case 'usuarios':
         return <UsuariosTab />
       default:

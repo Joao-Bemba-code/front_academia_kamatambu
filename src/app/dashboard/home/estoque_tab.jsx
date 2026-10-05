@@ -48,7 +48,7 @@ function ModalEstoque({ title, onClose, onSubmit, children, isLoading }) {
 }
 
 // ========== MÓDULO DE GESTÃO DE STOCK ==========
-export default function EstoqueTab({ produtos, movimentos, requisicoes, resumo, loading, isAdmin, onCreateProduto, onDeleteProduto, onRegistarMovimento, onCriarRequisicao, onAprovarRequisicao, onRejeitarRequisicao, onCancelarRequisicao, onGerarPDF }) {
+export default function EstoqueTab({ produtos, movimentos, requisicoes, resumo, loading, isAdmin, podeAprovar, onCreateProduto, onDeleteProduto, onRegistarMovimento, onCriarRequisicao, onAprovarRequisicao, onRejeitarRequisicao, onCancelarRequisicao, onGerarPDF }) {
   const [activeSubTab, setActiveSubTab] = useState('produtos')
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategoria, setFilterCategoria] = useState('')
@@ -407,13 +407,13 @@ export default function EstoqueTab({ produtos, movimentos, requisicoes, resumo, 
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-bold text-[#091426]">{formatKz(r.total_estimado)}</span>
                       <button onClick={() => setVerRequisicao(r)} className="rounded-lg border border-[#c5c6cd] p-1.5 text-[#45474c] hover:bg-[#f7f9fb]" title="Ver detalhe"><Eye className="size-3.5 sm:size-4" /></button>
-                      {isAdmin && r.estado === 'pendente' && (
+                      {podeAprovar && r.estado === 'pendente' && (
                         <>
                           <button onClick={() => onAprovarRequisicao(r)} className="rounded-lg bg-[#006c49] p-1.5 text-white hover:bg-[#006c49]/90" title="Aprovar"><CheckCircle className="size-3.5 sm:size-4" /></button>
                           <button onClick={() => onRejeitarRequisicao(r)} className="rounded-lg bg-red-600 p-1.5 text-white hover:bg-red-700" title="Rejeitar"><X className="size-3.5 sm:size-4" /></button>
                         </>
                       )}
-                      {r.estado === 'pendente' && !isAdmin && (
+                      {r.estado === 'pendente' && !podeAprovar && (
                         <button onClick={() => onCancelarRequisicao(r)} className="rounded-lg border border-[#c5c6cd] px-2 py-1 text-[10px] sm:text-xs text-gray-600 hover:bg-[#f7f9fb]">Cancelar</button>
                       )}
                     </div>
