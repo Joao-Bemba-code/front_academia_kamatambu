@@ -59,8 +59,10 @@ import {
   BookOpen as BookOpenIcon,
   Shield,
   DoorOpen,
-  Building2
+  Building2,
+  Warehouse
 } from 'lucide-react'
+import EstoqueTab from './estoque_tab'
 
 // ========== URL BASE DA API ==========
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
@@ -920,15 +922,16 @@ function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab, onLogout, userTip
     { id: 'cursos', icon: BookOpen, label: 'Cursos' },
     { id: 'formadores', icon: GraduationCap, label: 'Formadores' },
     { id: 'tesouraria', icon: CreditCard, label: 'Tesouraria' },
+    { id: 'estoque', icon: Warehouse, label: 'Estoque' },
     { id: 'academico', icon: Award, label: 'Gestão Acadêmica' },
     ...(userTipo === 'admin' ? [{ id: 'usuarios', icon: Shield, label: 'Utilizadores' }] : [])
   ]
 
   const allowedTabs = {
-    admin: ['dashboard', 'matriculas', 'turmas', 'cursos', 'formadores', 'tesouraria', 'academico', 'usuarios'],
-    pedagogico: ['dashboard', 'matriculas', 'turmas', 'cursos', 'formadores', 'academico'],
-    tesouraria: ['dashboard', 'tesouraria'],
-    formador: ['dashboard', 'academico'],
+    admin: ['dashboard', 'matriculas', 'turmas', 'cursos', 'formadores', 'tesouraria', 'estoque', 'academico', 'usuarios'],
+    pedagogico: ['dashboard', 'matriculas', 'turmas', 'cursos', 'formadores', 'estoque', 'academico'],
+    tesouraria: ['dashboard', 'tesouraria', 'estoque'],
+    formador: ['dashboard', 'academico', 'estoque'],
     recursos_humanos: ['dashboard']
   }
 
@@ -4257,12 +4260,16 @@ export default function DashboardHome() {
   const [notas, setNotas] = useState([])
   const [criteriosAvaliacao, setCriteriosAvaliacao] = useState([])
   const [saidas, setSaidas] = useState([])
+  const [produtos, setProdutos] = useState([])
+  const [movimentos, setMovimentos] = useState([])
+  const [requisicoes, setRequisicoes] = useState([])
+  const [estoqueResumo, setEstoqueResumo] = useState({})
   const [salas, setSalas] = useState([])
   const [alugueres, setAlugueres] = useState([])
   const [stats, setStats] = useState([])
   const [statsFinanceiro, setStatsFinanceiro] = useState({})
   const [inadimplentes, setInadimplentes] = useState([])
-  const [loading, setLoading] = useState({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, saidas: false, salas: false, alugueres: false, notas: false, criterios: false })
+  const [loading, setLoading] = useState({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, saidas: false, salas: false, alugueres: false, notas: false, criterios: false, estoque: false })
   const [crescimento, setCrescimento] = useState([])
   const [inscricoesPorCurso, setInscricoesPorCurso] = useState([])
   const [cursosList, setCursosList] = useState([])
@@ -5712,6 +5719,152 @@ export default function DashboardHome() {
     setTimeout(() => setToast(null), 5000)
   }
 
+  // ========== GESTÃO DE STOCK ==========
+  const loadEstoque = async () => {
+    setLoading(l => ({ ...l, estoque: true }))
+    try {
+      const [produtosRes, movimentosRes, requisicoesRes, resumoRes] = await Promise.all([
+        apiFetch('/estoque/produtos'),
+        apiFetch('/estoque/movimentos'),
+        apiFetch('/estoque/requisicoes'),
+        apiFetch('/estoque/resumo')
+      ])
+      if (produtosRes.success) setProdutos(produtosRes.data)
+      if (movimentosRes.success) setMovimentos(movimentosRes.data)
+      if (requisicoesRes.success) setRequisicoes(requisicoesRes.data)
+      if (resumoRes.success) setEstoqueResumo(resumoRes.data)
+    } catch (error) {
+      console.error('Erro ao carregar estoque:', error)
+    } finally {
+      setLoading(l => ({ ...l, estoque: false }))
+    }
+  }
+
+  const handleEstoqueSubmit = async (dados, id) => {
+    setModalLoading(true)
+    try {
+      const response = id
+        ? await apiFetch(`/estoque/produtos/${id}`, { method: 'PUT', body: JSON.stringify(dados) })
+        : await apiFetch('/estoque/produtos', { method: 'POST', body: JSON.stringify(dados) })
+      if (response.success) {
+        showToast(id ? 'Produto actualizado com sucesso!' : 'Produto criado com sucesso!', 'success')
+        await loadEstoque()
+        return true
+      } else {
+        showToast(response.message || 'Erro ao guardar produto', 'error')
+        return false
+      }
+    } catch (error) {
+      showToast('Erro ao guardar produto', 'error')
+      return false
+    } finally { setModalLoading(false) }
+  }
+
+  const handleEliminarProduto = async (produto) => {
+    setConfirmModal({ open: true, id: produto.id, type: 'estoque_produtos', nome: produto.nome })
+  }
+
+  const handleConfirmarEliminarProduto = async () => {
+    const { id, type, nome } = confirmModal
+    if (type !== 'estoque_produtos') { handleDelete(); return }
+    setModalLoading(true)
+    try {
+      const response = await apiFetch(`/estoque/produtos/${id}`, { method: 'DELETE' })
+      if (response.success) {
+        showToast(response.message || `${nome || 'Produto'} eliminado com sucesso!`, 'success')
+        setConfirmModal({ open: false, id: null, type: '' })
+        await loadEstoque()
+      } else {
+        showToast(response.message || 'Erro ao eliminar produto', 'error')
+      }
+    } catch (error) {
+      showToast('Erro ao eliminar produto', 'error')
+    } finally { setModalLoading(false) }
+  }
+
+  const handleRegistarMovimento = async (dados) => {
+    setModalLoading(true)
+    try {
+      const response = await apiFetch('/estoque/movimentos', { method: 'POST', body: JSON.stringify(dados) })
+      if (response.success) {
+        showToast('Movimento registado com sucesso!', 'success')
+        await loadEstoque()
+        return true
+      } else {
+        showToast(response.message || 'Erro ao registar movimento', 'error')
+        return false
+      }
+    } catch (error) {
+      showToast('Erro ao registar movimento', 'error')
+      return false
+    } finally { setModalLoading(false) }
+  }
+
+  const handleCriarRequisicao = async (dados) => {
+    setModalLoading(true)
+    try {
+      const response = await apiFetch('/estoque/requisicoes', { method: 'POST', body: JSON.stringify(dados) })
+      if (response.success) {
+        showToast(`Requisição ${response.data?.numero || ''} submetida com sucesso!`, 'success')
+        await loadEstoque()
+        return true
+      } else {
+        showToast(response.message || 'Erro ao criar requisição', 'error')
+        return false
+      }
+    } catch (error) {
+      showToast('Erro ao criar requisição', 'error')
+      return false
+    } finally { setModalLoading(false) }
+  }
+
+  const handleDecidirRequisicao = async (requisicao, accao) => {
+    const verbos = { aprovar: 'aprovar', rejeitar: 'rejeitar', cancelar: 'cancelar' }
+    const motivo = typeof window !== 'undefined' && accao !== 'aprovar' ? window.prompt('Motivo (opcional):') || '' : ''
+    setModalLoading(true)
+    try {
+      const response = await apiFetch(`/estoque/requisicoes/${requisicao.id}/${accao}`, { method: 'PUT', body: JSON.stringify({ motivo_decisao: motivo }) })
+      if (response.success) {
+        showToast(`Requisição ${requisicao.numero} ${verbos[accao]} com sucesso!`, 'success')
+        await loadEstoque()
+      } else {
+        showToast(response.message || 'Erro ao processar requisição', 'error')
+      }
+    } catch (error) {
+      showToast('Erro ao processar requisição', 'error')
+    } finally { setModalLoading(false) }
+  }
+
+  const gerarRelatorioEstoquePDF = () => {
+    const doc = new jsPDF()
+    doc.setFontSize(16)
+    doc.text('Relatório de Estoque', 14, 16)
+    doc.setFontSize(9)
+    doc.text(`Gerado em ${new Date().toLocaleDateString('pt-PT')}`, 14, 21)
+    doc.setFontSize(11)
+    doc.text(`Produtos: ${produtos.length} | Valor: Kz ${parseFloat(estoqueResumo.valor_stock || 0).toLocaleString('pt-PT', { maximumFractionDigits: 0 })}`, 14, 27)
+
+    autoTable(doc, {
+      startY: 31,
+      head: [['Produto', 'Categoria', 'Unidade', 'Stock', 'Mínimo', 'Custo', 'Valor']],
+      body: produtos.map(p => [p.nome, p.categoria || 'Geral', p.unidade, p.stock_atual, p.stock_minimo, `Kz ${parseFloat(p.preco_custo || 0).toFixed(2)}`, `Kz ${parseFloat(p.valor_total || 0).toFixed(2)}`]),
+      styles: { fontSize: 8 }
+    })
+
+    const fimProdutos = doc.lastAutoTable.finalY
+    doc.setFontSize(12)
+    doc.text('Movimentos', 14, fimProdutos + 8)
+    autoTable(doc, {
+      startY: fimProdutos + 11,
+      head: [['Data', 'Produto', 'Tipo', 'Qtd.', 'Valor', 'Motivo']],
+      body: movimentos.slice(0, 100).map(m => [(m.data_movimento || '').substring(0, 10), m.produto_nome, m.tipo, m.quantidade, `Kz ${Math.abs(parseFloat(m.valor_total || 0)).toFixed(2)}`, m.motivo || '-']),
+      styles: { fontSize: 8 }
+    })
+
+    doc.save('relatorio-estoque.pdf')
+    showToast('Relatório gerado com sucesso!', 'success')
+  }
+
   const loadData = async () => {
     try {
       const tipoUser = typeof window !== 'undefined' ? localStorage.getItem('userTipo') || 'admin' : 'admin'
@@ -5779,6 +5932,8 @@ export default function DashboardHome() {
         setDividas(dividasRes.data || [])
       }
 
+      await loadEstoque()
+
       try {
         const [cursosListRes, turmasListRes, formadoresListRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/cursos/lista`, { headers: { 'Authorization': `Bearer ${token}` } }),
@@ -5798,7 +5953,7 @@ export default function DashboardHome() {
       console.error('Erro ao carregar dados:', error)
       showToast('Erro ao carregar dados', 'error')
     } finally {
-      setLoading({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, saidas: false, salas: false, alugueres: false, notas: false, criterios: false })
+      setLoading({ matriculas: false, turmas: false, cursos: false, formadores: false, pagamentos: false, saidas: false, salas: false, alugueres: false, notas: false, criterios: false, estoque: false })
       setDividasLoading(false)
     }
   }
@@ -6476,6 +6631,8 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
       switch (activeTab) {
         case 'academico':
           return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} userTipo={userTipo} />
+        case 'estoque':
+          return <EstoqueTab produtos={produtos} movimentos={movimentos} requisicoes={requisicoes} resumo={estoqueResumo} loading={loading.estoque} isAdmin={false} onCriarRequisicao={handleCriarRequisicao} onCancelarRequisicao={(r) => handleDecidirRequisicao(r, 'cancelar')} onGerarPDF={gerarRelatorioEstoquePDF} />
         case 'dashboard':
         default:
           return <FormadorDashboard turmas={turmas} matriculas={matriculas} notas={notas} userNome={userNome} onView={(data) => handleOpenModal('view', data, 'turmas')} />
@@ -6497,6 +6654,8 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
         return <TesourariaTab pagamentos={pagamentos} loading={loading.pagamentos} loadingMatriculas={loading.matriculas} stats={statsFinanceiro} inadimplentes={inadimplentes} matriculas={matriculas} saidas={saidas} onCreateSaida={() => handleOpenModal('saidas')} onEditSaida={(data) => handleOpenModal('saidas', data)} onDeleteSaida={(id) => handleConfirmDelete(id, 'saidas')} onViewSaida={(data) => handleOpenModal('view', data, 'saidas')} onGerarSaidaPDF={generateSaidaPDF} onEdit={(data) => handleOpenModal('pagamentos', data)} onDelete={(id) => handleConfirmDelete(id, 'pagamentos')} onView={(data) => handleOpenModal('view', data, 'pagamentos')} onCreate={() => handleOpenModal('pagamentos')} onGeneratePDF={generateRelatorioFinanceiro} onGerarComprovativo={generateComprovativoPDF} onEditMatricula={(data) => handleOpenModal('matriculas', data)} onDeleteMatricula={(id) => handleConfirmDelete(id, 'matriculas')} onViewMatricula={(data) => handleOpenModal('view', data, 'matriculas')} onCreateMatricula={() => handleOpenModal('matriculas')} dividas={dividas} dividasLoading={dividasLoading} onGerarNotaCobranca={generateNotaCobrancaPDF} onGerarNotasCobrancaAll={generateNotasCobrancaAllPDF} onViewDivida={(data) => handleOpenModal('view', data, 'dividas')} salas={salas} alugueres={alugueres} onCreateAluguer={() => handleOpenModal('alugueres')} onEditAluguer={(data) => handleOpenModal('alugueres', data)} onDeleteAluguer={(id) => handleConfirmDelete(id, 'alugueres')} onViewAluguer={(data) => handleOpenModal('view', data, 'alugueres')} onGerarAluguerPDF={generateAluguerPDF} onCreateSala={() => handleOpenModal('salas')} onEditSala={(data) => handleOpenModal('salas', data)} onDeleteSala={(id) => handleConfirmDelete(id, 'salas')} onViewSala={(data) => handleOpenModal('view', data, 'salas')} onRecalcularValorAluguer={recalcularValorAluguer} />
       case 'academico':
         return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} userTipo={userTipo} />
+      case 'estoque':
+        return <EstoqueTab produtos={produtos} movimentos={movimentos} requisicoes={requisicoes} resumo={estoqueResumo} loading={loading.estoque} isAdmin={isAdmin} onCreateProduto={handleEstoqueSubmit} onDeleteProduto={handleEliminarProduto} onRegistarMovimento={handleRegistarMovimento} onCriarRequisicao={handleCriarRequisicao} onAprovarRequisicao={(r) => handleDecidirRequisicao(r, 'aprovar')} onRejeitarRequisicao={(r) => handleDecidirRequisicao(r, 'rejeitar')} onCancelarRequisicao={(r) => handleDecidirRequisicao(r, 'cancelar')} onGerarPDF={gerarRelatorioEstoquePDF} />
       case 'usuarios':
         return <UsuariosTab />
       default:
@@ -6518,7 +6677,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <ConfirmModal isOpen={confirmModal.open} onClose={() => setConfirmModal({ open: false, id: null, type: '' })} onConfirm={handleDelete} title="Confirmar exclusão" message={`Tem certeza que deseja excluir ${confirmModal.type === 'salas' ? 'esta' : 'este'} ${confirmModal.type ? (confirmModal.type === 'salas' ? 'sala' : confirmModal.type.slice(0, -1)) : 'item'}? Esta ação não pode ser desfeita.`} isLoading={modalLoading} />
+      <ConfirmModal isOpen={confirmModal.open} onClose={() => setConfirmModal({ open: false, id: null, type: '' })} onConfirm={handleConfirmarEliminarProduto} title="Confirmar exclusão" message={confirmModal.type === 'estoque_produtos' ? `Tem certeza que deseja eliminar o produto "${confirmModal.nome || ''}"? Se tiver movimentos registados, apenas será desactivado.` : `Tem certeza que deseja excluir ${confirmModal.type === 'salas' ? 'esta' : 'este'} ${confirmModal.type ? (confirmModal.type === 'salas' ? 'sala' : confirmModal.type.slice(0, -1)) : 'item'}? Esta ação não pode ser desfeita.`} isLoading={modalLoading} />
 
       <FormModal isOpen={modalOpen && modalType !== 'view'} onClose={handleCloseModal} title={modalData ? `Editar ${modalType === 'salas' ? 'Sala' : modalType.slice(0, -1)}` : `${modalType === 'salas' ? 'Nova' : 'Novo'} ${modalType === 'salas' ? 'Sala' : modalType.slice(0, -1)}`} onSubmit={(e) => {
         e.preventDefault()
