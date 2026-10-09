@@ -5808,20 +5808,34 @@ export default function DashboardHome() {
     } finally { setModalLoading(false) }
   }
 
-  const handleRegistarMovimento = async (dados) => {
+  const handleOperacaoMovimento = async (tipo, dados) => {
     setModalLoading(true)
     try {
-      const response = await apiFetch('/estoque/movimentos', { method: 'POST', body: JSON.stringify(dados) })
+      const response = await apiFetch('/estoque/movimentos/lote', {
+        method: 'POST',
+        body: JSON.stringify({
+          itens: [{
+            produto_id: parseInt(dados.produto_id),
+            tipo: tipo,
+            quantidade: parseInt(dados.quantidade),
+            preco_unitario: dados.preco_unitario
+          }],
+          documento: dados.documento || null,
+          motivo: dados.motivo || null,
+          data_movimento: dados.data_movimento || null,
+          observacao: dados.observacao || null
+        })
+      })
       if (response.success) {
-        showToast('Movimento registado com sucesso!', 'success')
+        showToast(`${tipo === 'entrada' ? 'Entrada' : 'Saída'} registada com sucesso!`, 'success')
         await loadEstoque()
         return true
       } else {
-        showToast(response.message || 'Erro ao registar movimento', 'error')
+        showToast(response.message || 'Erro ao registar a operação', 'error')
         return false
       }
     } catch (error) {
-      showToast('Erro ao registar movimento', 'error')
+      showToast('Erro ao registar a operação', 'error')
       return false
     } finally { setModalLoading(false) }
   }
@@ -6745,7 +6759,7 @@ let y = await addPDFHeader(doc, 'AVALIAÇÃO POR CRITÉRIOS', [
       case 'academico':
         return <AcademicoTab notas={notas} loading={loading.notas} onEdit={(data) => handleOpenModal('notas', data)} onDelete={(id) => handleConfirmDelete(id, 'notas')} onView={(data) => handleOpenModal('view', data, 'notas')} onCreate={() => handleOpenModal('notas')} onGerarBoletim={handleGerarBoletim} onGerarAvaliacao={generateAvaliacaoPDF} matriculas={matriculas} cursosList={cursosList} formadoresList={formadoresList} userTipo={userTipo} />
       case 'estoque':
-        return <EstoqueTab produtos={produtos} movimentos={movimentos} requisicoes={requisicoes} resumo={estoqueResumo} loading={loading.estoque} isAdmin={isAdmin} podeAprovar={isAdmin || userTipo === 'tesouraria'} onCreateProduto={handleEstoqueSubmit} onDeleteProduto={handleEliminarProduto} onRegistarMovimento={handleRegistarMovimento} onCriarRequisicao={handleCriarRequisicao} onAprovarRequisicao={(r) => handleDecidirRequisicao(r, 'aprovar')} onRejeitarRequisicao={(r) => handleDecidirRequisicao(r, 'rejeitar')} onCancelarRequisicao={(r) => handleDecidirRequisicao(r, 'cancelar')} onGerarPDF={gerarRelatorioEstoquePDF} />
+        return <EstoqueTab produtos={produtos} movimentos={movimentos} requisicoes={requisicoes} resumo={estoqueResumo} loading={loading.estoque} isAdmin={isAdmin} podeAprovar={isAdmin || userTipo === 'tesouraria'} onCreateProduto={handleEstoqueSubmit} onDeleteProduto={handleEliminarProduto} onOperacaoMovimento={handleOperacaoMovimento} onCriarRequisicao={handleCriarRequisicao} onAprovarRequisicao={(r) => handleDecidirRequisicao(r, 'aprovar')} onRejeitarRequisicao={(r) => handleDecidirRequisicao(r, 'rejeitar')} onCancelarRequisicao={(r) => handleDecidirRequisicao(r, 'cancelar')} onGerarPDF={gerarRelatorioEstoquePDF} />
       case 'usuarios':
         return <UsuariosTab />
       default:
