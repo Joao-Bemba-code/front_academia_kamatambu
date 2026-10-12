@@ -320,11 +320,9 @@ export default function EstoqueTab({ produtos, movimentos, requisicoes, resumo, 
                         {podeGerir && (
                           <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
                             <div className="flex items-center justify-end gap-1">
+                              <button onClick={() => setModalMovimento({ produto: p, tipo: 'entrada' })} title="Registar entrada" className="rounded-lg p-1.5 text-[#006c49] hover:bg-[#006c49]/10"><ArrowDownToLine className="size-3.5 sm:size-4" /></button>
                               {p.controla_stock !== false && (
-                                <>
-                                  <button onClick={() => setModalMovimento({ produto: p, tipo: 'entrada' })} title="Registar entrada" className="rounded-lg p-1.5 text-[#006c49] hover:bg-[#006c49]/10"><ArrowDownToLine className="size-3.5 sm:size-4" /></button>
-                                  <button onClick={() => setModalMovimento({ produto: p, tipo: 'saida' })} title="Registar saída" className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"><ArrowUpFromLine className="size-3.5 sm:size-4" /></button>
-                                </>
+                                <button onClick={() => setModalMovimento({ produto: p, tipo: 'saida' })} title="Registar saída" className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"><ArrowUpFromLine className="size-3.5 sm:size-4" /></button>
                               )}
                               <button onClick={() => setModalProduto(p)} title="Editar" className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50"><Edit className="size-3.5 sm:size-4" /></button>
                               <button onClick={() => onDeleteProduto(p)} title="Eliminar" className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"><Trash2 className="size-3.5 sm:size-4" /></button>
