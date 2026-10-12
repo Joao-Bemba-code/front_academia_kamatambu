@@ -48,7 +48,7 @@ function ModalEstoque({ title, onClose, onSubmit, children, isLoading }) {
 }
 
 // ========== MÓDULO DE GESTÃO DE STOCK ==========
-export default function EstoqueTab({ produtos, movimentos, requisicoes, resumo, loading, isAdmin, podeAprovar, onCreateProduto, onDeleteProduto, onRegistarMovimento, onCriarRequisicao, onAprovarRequisicao, onRejeitarRequisicao, onCancelarRequisicao, onGerarPDF }) {
+export default function EstoqueTab({ produtos, movimentos, requisicoes, resumo, loading, isAdmin, podeGerir = isAdmin, podeAprovar, onCreateProduto, onDeleteProduto, onRegistarMovimento, onCriarRequisicao, onAprovarRequisicao, onRejeitarRequisicao, onCancelarRequisicao, onGerarPDF }) {
   const [activeSubTab, setActiveSubTab] = useState('produtos')
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategoria, setFilterCategoria] = useState('')
@@ -158,14 +158,9 @@ export default function EstoqueTab({ produtos, movimentos, requisicoes, resumo, 
           <button onClick={onGerarPDF} className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-red-700 transition-colors w-full sm:w-auto">
             <FileDown className="size-3.5 sm:size-4" /> Relatório
           </button>
-          {activeSubTab === 'produtos' && isAdmin && (
+          {activeSubTab === 'produtos' && podeGerir && (
             <button onClick={() => setModalProduto({})} className="flex items-center justify-center gap-2 rounded-lg bg-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#006c49]/90 w-full sm:w-auto">
               <Plus className="size-3.5 sm:size-4" /> Novo Produto
-            </button>
-          )}
-          {activeSubTab === 'movimentos' && isAdmin && (
-            <button onClick={() => setModalMovimento({})} className="flex items-center justify-center gap-2 rounded-lg bg-[#006c49] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#006c49]/90 w-full sm:w-auto">
-              <Plus className="size-3.5 sm:size-4" /> Registrar Movimento
             </button>
           )}
           {activeSubTab === 'requisicoes' && (
@@ -287,7 +282,7 @@ export default function EstoqueTab({ produtos, movimentos, requisicoes, resumo, 
                     <th className="hidden lg:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Custo</th>
                     <th className="hidden sm:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Valor</th>
                     <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Estado</th>
-                    {isAdmin && <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Ações</th>}
+                    {podeGerir && <th className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-right text-[8px] sm:text-[10px] lg:text-[11px] font-medium uppercase tracking-wider text-[#45474c]">Ações</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#c5c6cd]/50">
@@ -302,21 +297,35 @@ export default function EstoqueTab({ produtos, movimentos, requisicoes, resumo, 
                         </td>
                         <td className="hidden md:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c]">{p.categoria || 'Geral'}</td>
                         <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
-                          <span className={`font-semibold ${p.abaixo_minimo ? 'text-red-600' : 'text-[#091426]'}`}>{p.stock_atual} {p.unidade}</span>
-                          <span className="block text-[10px] text-[#45474c]">mín. {p.stock_minimo}</span>
+                          {p.controla_stock === false ? (
+                            <span className="text-[#45474c]">—</span>
+                          ) : (
+                            <>
+                              <span className={`font-semibold ${p.abaixo_minimo ? 'text-red-600' : 'text-[#091426]'}`}>{p.stock_atual} {p.unidade}</span>
+                              <span className="block text-[10px] text-[#45474c]">mín. {p.stock_minimo}</span>
+                            </>
+                          )}
                         </td>
                         <td className="hidden lg:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 text-[#45474c]">{formatKz(p.preco_custo)}</td>
                         <td className="hidden sm:table-cell px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3 font-medium text-[#091426]">{formatKz(p.valor_total)}</td>
                         <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
-                          <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${p.abaixo_minimo ? 'bg-amber-50 text-amber-700' : 'bg-[#006c49]/10 text-[#006c49]'}`}>
-                            {p.abaixo_minimo ? 'Repor' : 'Disponível'}
-                          </span>
+                          {p.controla_stock === false ? (
+                            <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">Sem stock</span>
+                          ) : (
+                            <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${p.abaixo_minimo ? 'bg-amber-50 text-amber-700' : 'bg-[#006c49]/10 text-[#006c49]'}`}>
+                              {p.abaixo_minimo ? 'Repor' : 'Disponível'}
+                            </span>
+                          )}
                         </td>
-                        {isAdmin && (
+                        {podeGerir && (
                           <td className="px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-3">
                             <div className="flex items-center justify-end gap-1">
-                              <button onClick={() => setModalMovimento({ produto_id: p.id, tipo: 'entrada' })} title="Registar entrada" className="rounded-lg p-1.5 text-[#006c49] hover:bg-[#006c49]/10"><ArrowDownToLine className="size-3.5 sm:size-4" /></button>
-                              <button onClick={() => setModalMovimento({ produto_id: p.id, tipo: 'saida' })} title="Registar saída" className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"><ArrowUpFromLine className="size-3.5 sm:size-4" /></button>
+                              {p.controla_stock !== false && (
+                                <>
+                                  <button onClick={() => setModalMovimento({ produto: p, tipo: 'entrada' })} title="Registar entrada" className="rounded-lg p-1.5 text-[#006c49] hover:bg-[#006c49]/10"><ArrowDownToLine className="size-3.5 sm:size-4" /></button>
+                                  <button onClick={() => setModalMovimento({ produto: p, tipo: 'saida' })} title="Registar saída" className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"><ArrowUpFromLine className="size-3.5 sm:size-4" /></button>
+                                </>
+                              )}
                               <button onClick={() => setModalProduto(p)} title="Editar" className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50"><Edit className="size-3.5 sm:size-4" /></button>
                               <button onClick={() => onDeleteProduto(p)} title="Eliminar" className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"><Trash2 className="size-3.5 sm:size-4" /></button>
                             </div>
@@ -439,48 +448,13 @@ export default function EstoqueTab({ produtos, movimentos, requisicoes, resumo, 
 
       {modalProduto && (
         <ModalEstoque title={modalProduto.id ? 'Editar Produto' : 'Novo Produto'} onClose={() => setModalProduto(null)} onSubmit={(dados) => guardarProduto(dados, modalProduto.id)} isLoading={loading}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="sm:col-span-2"><label className="text-xs sm:text-sm font-medium text-gray-700">Nome *</label><input name="nome" defaultValue={modalProduto.nome} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Código</label><input name="codigo" defaultValue={modalProduto.codigo || ''} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Categoria</label><input name="categoria" defaultValue={modalProduto.categoria || ''} placeholder="Material de escrita" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Unidade</label><select name="unidade" defaultValue={modalProduto.unidade || 'un'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="un">un</option><option value="resma">resma</option><option value="pacote">pacote</option><option value="caixa">caixa</option><option value="litro">litro</option><option value="kg">kg</option><option value="metro">metro</option><option value="jogo">jogo</option></select></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Preço de custo (Kz)</label><input type="number" step="0.01" min="0" name="preco_custo" defaultValue={modalProduto.preco_custo || ''} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Stock mínimo</label><input type="number" min="0" name="stock_minimo" defaultValue={modalProduto.stock_minimo ?? 0} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
-            {!modalProduto.id && (
-              <div><label className="text-xs sm:text-sm font-medium text-gray-700">Stock inicial</label><input type="number" min="0" name="stock_atual" defaultValue={0} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
-            )}
-            <div className="sm:col-span-2"><label className="text-xs sm:text-sm font-medium text-gray-700">Localização</label><input name="localizacao" defaultValue={modalProduto.localizacao || ''} placeholder="Armazém A" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
-            <div className="sm:col-span-2"><label className="text-xs sm:text-sm font-medium text-gray-700">Observação</label><textarea name="observacao" defaultValue={modalProduto.observacao || ''} rows="2" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
-          </div>
+          <ProductForm produto={modalProduto} />
         </ModalEstoque>
       )}
 
       {modalMovimento && (
-        <ModalEstoque title="Registar Movimento" onClose={() => setModalMovimento(null)} onSubmit={(dados) => guardarMovimento(dados)} isLoading={loading}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="sm:col-span-2">
-              <label className="text-xs sm:text-sm font-medium text-gray-700">Produto *</label>
-              <select name="produto_id" defaultValue={modalMovimento.produto_id || ''} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required>
-                <option value="">Seleccionar produto</option>
-                {(produtos || []).map(p => <option key={p.id} value={p.id}>{p.nome} (stock: {p.stock_atual} {p.unidade})</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs sm:text-sm font-medium text-gray-700">Tipo *</label>
-              <select name="tipo" defaultValue={modalMovimento.tipo || 'entrada'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900">
-                <option value="entrada">Entrada</option>
-                <option value="saida">Saída</option>
-                <option value="devolucao">Devolução</option>
-                <option value="perda">Perda</option>
-                <option value="ajuste">Ajuste de inventário</option>
-              </select>
-            </div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Quantidade *</label><input type="number" min="1" name="quantidade" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Preço unitário (Kz)</label><input type="number" step="0.01" min="0" name="preco_unitario" placeholder="do produto" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
-            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data</label><input type="date" name="data_movimento" defaultValue={new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
-            <div className="sm:col-span-2"><label className="text-xs sm:text-sm font-medium text-gray-700">Motivo</label><input name="motivo" placeholder="Compra mensal, uso interno, perda..." className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
-            <div className="sm:col-span-2"><label className="text-xs sm:text-sm font-medium text-gray-700">Documento</label><input name="documento" placeholder="FT-001, factura..." className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
-          </div>
+        <ModalEstoque title={modalMovimento.tipo === 'entrada' ? 'Registar Entrada' : 'Registar Saída'} onClose={() => setModalMovimento(null)} onSubmit={(dados) => guardarMovimento(dados)} isLoading={loading}>
+          <MovimentoForm produto={modalMovimento.produto} tipo={modalMovimento.tipo} produtos={produtos} />
         </ModalEstoque>
       )}
 
@@ -535,6 +509,66 @@ export default function EstoqueTab({ produtos, movimentos, requisicoes, resumo, 
   )
 }
 
+function ProductForm({ produto }) {
+  const [controlaStock, setControlaStock] = useState(produto ? produto.controla_stock !== false : true)
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      <div className="sm:col-span-2"><label className="text-xs sm:text-sm font-medium text-gray-700">Nome *</label><input name="nome" defaultValue={produto?.nome || ''} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
+      <div><label className="text-xs sm:text-sm font-medium text-gray-700">Código</label><input name="codigo" defaultValue={produto?.codigo || ''} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+      <div><label className="text-xs sm:text-sm font-medium text-gray-700">Categoria</label><input name="categoria" defaultValue={produto?.categoria || ''} placeholder="Material de escrita" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+      <div><label className="text-xs sm:text-sm font-medium text-gray-700">Unidade</label><select name="unidade" defaultValue={produto?.unidade || 'un'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900"><option value="un">un</option><option value="resma">resma</option><option value="pacote">pacote</option><option value="caixa">caixa</option><option value="litro">litro</option><option value="kg">kg</option><option value="metro">metro</option><option value="jogo">jogo</option></select></div>
+      <div><label className="text-xs sm:text-sm font-medium text-gray-700">Preço de custo (Kz)</label><input type="number" step="0.01" min="0" name="preco_custo" defaultValue={produto?.preco_custo || ''} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+      <div className="sm:col-span-2">
+        <input type="hidden" name="controla_stock" value={controlaStock ? 'true' : 'false'} />
+        <label className="flex items-center gap-2 rounded-lg border border-[#c5c6cd] bg-[#f7f9fb] px-3 py-2.5 cursor-pointer">
+          <input type="checkbox" checked={controlaStock} onChange={(e) => setControlaStock(e.target.checked)} className="size-4 accent-[#006c49]" />
+          <span className="text-xs sm:text-sm text-gray-700">Este produto <strong>movimenta (controla) estoque</strong></span>
+        </label>
+        {!controlaStock && <p className="mt-1 text-[10px] sm:text-xs text-[#45474c]">Sem controlo de stock: n&atilde;o gera movimentos nem pode ser requisitado.</p>}
+      </div>
+      {controlaStock && (
+        <>
+          <div><label className="text-xs sm:text-sm font-medium text-gray-700">Stock mínimo</label><input type="number" min="0" name="stock_minimo" defaultValue={produto?.stock_minimo ?? 0} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+          {!produto?.id && (
+            <div><label className="text-xs sm:text-sm font-medium text-gray-700">Stock inicial</label><input type="number" min="0" name="stock_atual" defaultValue={0} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+          )}
+        </>
+      )}
+      <div className="sm:col-span-2"><label className="text-xs sm:text-sm font-medium text-gray-700">Localização</label><input name="localizacao" defaultValue={produto?.localizacao || ''} placeholder="Armazém A" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+      <div className="sm:col-span-2"><label className="text-xs sm:text-sm font-medium text-gray-700">Observação</label><textarea name="observacao" defaultValue={produto?.observacao || ''} rows="2" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+    </div>
+  )
+}
+
+function MovimentoForm({ produto, tipo, produtos }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      <input type="hidden" name="produto_id" value={produto?.id || ''} />
+      <input type="hidden" name="tipo" value={tipo || 'entrada'} />
+      <div className="sm:col-span-2">
+        <label className="text-xs sm:text-sm font-medium text-gray-700">Produto *</label>
+        {produto ? (
+          <p className="mt-1 rounded-lg border border-gray-300 bg-[#f7f9fb] px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900">
+            {produto.nome} <span className="text-[#45474c]">(stock atual: {produto.stock_atual} {produto.unidade})</span>
+          </p>
+        ) : (
+          <select name="produto_id" defaultValue="" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required>
+            <option value="">Seleccionar produto</option>
+            {(produtos || []).filter(p => p.controla_stock !== false).map(p => <option key={p.id} value={p.id}>{p.nome} (stock: {p.stock_atual} {p.unidade})</option>)}
+          </select>
+        )}
+      </div>
+      <div><label className="text-xs sm:text-sm font-medium text-gray-700">Tipo *</label><p className="mt-1 rounded-lg border border-gray-300 bg-[#f7f9fb] px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-[#006c49] capitalize">{tipo === 'entrada' ? 'Entrada' : 'Saída'}</p></div>
+      <div><label className="text-xs sm:text-sm font-medium text-gray-700">Quantidade *</label><input type="number" min="1" name="quantidade" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" required /></div>
+      {tipo === 'entrada' && <div><label className="text-xs sm:text-sm font-medium text-gray-700">Preço unitário (Kz)</label><input type="number" step="0.01" min="0" name="preco_unitario" placeholder="do produto" className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>}
+      <div><label className="text-xs sm:text-sm font-medium text-gray-700">Data</label><input type="date" name="data_movimento" defaultValue={new Date().toISOString().split('T')[0]} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+      <div className="sm:col-span-2"><label className="text-xs sm:text-sm font-medium text-gray-700">Motivo</label><input name="motivo" placeholder={tipo === 'entrada' ? 'Compra, recebimento, stock inicial...' : 'Uso interno, venda, consumo...'} className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+      <div className="sm:col-span-2"><label className="text-xs sm:text-sm font-medium text-gray-700">Documento</label><input name="documento" placeholder="FT-001, factura..." className="mt-1 w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-900" /></div>
+    </div>
+  )
+}
+
 function RequisicaoForm({ produtos, valorInicial, onSubmit, onCancel }) {
   const [tipo, setTipo] = useState('material')
   const [setor, setSetor] = useState('')
@@ -573,7 +607,7 @@ function RequisicaoForm({ produtos, valorInicial, onSubmit, onCancel }) {
         <div className="flex flex-col sm:flex-row gap-2">
           <select value={produtoSel} onChange={(e) => setProdutoSel(e.target.value)} className="flex-1 rounded-lg border border-gray-300 px-2 py-1.5 text-xs sm:text-sm">
             <option value="">Seleccionar produto</option>
-            {(produtos || []).filter(p => p.ativo).map(p => <option key={p.id} value={p.id}>{p.nome} (disponível: {p.stock_atual} {p.unidade})</option>)}
+            {(produtos || []).filter(p => p.ativo && p.controla_stock !== false).map(p => <option key={p.id} value={p.id}>{p.nome} (disponível: {p.stock_atual} {p.unidade})</option>)}
           </select>
           <input type="number" min="1" value={qtd} onChange={(e) => setQtd(e.target.value)} className="w-full sm:w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-xs sm:text-sm" />
           <button onClick={adicionar} className="rounded-lg bg-[#006c49] px-3 py-1.5 text-xs sm:text-sm font-medium text-white hover:bg-[#006c49]/90"><Plus className="size-3.5 inline" /> Adicionar</button>
